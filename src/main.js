@@ -66,28 +66,6 @@ const FDODBusIntrospectableIface = '\
   </interface> \
 </node>';
 
-const GrandCentralMainWindow = new Lang.Class({
-    Name: 'GrandCentralMainWindow',
-    Extends: Gtk.ApplicationWindow,
-    Properties: {
-    },
-    Template: 'resource:///com/endlessm/GrandCentral/main.ui',
-    Children: [
-    ],
-
-    _init: function(params) {
-        this.parent(params);
-    },
-});
-
-function load_style_sheet(resourcePath) {
-    let provider = new Gtk.CssProvider();
-    provider.load_from_resource(resourcePath);
-    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
-                                             provider,
-                                             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-}
-
 function childPath(parentPath, childNodePath) {
     if (parentPath === "/") {
         return parentPath + childNodePath;
@@ -233,6 +211,101 @@ function makeInterfaceProxiesForObjects(connection,
     });
 }
 
+const GrandCentralCardStore = new Lang.Class({
+    Name: 'GrandCentralCardStore',
+    Extends: GObject.Object,
+    Properties: {
+        'title': GObject.ParamSpec.string('title',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          '')
+    },
+
+    _init: function(params) {
+        this.parent(params);
+    }
+});
+
+const GrandCentralCard = new Lang.Class({
+    Name: 'GrandCentralCard',
+    Extends: Gtk.ListBoxRow,
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          GrandCentralCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this.add(new Gtk.Label({
+            visible: true,
+            label: this.model.title
+        }));
+    }
+});
+
+const GrandCentralMainWindow = new Lang.Class({
+    Name: 'GrandCentralMainWindow',
+    Extends: Gtk.ApplicationWindow,
+    Properties: {
+        'card-model': GObject.ParamSpec.object('card-model',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               Gio.ListModel)
+    },
+    Template: 'resource:///com/endlessm/GrandCentral/main.ui',
+    Children: [
+        'cards'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+        this.cards.bind_model(this.card_model, function(card_store) {
+            return new GrandCentralCard({
+                model: card_store
+            });
+        });
+    },
+});
+
+function load_style_sheet(resourcePath) {
+    let provider = new Gtk.CssProvider();
+    provider.load_from_resource(resourcePath);
+    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
+                                             provider,
+                                             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+}
+
+function populateGrandCentralModelFromQueries(model, proxies) {
+    let remaining = proxies.length;
+    model.remove_all();
+
+    proxies.forEach(function(proxy) {
+        proxy.ContentQueryRemote('hello', function(results, error) {
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            results.forEach(function(string) {
+                let response = JSON.parse(string);
+                response.forEach(function(entry) {
+                    model.append(new GrandCentralCardStore({
+                        title: entry.title
+                    }));
+                });
+            });
+        });
+    });
+}
+
 const GrandCentralApplication = new Lang.Class({
     Name: 'GrandCentralApplication',
     Extends: Gtk.Application,
@@ -243,6 +316,9 @@ const GrandCentralApplication = new Lang.Class({
         this.Visible = false;
         this._changedSignalId = 0;
         this._grandCentralProxies = [];
+        this._grandCentralCardModel = new Gio.ListStore({
+            item_type: GrandCentralCardStore.$gtype
+        });
     },
 
     vfunc_startup: function() {
@@ -254,7 +330,8 @@ const GrandCentralApplication = new Lang.Class({
         this._window = new GrandCentralMainWindow({
             application: this,
             type_hint: Gdk.WindowTypeHint.DOCK,
-            role: SIDE_COMPONENT_ROLE
+            role: SIDE_COMPONENT_ROLE,
+            card_model: this._grandCentralCardModel
         });
 
         this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
@@ -313,6 +390,9 @@ const GrandCentralApplication = new Lang.Class({
     show: function(timestamp) {
         this._window.show();
         this._window.present_with_time(timestamp);
+
+        populateGrandCentralModelFromQueries(this._grandCentralCardModel,
+                                             this._grandCentralProxies);
     },
 
     hide: function() {
