@@ -228,6 +228,111 @@ findDBusObjectsWithInterface(connection, 'com.endlessm.GrandCentralContent', Lan
 
 */
 
+//
+// readGrandCentralProvidersInDirectory
+//
+// Read all the grand central providers in a directory, calling
+// done with an array of all providers when they have been read in.
+//
+// @param {object.Gio.File} directory - The directory to enumerate.
+// @param {function} done - The function to call with a list of providers
+//                          when done.
+function readGrandCentralProvidersInDirectory(directory) {
+    let enumerator = null;
+    let info = null;
+    let providerBusDescriptors = [];
+
+    try {
+        enumerator = directory.enumerate_children('standard::*',
+                                                  Gio.FileQueryInfoFlags.NONE,
+                                                  null);
+    } catch (e) {
+        if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
+            return providerBusDescriptors;
+        }
+
+        throw e;
+    }
+
+    while ((info = enumerator.next_file(null))) {
+        let file = Gio.File.new_for_path(GLib.build_filenamev([
+            directory.get_path(),
+            info.get_name()
+        ]));
+
+        let keyFile = new GLib.KeyFile();
+        keyFile.load_from_file(file.get_path(), GLib.KeyFileFlags.NONE);
+
+        if (!keyFile.has_group('GrandCentralContentProvider')) {
+            log('Key file ' + file.get_path() + ' does not have a section called GrandCentralContentProvider, ignored');
+            continue;
+        }
+
+        let keys = keyFile.get_keys('GrandCentralContentProvider')[0];
+        let requiredKeys = ['path', 'name'];
+
+        let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
+        if (notFoundKeys.length) {
+            log('Key file ' + file.get_path() + ' does not have keys ' + notFoundKeys.join(', ') + ', ignoring');
+            continue;
+        }
+
+        providerBusDescriptors.push({
+            path: keyFile.get_string('GrandCentralContentProvider', 'path'),
+            name: keyFile.get_string('GrandCentralContentProvider', 'name')
+        });
+    }
+
+    return providerBusDescriptors;
+}
+
+function readGrandCentralProvidersInDataDirectories(directory) {
+    let directories = GLib.getenv('XDG_DATA_DIRS').split(':');
+    return directories.reduce((allProviders, directory) => {
+        let path = Gio.File.new_for_path(GLib.build_filenamev([
+            directory,
+            'com.endlessm.GrandCentral',
+            'ContentProviders'
+        ]));
+        Array.prototype.push.apply(allProviders,
+                                   readGrandCentralProvidersInDirectory(path));
+        return allProviders;
+    }, []);
+}
+
+function instantiateObjectsFromGrandCentralProviders(connection,
+                                                     interfaceName,
+                                                     providers,
+                                                     done) {
+    let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(GrandCentralContentIface);
+    let remaining = providers.length;
+
+    let onProxyReady = function(initable, error, objectPath, name) {
+        remaining--;
+
+        if (error) {
+            logError(error, 'Could not create proxy for ' + interfaceName +
+                            ' at ' + objectPath + ' on bus name ' + name);
+            return;
+        }
+
+        log('Created Grand Central proxy for ' + objectPath);
+
+        if (remaining < 1) {
+            done(proxies);
+        }
+    };
+
+    let proxies = providers.map(provider => interfaceWrapper(connection,
+                                                             provider.name,
+                                                             provider.path,
+                                                             Lang.bind(this,
+                                                                       onProxyReady,
+                                                                       provider.path,
+                                                                       provider.name),
+                                                             null));
+}
+
 const GrandCentralCardStore = new Lang.Class({
     Name: 'GrandCentralCardStore',
     Extends: GObject.Object,
@@ -388,14 +493,14 @@ const GrandCentralApplication = new Lang.Class({
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(GrandCentralIface, this);
         this._dbusImpl.export(Gio.DBus.session, path);
 
-        findDBusObjectsWithInterface(connection, 'com.endlessm.GrandCentralContent', Lang.bind(this, function(discoveredObjects) {
-            makeInterfaceProxiesForObjects(connection,
-                                           Gio.DBusProxy.makeProxyWrapper(GrandCentralContentIface),
-                                           discoveredObjects,
-                                           Lang.bind(this, function(proxies) {
-                Array.prototype.push.apply(this._grandCentralProxies, proxies);
-            }));
-        }));
+        let providers = readGrandCentralProvidersInDataDirectories();
+        let onProxiesInstantiated = Lang.bind(this, function(proxies) {
+            Array.prototype.push.apply(this._grandCentralProxies, proxies);
+        });
+        instantiateObjectsFromGrandCentralProviders(connection,
+                                                    'com.endlessm.GrandCentralContent',
+                                                    providers,
+                                                    onProxiesInstantiated);
 
         return this.parent(connection, path);
     },
