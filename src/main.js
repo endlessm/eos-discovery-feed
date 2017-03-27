@@ -266,7 +266,8 @@ const GrandCentralApplication = new Lang.Class({
         // which can lead to the sidebar never been displayed.
         this._window.connect('map-event', Lang.bind(this, function() {
             if (!this._changedSignalId) {
-                this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed', Lang.bind(this, this._on_active_window_changed));
+                this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed',
+                                                                          Lang.bind(this, this._on_active_window_changed));
             }
             return false;
         }));
