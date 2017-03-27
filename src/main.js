@@ -28,15 +28,18 @@ const GRAND_CENTRAL_PATH = '/com/endlessm/GrandCentral';
 const GRAND_CENTRAL_IFACE = 'com.endlessm.GrandCentral.View';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
-const GrandCentralIface = '<node><interface name="' + GRAND_CENTRAL_NAME + '">' +
-  '<method name="show">' +
-    '<arg type="u" direction="in" name="timestamp"/>' +
-  '</method>' +
-  '<method name="hide">' +
-    '<arg type="u" direction="in" name="timestamp"/>' +
-  '</method>' +
-  '<property name="Visible" type="b" access="read"/>' +
-'</interface></node>';
+const GrandCentralIface = '\
+<node> \
+  <interface name="' + GRAND_CENTRAL_NAME + '">  \
+    <method name="show">  \
+      <arg type="u" direction="in" name="timestamp"/>  \
+    </method>  \
+    <method name="hide"> \
+      <arg type="u" direction="in" name="timestamp"/> \
+    </method> \
+    <property name="Visible" type="b" access="read"/> \
+  </interface> \
+</node>';
 
 const GrandCentralContentIface = '\
 <node> \
