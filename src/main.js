@@ -51,6 +51,8 @@ const GrandCentralContentIface = '\
   </interface> \
 </node>';
 
+/*
+
 const FDODBusIface = '\
 <node> \
   <interface name="org.freedesktop.DBus"> \
@@ -213,6 +215,18 @@ function makeInterfaceProxiesForObjects(connection,
                                       null));
     });
 }
+
+
+findDBusObjectsWithInterface(connection, 'com.endlessm.GrandCentralContent', Lang.bind(this, function(discoveredObjects) {
+    makeInterfaceProxiesForObjects(connection,
+                                   Gio.DBusProxy.makeProxyWrapper(GrandCentralContentIface),
+                                   discoveredObjects,
+                                   Lang.bind(this, function(proxies) {
+        Array.prototype.push.apply(this._grandCentralProxies, proxies);
+    }));
+}));
+
+*/
 
 const GrandCentralCardStore = new Lang.Class({
     Name: 'GrandCentralCardStore',
