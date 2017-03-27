@@ -55,28 +55,28 @@ const GrandCentralContentIface = '\
 
 const FDODBusIface = '\
 <node> \
-  <interface name="org.freedesktop.DBus"> \
-    <method name="ListNames"> \
-      <arg type="as" direction="out" /> \
+  <interface name='org.freedesktop.DBus'> \
+    <method name='ListNames'> \
+      <arg type='as' direction='out' /> \
     </method> \
   </interface> \
 </node>';
 
 const FDODBusIntrospectableIface = '\
 <node> \
-  <interface name="org.freedesktop.DBus.Introspectable"> \
-    <method name="Introspect"> \
-      <arg type="s" direction="out" /> \
+  <interface name='org.freedesktop.DBus.Introspectable'> \
+    <method name='Introspect'> \
+      <arg type='s' direction='out' /> \
     </method> \
   </interface> \
 </node>';
 
 function childPath(parentPath, childNodePath) {
-    if (parentPath === "/") {
+    if (parentPath === '/') {
         return parentPath + childNodePath;
     }
 
-    return [parentPath, childNodePath].join("/");
+    return [parentPath, childNodePath].join('/');
 }
 
 function findDBusObjectsWithInterfaceAtPath(connection, name, objectPath, interfaceName, done) {
@@ -169,7 +169,7 @@ function findDBusObjectsWithInterface(connection, interfaceName, done) {
             //
             // For now, filter to endlessm objects to save time traversing
             // the entire object tree, though this may change in future.
-            names = names[0].filter(n => n.indexOf("endlessm") !== -1);
+            names = names[0].filter(n => n.indexOf('endlessm') !== -1);
             remaining = names.length;
             names.forEach(function(name) {
                 findDBusObjectsWithInterfaceAtPath(connection,
