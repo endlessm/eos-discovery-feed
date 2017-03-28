@@ -434,7 +434,7 @@ const GrandCentralApplication = new Lang.Class({
 
     _init: function() {
         this.parent({ application_id: pkg.name });
-        GLib.set_application_name(_("Grand Central"));
+        GLib.set_application_name(_('Grand Central'));
         this.Visible = false;
         this._changedSignalId = 0;
         this._grandCentralProxies = [];
