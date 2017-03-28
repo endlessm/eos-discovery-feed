@@ -269,7 +269,7 @@ function readGrandCentralProvidersInDirectory(directory) {
         }
 
         let keys = keyFile.get_keys('GrandCentralContentProvider')[0];
-        let requiredKeys = ['path', 'name'];
+        let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName'];
 
         let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
         if (notFoundKeys.length) {
@@ -278,8 +278,8 @@ function readGrandCentralProvidersInDirectory(directory) {
         }
 
         providerBusDescriptors.push({
-            path: keyFile.get_string('GrandCentralContentProvider', 'path'),
-            name: keyFile.get_string('GrandCentralContentProvider', 'name')
+            path: keyFile.get_string('GrandCentralContentProvider', 'ObjectPath'),
+            name: keyFile.get_string('GrandCentralContentProvider', 'BusName')
         });
     }
 
