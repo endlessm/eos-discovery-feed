@@ -48,6 +48,9 @@ const GrandCentralContentIface = '\
       <arg type="s" name="Query" direction="in" /> \
       <arg type="s" name="Result" direction="out" /> \
     </method> \
+    <method name="QueryNotifications"> \
+      <arg name="notifications" direction="out" type="aa{ss}" /> \
+    </method> \
   </interface> \
 </node>';
 
@@ -423,6 +426,21 @@ function populateGrandCentralModelFromQueries(model, proxies) {
                         title: entry.title
                     }));
                 });
+            });
+        });
+
+        proxy.QueryNotificationsRemote(function(results, error) {
+            if (error) {
+                logError(error, 'Failed to execute Notifications query');
+                return;
+            }
+
+            let [entries] = results;
+
+            entries.forEach(function(entry) {
+                model.append(new GrandCentralCardStore({
+                    title: entry.title
+                }));
             });
         });
     });
