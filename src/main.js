@@ -412,7 +412,7 @@ function populateGrandCentralModelFromQueries(model, proxies) {
     proxies.forEach(function(proxy) {
         proxy.ContentQueryRemote('hello', function(results, error) {
             if (error) {
-                console.error(error);
+                logError(error, 'Failed to execute Grand Central query');
                 return;
             }
 
