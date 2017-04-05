@@ -37,8 +37,8 @@
 
 .header .date {
   font-size: 18px;
-  font-family: 'Serif';
-  text-transform: uppercase;
+  font-family: 'Lato';
+  color: #5b8291
 }
 
 button .close {
