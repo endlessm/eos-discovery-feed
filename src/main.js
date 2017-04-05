@@ -211,6 +211,12 @@ const GrandCentralCardStore = new Lang.Class({
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           ''),
+        'synopsis': GObject.ParamSpec.string('synopsis',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             ''),
         'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
                                                   '',
                                                   '',
@@ -249,12 +255,14 @@ const GrandCentralCard = new Lang.Class({
     Template: 'resource:///com/endlessm/GrandCentral/content-card.ui',
     Children: [
         'title-label',
+        'synopsis-label',
         'background-content'
     ],
 
     _init: function(params) {
         this.parent(params);
         this.title_label.label = this.model.title
+        this.synopsis_label.label = this.model.synopsis;
 
         let contentBackgroundProvider = new Gtk.CssProvider();
         let contentBackgroundStyleContext = this.background_content.get_style_context();
@@ -323,6 +331,7 @@ function populateGrandCentralModelFromQueries(model, proxies) {
                     response.forEach(function(entry) {
                         model.append(new GrandCentralCardStore({
                             title: entry.title,
+                            synopsis: entry.synopsis,
                             thumbnail_uri: entry.thumbnail_uri
                         }));
                     });
