@@ -267,7 +267,8 @@ const GrandCentralCard = new Lang.Class({
         let contentBackgroundProvider = new Gtk.CssProvider();
         let contentBackgroundStyleContext = this.background_content.get_style_context();
         let [className, backgroundCss] = CSSAllocator({
-            background_image: 'url("' + this.model.thumbnail_uri +'")'
+            background_image: 'url("' + this.model.thumbnail_uri +'")',
+            background_size: 'cover'
         });
         contentBackgroundProvider.load_from_data(backgroundCss);
         contentBackgroundStyleContext.add_class(className);
