@@ -66,7 +66,7 @@
               <class name="footer"/>
             </style>
             <child>
-              <object class="GtkButton" id="dismiss_button">
+              <object class="GtkButton" id="dismiss-button">
                 <property name="visible">True</property>
                 <property name="hexpand">True</property>
                 <property name="label">Dismiss</property>
