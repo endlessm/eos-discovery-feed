@@ -133,16 +133,16 @@ function readGrandCentralProvidersInDirectory(directory) {
     return providerBusDescriptors;
 }
 
-function readGrandCentralProvidersInDataDirectories(directory) {
-    let directories = GLib.getenv('XDG_DATA_DIRS').split(':');
-    return directories.reduce((allProviders, directory) => {
-        let path = Gio.File.new_for_path(GLib.build_filenamev([
+function readGrandCentralProvidersInDataDirectories() {
+    let dataDirectories = GLib.get_system_data_dirs();
+    return dataDirectories.reduce((allProviders, directory) => {
+        let dir = Gio.File.new_for_path(GLib.build_filenamev([
             directory,
             'com.endlessm.GrandCentral',
             'ContentProviders'
         ]));
         Array.prototype.push.apply(allProviders,
-                                   readGrandCentralProvidersInDirectory(path));
+                                   readGrandCentralProvidersInDirectory(dir));
         return allProviders;
     }, []);
 }
