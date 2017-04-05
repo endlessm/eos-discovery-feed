@@ -1,0 +1,13 @@
+.content .title {
+  font-size: 22pt;
+  font-family: 'Serif';
+}
+
+.content .preview {
+  margin: 10px;
+  border-radius: 4px;
+}
+
+.content .article {
+  margin: 10px;
+}

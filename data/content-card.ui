@@ -29,9 +29,15 @@
             <property name="vexpand">True</property>
             <property name="valign">fill</property>
             <property name="orientation">vertical</property>
+            <style>
+              <class name="article"/>
+            </style>
             <child>
               <object class="GtkLabel" id="title-label">
                 <property name="visible">True</property>
+                <property name="hexpand">True</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
                 <style>
                   <class name="title"/>
                 </style>
