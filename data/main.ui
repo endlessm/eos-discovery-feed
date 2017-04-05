@@ -12,11 +12,22 @@
         <property name="valign">fill</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkListBox" id="cards">
+          <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="vexpand">True</property>
-            <property name="valign">fill</property>
-            <property name="selection-mode">none</property>
+            <property name="orientation">vertical</property>
+            <property name="hexpand">True</property>
+            <property name="halign">fill</property>
+            <style>
+              <class name="content-list-container"/>
+            </style>
+            <child>
+              <object class="GtkListBox" id="cards">
+                <property name="visible">True</property>
+                <property name="vexpand">True</property>
+                <property name="valign">fill</property>
+                <property name="selection-mode">none</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
