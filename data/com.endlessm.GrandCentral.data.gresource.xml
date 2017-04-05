@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/com/endlessm/GrandCentral">
     <file preprocess="xml-stripblanks">main.ui</file>
+    <file preprocess="xml-stripblanks">content-card.ui</file>
     <file>application.css</file>
   </gresource>
 </gresources>

@@ -353,6 +353,19 @@ const GrandCentralCardStore = new Lang.Class({
     }
 });
 
+const CSSAllocator = (function() {
+    let counter = 0;
+    return function(properties) {
+        let class_name = 'themed-widget-' + counter++;
+        return [class_name, '.' + class_name + ' { ' +
+        Object.keys(properties).map(function(key) {
+            return key.replace('_', '-') + ': ' + properties[key] + ';';
+        }).join(' ') + ' }'];
+    };
+})();
+
+const AVAILABLE_COLORS = ['black', 'blue', 'green', 'purple', 'orange'];
+
 const GrandCentralCard = new Lang.Class({
     Name: 'GrandCentralCard',
     Extends: Gtk.ListBoxRow,
@@ -364,13 +377,28 @@ const GrandCentralCard = new Lang.Class({
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           GrandCentralCardStore.$gtype)
     },
+    Template: 'resource:///com/endlessm/GrandCentral/content-card.ui',
+    Children: [
+        'title-label',
+        'background-content'
+    ],
 
     _init: function(params) {
         this.parent(params);
-        this.add(new Gtk.Label({
-            visible: true,
-            label: this.model.title
-        }));
+        this.title_label.label = this.model.title
+
+        let colorIndex = Math.floor((Math.random() * 10) % AVAILABLE_COLORS.length);
+
+        let contentBackgroundProvider = new Gtk.CssProvider();
+        let contentBackgroundStyleContext = this.background_content.get_style_context();
+        let [className, backgroundCss] = CSSAllocator({
+            background_color: AVAILABLE_COLORS[colorIndex]
+        });
+        contentBackgroundProvider.load_from_data(backgroundCss);
+        contentBackgroundStyleContext.add_class(className);
+        contentBackgroundStyleContext.add_provider(contentBackgroundProvider,
+                                      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
     }
 });
 
