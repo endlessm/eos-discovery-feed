@@ -45,9 +45,8 @@ const GrandCentralIface = '\
 const GrandCentralContentIface = '\
 <node> \
   <interface name="com.endlessm.GrandCentralContent"> \
-    <method name="ContentQuery"> \
-      <arg type="s" name="Query" direction="in" /> \
-      <arg type="s" name="Result" direction="out" /> \
+    <method name="ArticleCardDescriptions"> \
+      <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
     <method name="QueryNotifications"> \
       <arg name="notifications" direction="out" type="aa{ss}" /> \
@@ -482,15 +481,14 @@ function populateGrandCentralModelFromQueries(model, proxies) {
     model.remove_all();
 
     proxies.forEach(function(proxy) {
-        proxy.ContentQueryRemote('hello', function(results, error) {
+        proxy.ArticleCardDescriptionsRemote(function(results, error) {
             if (error) {
                 logError(error, 'Failed to execute Grand Central query');
                 return;
             }
 
-            results.forEach(function(string) {
+            results.forEach(function(response) {
                 try {
-                    let response = JSON.parse(string);
                     response.forEach(function(entry) {
                         model.append(new GrandCentralCardStore({
                             title: entry.title,
