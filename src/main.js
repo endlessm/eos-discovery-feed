@@ -380,7 +380,13 @@ const GrandCentralCardStore = new Lang.Class({
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          '')
+                                          ''),
+        'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  '')
     },
 
     _init: function(params) {
@@ -398,8 +404,6 @@ const CSSAllocator = (function() {
         }).join(' ') + ' }'];
     };
 })();
-
-const AVAILABLE_COLORS = ['black', 'blue', 'green', 'purple', 'orange'];
 
 const GrandCentralCard = new Lang.Class({
     Name: 'GrandCentralCard',
@@ -422,12 +426,10 @@ const GrandCentralCard = new Lang.Class({
         this.parent(params);
         this.title_label.label = this.model.title
 
-        let colorIndex = Math.floor((Math.random() * 10) % AVAILABLE_COLORS.length);
-
         let contentBackgroundProvider = new Gtk.CssProvider();
         let contentBackgroundStyleContext = this.background_content.get_style_context();
         let [className, backgroundCss] = CSSAllocator({
-            background_color: AVAILABLE_COLORS[colorIndex]
+            background_image: 'url("' + this.model.thumbnail_uri +'")'
         });
         contentBackgroundProvider.load_from_data(backgroundCss);
         contentBackgroundStyleContext.add_class(className);
