@@ -48,9 +48,6 @@ const GrandCentralContentIface = '\
     <method name="ArticleCardDescriptions"> \
       <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
-    <method name="QueryNotifications"> \
-      <arg name="notifications" direction="out" type="aa{ss}" /> \
-    </method> \
   </interface> \
 </node>';
 
@@ -498,21 +495,6 @@ function populateGrandCentralModelFromQueries(model, proxies) {
                 } catch (e) {
                     logError(e, 'Could not parse response');
                 }
-            });
-        });
-
-        proxy.QueryNotificationsRemote(function(results, error) {
-            if (error) {
-                logError(error, 'Failed to execute Notifications query');
-                return;
-            }
-
-            let [entries] = results;
-
-            entries.forEach(function(entry) {
-                model.append(new GrandCentralCardStore({
-                    title: entry.title
-                }));
             });
         });
     });
