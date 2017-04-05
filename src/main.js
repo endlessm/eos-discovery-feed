@@ -133,7 +133,11 @@ function readGrandCentralProvidersInDirectory(directory) {
             knowledgeAppId: maybeGetKeyfileString(keyFile,
                                                   GRAND_CENTRAL_SECTION_NAME,
                                                   'AppID',
-                                                  null)
+                                                  null),
+            desktopFileId: maybeGetKeyfileString(keyFile,
+                                                 GRAND_CENTRAL_SECTION_NAME,
+                                                 'DesktopId',
+                                                 null),
         });
     }
 
@@ -191,14 +195,17 @@ function instantiateObjectsFromGrandCentralProviders(connection,
         }
     };
 
-    let proxies = providers.map(provider => interfaceWrapper(connection,
-                                                             provider.name,
-                                                             provider.path,
-                                                             Lang.bind(this,
-                                                                       onProxyReady,
-                                                                       provider.path,
-                                                                       provider.name),
-                                                             null));
+    let proxies = providers.map(provider => ({
+        iface: interfaceWrapper(connection,
+                                provider.name,
+                                provider.path,
+                                Lang.bind(this,
+                                          onProxyReady,
+                                          provider.path,
+                                          provider.name),
+                                null),
+        desktopId: provider.desktopFileId
+    }));
 }
 
 const GrandCentralCardStore = new Lang.Class({
@@ -222,7 +229,13 @@ const GrandCentralCardStore = new Lang.Class({
                                                   '',
                                                   GObject.ParamFlags.READWRITE |
                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  '')
+                                                  ''),
+        'desktop-id': GObject.ParamSpec.string('desktop-id',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               '')
     },
 
     _init: function(params) {
@@ -256,7 +269,9 @@ const GrandCentralCard = new Lang.Class({
     Children: [
         'title-label',
         'synopsis-label',
-        'background-content'
+        'background-content',
+        'app-icon',
+        'app-label'
     ],
 
     _init: function(params) {
@@ -274,6 +289,13 @@ const GrandCentralCard = new Lang.Class({
         contentBackgroundStyleContext.add_class(className);
         contentBackgroundStyleContext.add_provider(contentBackgroundProvider,
                                       Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        // Read the desktop file and then set the app icon and label
+        // appropriately
+        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
+        this.app_label.label = this._app.get_display_name().toUpperCase();
+        this.app_icon.gicon = this._app.get_icon() ||
+                              Gio.ThemedIcon.new('gnome');
     }
 });
 
@@ -341,7 +363,7 @@ function populateGrandCentralModelFromQueries(model, proxies) {
     model.remove_all();
 
     proxies.forEach(function(proxy) {
-        proxy.ArticleCardDescriptionsRemote(function(results, error) {
+        proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
             if (error) {
                 logError(error, 'Failed to execute Grand Central query');
                 return;
@@ -353,7 +375,8 @@ function populateGrandCentralModelFromQueries(model, proxies) {
                         model.append(new GrandCentralCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
-                            thumbnail_uri: entry.thumbnail_uri
+                            thumbnail_uri: entry.thumbnail_uri,
+                            desktop_id: proxy.desktopId
                         }));
                     });
                 } catch (e) {
