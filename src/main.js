@@ -425,7 +425,8 @@ const GrandCentralApplication = new Lang.Class({
             application: this,
             type_hint: Gdk.WindowTypeHint.DOCK,
             role: SIDE_COMPONENT_ROLE,
-            card_model: this._grandCentralCardModel
+            card_model: this._grandCentralCardModel,
+            opacity: 0.9
         });
 
         this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
