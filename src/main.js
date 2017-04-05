@@ -85,7 +85,7 @@ function readGrandCentralProvidersInDirectory(directory) {
     let providerBusDescriptors = [];
 
     try {
-        enumerator = directory.enumerate_children('standard::*',
+        enumerator = directory.enumerate_children('standard::name,standard::type',
                                                   Gio.FileQueryInfoFlags.NONE,
                                                   null);
     } catch (e) {
