@@ -415,7 +415,8 @@ const GrandCentralMainWindow = new Lang.Class({
     },
     Template: 'resource:///com/endlessm/GrandCentral/main.ui',
     Children: [
-        'cards'
+        'cards',
+        'today_date'
     ],
 
     _init: function(params) {
@@ -425,6 +426,7 @@ const GrandCentralMainWindow = new Lang.Class({
                 model: card_store
             });
         });
+        this.today_date.label = (new Date()).toLocaleFormat('%A %d %B, %Y');
     },
 });
 

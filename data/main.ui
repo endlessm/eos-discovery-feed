@@ -14,6 +14,27 @@
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
+            <property name="hexpand">True</property>
+            <property name="halign">fill</property>
+            <property name="orientation">horizontal</property>
+            <style>
+              <class name="header"/>
+            </style>
+            <child>
+              <object class="GtkLabel" id="today_date">
+                <property name="visible">True</property>
+                <property name="hexpand">True</property>
+                <property name="halign">center</property>
+                <style>
+                  <class name="date"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
             <property name="orientation">vertical</property>
             <property name="hexpand">True</property>
             <property name="halign">fill</property>
