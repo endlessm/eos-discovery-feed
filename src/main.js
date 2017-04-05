@@ -326,7 +326,7 @@ const GrandCentralMainWindow = new Lang.Class({
                 model: card_store
             });
         });
-        this.today_date.label = (new Date()).toLocaleFormat('%A %d %B, %Y');
+        this.today_date.label = (new Date()).toLocaleFormat('%A %d %B, %Y').toUpperCase();
     },
 });
 
