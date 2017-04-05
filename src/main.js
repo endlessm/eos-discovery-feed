@@ -231,6 +231,12 @@ const GrandCentralCardStore = new Lang.Class({
                                                   GObject.ParamFlags.READWRITE |
                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
                                                   ''),
+        'uri': GObject.ParamSpec.string('uri',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        ''),
         'desktop-id': GObject.ParamSpec.string('desktop-id',
                                                '',
                                                '',
@@ -297,6 +303,12 @@ const GrandCentralCard = new Lang.Class({
         this.app_label.label = this._app.get_display_name().toUpperCase();
         this.app_icon.gicon = this._app.get_icon() ||
                               Gio.ThemedIcon.new('gnome');
+
+        this.connect('activate', Lang.bind(this, function() {
+            this._app.launch([
+                Gio.File.new_for_uri(this.model.uri)
+            ], null);
+        }));
     }
 });
 
@@ -389,7 +401,8 @@ function populateGrandCentralModelFromQueries(model, proxies) {
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
                             thumbnail_uri: entry.thumbnail_uri,
-                            desktop_id: proxy.desktopId
+                            desktop_id: proxy.desktopId,
+                            uri: entry.ekn_id
                         }));
                     });
                 } catch (e) {
