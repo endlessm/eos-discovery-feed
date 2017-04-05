@@ -16,6 +16,7 @@
             <property name="visible">True</property>
             <property name="vexpand">True</property>
             <property name="valign">fill</property>
+            <property name="selection-mode">none</property>
           </object>
         </child>
       </object>
