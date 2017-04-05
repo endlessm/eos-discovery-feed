@@ -103,16 +103,17 @@ function readGrandCentralProvidersInDirectory(directory) {
             directory.get_path(),
             info.get_name()
         ]));
+        let path = file.get_path();
 
         let keyFile = new GLib.KeyFile();
         try {
-            keyFile.load_from_file(file.get_path(), GLib.KeyFileFlags.NONE);
+            keyFile.load_from_file(path, GLib.KeyFileFlags.NONE);
         } catch(e) {
-            logError(e, 'Key file ' + file.get_path() + ' could not be loaded, ignored');
+            logError(e, 'Key file ' + path + ' could not be loaded, ignored');
         }
 
         if (!keyFile.has_group(GRAND_CENTRAL_SECTION_NAME)) {
-            log('Key file ' + file.get_path() + ' does not have a section called ' + GRAND_CENTRAL_SECTION_NAME + ', ignored');
+            log('Key file ' + path + ' does not have a section called ' + GRAND_CENTRAL_SECTION_NAME + ', ignored');
             continue;
         }
 
@@ -121,7 +122,7 @@ function readGrandCentralProvidersInDirectory(directory) {
 
         let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
         if (notFoundKeys.length) {
-            log('Key file ' + file.get_path() + ' does not have keys ' + notFoundKeys.join(', ') + ', ignoring');
+            log('Key file ' + path + ' does not have keys ' + notFoundKeys.join(', ') + ', ignoring');
             continue;
         }
 
