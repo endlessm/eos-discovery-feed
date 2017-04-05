@@ -33,10 +33,17 @@
             <child>
               <object class="GtkButton" id="close-button">
                 <property name="visible">True</property>
-                <property name="halign">end<property>
-                <style>
-                  <class name="dismiss-button"/>
-                </style>
+                <property name="halign">end</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="halign">center</property>
+                    <property name="width-request">24</property>
+                    <style>
+                      <class name="close"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -79,9 +86,16 @@
                 <property name="visible">True</property>
                 <property name="hexpand">True</property>
                 <property name="label">Dismiss</property>
-                <style>
-                  <class name="dismiss-button"/>
-                </style>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="halign">center</property>
+                    <property name="width-request">24</property>
+                    <style>
+                      <class name="dismiss"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

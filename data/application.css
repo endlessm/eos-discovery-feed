@@ -25,3 +25,10 @@
   font-family: 'Serif';
   text-transform: uppercase;
 }
+
+button .close {
+  background-image: url('resource:///com/endlessm/GrandCentral/img/close_button.svg');
+  background-size: 24px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
