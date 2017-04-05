@@ -528,6 +528,7 @@ const GrandCentralApplication = new Lang.Class({
         this.Visible = false;
         this._changedSignalId = 0;
         this._grandCentralProxies = [];
+        this._contentAppIds = [];
         this._grandCentralCardModel = new Gio.ListStore({
             item_type: GrandCentralCardStore.$gtype
         });
