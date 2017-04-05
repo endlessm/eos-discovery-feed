@@ -21,7 +21,7 @@
               <class name="header"/>
             </style>
             <child>
-              <object class="GtkLabel" id="today_date">
+              <object class="GtkLabel" id="today-date">
                 <property name="visible">True</property>
                 <property name="hexpand">True</property>
                 <property name="halign">center</property>
