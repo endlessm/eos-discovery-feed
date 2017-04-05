@@ -89,6 +89,9 @@
                 <property name="visible">True</property>
                 <property name="hexpand">True</property>
                 <property name="label">Dismiss</property>
+                <style>
+                  <class name="flat"/>
+                </style>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
