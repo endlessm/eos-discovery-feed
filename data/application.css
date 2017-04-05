@@ -41,6 +41,10 @@
   color: #5b8291
 }
 
+window {
+  background-color: #ffffff;
+}
+
 button .close {
   background-image: url('resource:///com/endlessm/GrandCentral/img/close_button.svg');
   background-size: 12px;
