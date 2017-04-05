@@ -70,6 +70,8 @@ function maybeGetKeyfileString(keyFile, section, key, defaultValue) {
     }
 }
 
+const GRAND_CENTRAL_SECTION_NAME = 'Grand Central Content Provider';
+
 //
 // readGrandCentralProvidersInDirectory
 //
@@ -109,12 +111,12 @@ function readGrandCentralProvidersInDirectory(directory) {
             logError(e, 'Key file ' + file.get_path() + ' could not be loaded, ignored');
         }
 
-        if (!keyFile.has_group('GrandCentralContentProvider')) {
+        if (!keyFile.has_group(GRAND_CENTRAL_SECTION_NAME)) {
             log('Key file ' + file.get_path() + ' does not have a section called GrandCentralContentProvider, ignored');
             continue;
         }
 
-        let keys = keyFile.get_keys('GrandCentralContentProvider')[0];
+        let keys = keyFile.get_keys(GRAND_CENTRAL_SECTION_NAME)[0];
         let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName'];
 
         let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
