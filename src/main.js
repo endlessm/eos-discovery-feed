@@ -146,7 +146,7 @@ function readGrandCentralProvidersInDataDirectories() {
         let dir = Gio.File.new_for_path(GLib.build_filenamev([
             directory,
             'com.endlessm.GrandCentral',
-            'ContentProviders'
+            'content-providers'
         ]));
         Array.prototype.push.apply(allProviders,
                                    readGrandCentralProvidersInDirectory(dir));
