@@ -274,7 +274,6 @@ const GrandCentralCard = new Lang.Class({
         contentBackgroundStyleContext.add_class(className);
         contentBackgroundStyleContext.add_provider(contentBackgroundProvider,
                                       Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-
     }
 });
 

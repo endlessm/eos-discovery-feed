@@ -17,6 +17,15 @@
   margin: 10px;
 }
 
+.content .app-info {
+  margin-top: 20px;
+}
+
+.content .app-info label {
+  font-size: 10pt;
+  color: #5b8291
+}
+
 .content-list-container {
   margin: 0px 50px 0px 50px;
 }
