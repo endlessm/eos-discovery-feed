@@ -14,6 +14,7 @@ pkg.require({
     GLib: '2.0',
 });
 
+const Eknc = imports.gi.EosKnowledgeContent;
 const Gdk = imports.gi.Gdk;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -232,6 +233,25 @@ findDBusObjectsWithInterface(connection, 'com.endlessm.GrandCentralContent', Lan
 */
 
 //
+// maybeGetKeyfileString
+//
+// Attempt to read a GKeyFile for a particular key in a given section
+// but return a default value if it wasn't found
+//
+// @param {object.Gio.KeyFile} keyFile - The key file to read.
+// @param {string} section - The section to read from.
+// @param {string} key - The key to read.
+// @param {string} defaultValue - The default value in case the key was not found.
+// @returns {string} the looked up string, or the default
+function maybeGetKeyfileString(keyFile, section, key, defaultValue) {
+    try {
+        return keyFile.get_string(section, key);
+    } catch (e) {
+        return defaultValue;
+    }
+}
+
+//
 // readGrandCentralProvidersInDirectory
 //
 // Read all the grand central providers in a directory, calling
@@ -282,7 +302,8 @@ function readGrandCentralProvidersInDirectory(directory) {
 
         providerBusDescriptors.push({
             path: keyFile.get_string('GrandCentralContentProvider', 'ObjectPath'),
-            name: keyFile.get_string('GrandCentralContentProvider', 'BusName')
+            name: keyFile.get_string('GrandCentralContentProvider', 'BusName'),
+            knowledgeAppId: maybeGetKeyfileString(keyFile, 'GrandCentralContentProvider', 'AppID', null)
         });
     }
 
@@ -301,6 +322,20 @@ function readGrandCentralProvidersInDataDirectories(directory) {
                                    readGrandCentralProvidersInDirectory(path));
         return allProviders;
     }, []);
+}
+
+function instantiateShardsFromGrandCentralProviders(providers) {
+    let shards = providers.filter(provider => {
+        return provider.knowledgeAppId !== null;
+    }).map(provider => {
+        let engine = Eknc.Engine.get_default();
+        return engine.get_domain_for_app(provider.knowledgeAppId).get_shards();
+    }).reduce((allShards, shards) => {
+        Array.prototype.push.apply(allShards, shards);
+        return allShards;
+    }, []);
+
+    Eknc.default_vfs_set_shards(shards);
 }
 
 function instantiateObjectsFromGrandCentralProviders(connection,
@@ -550,6 +585,7 @@ const GrandCentralApplication = new Lang.Class({
                                                     'com.endlessm.GrandCentralContent',
                                                     providers,
                                                     onProxiesInstantiated);
+        instantiateShardsFromGrandCentralProviders(providers);
 
         return this.parent(connection, path);
     },
