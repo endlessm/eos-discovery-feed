@@ -3,6 +3,11 @@
   font-family: 'Serif';
 }
 
+.content .subtitle {
+  font-size: 11pt;
+  font-family: 'Lato';
+}
+
 .content .preview {
   margin: 10px;
   border-radius: 4px;
