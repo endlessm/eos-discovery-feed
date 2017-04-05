@@ -416,7 +416,7 @@ const GrandCentralMainWindow = new Lang.Class({
     Template: 'resource:///com/endlessm/GrandCentral/main.ui',
     Children: [
         'cards',
-        'today_date'
+        'today-date'
     ],
 
     _init: function(params) {
