@@ -112,7 +112,7 @@ function readGrandCentralProvidersInDirectory(directory) {
         }
 
         if (!keyFile.has_group(GRAND_CENTRAL_SECTION_NAME)) {
-            log('Key file ' + file.get_path() + ' does not have a section called GrandCentralContentProvider, ignored');
+            log('Key file ' + file.get_path() + ' does not have a section called ' + GRAND_CENTRAL_SECTION_NAME + ', ignored');
             continue;
         }
 
@@ -126,9 +126,14 @@ function readGrandCentralProvidersInDirectory(directory) {
         }
 
         providerBusDescriptors.push({
-            path: keyFile.get_string('GrandCentralContentProvider', 'ObjectPath'),
-            name: keyFile.get_string('GrandCentralContentProvider', 'BusName'),
-            knowledgeAppId: maybeGetKeyfileString(keyFile, 'GrandCentralContentProvider', 'AppID', null)
+            path: keyFile.get_string(GRAND_CENTRAL_SECTION_NAME,
+                                     'ObjectPath'),
+            name: keyFile.get_string(GRAND_CENTRAL_SECTION_NAME,
+                                     'BusName'),
+            knowledgeAppId: maybeGetKeyfileString(keyFile,
+                                                  GRAND_CENTRAL_SECTION_NAME,
+                                                  'AppID',
+                                                  null)
         });
     }
 
