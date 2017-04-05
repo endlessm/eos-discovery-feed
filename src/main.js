@@ -489,12 +489,17 @@ function populateGrandCentralModelFromQueries(model, proxies) {
             }
 
             results.forEach(function(string) {
-                let response = JSON.parse(string);
-                response.forEach(function(entry) {
-                    model.append(new GrandCentralCardStore({
-                        title: entry.title
-                    }));
-                });
+                try {
+                    let response = JSON.parse(string);
+                    response.forEach(function(entry) {
+                        model.append(new GrandCentralCardStore({
+                            title: entry.title,
+                            thumbnail_uri: entry.thumbnail_uri
+                        }));
+                    });
+                } catch (e) {
+                    logError(e, 'Could not parse response');
+                }
             });
         });
 
