@@ -103,7 +103,11 @@ function readGrandCentralProvidersInDirectory(directory) {
         ]));
 
         let keyFile = new GLib.KeyFile();
-        keyFile.load_from_file(file.get_path(), GLib.KeyFileFlags.NONE);
+        try {
+            keyFile.load_from_file(file.get_path(), GLib.KeyFileFlags.NONE);
+        } catch(e) {
+            logError(e, 'Key file ' + file.get_path() + ' could not be loaded, ignored');
+        }
 
         if (!keyFile.has_group('GrandCentralContentProvider')) {
             log('Key file ' + file.get_path() + ' does not have a section called GrandCentralContentProvider, ignored');
