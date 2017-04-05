@@ -327,6 +327,18 @@ const GrandCentralMainWindow = new Lang.Class({
             });
         });
         this.today_date.label = (new Date()).toLocaleFormat('%A %d %B, %Y').toUpperCase();
+
+        // Add an action so that we can dismiss the view by pressing the
+        // escape key or by pressing the close button
+        let escAction = new Gio.SimpleAction({ name: 'close' });
+        escAction.connect('activate', Lang.bind(this, function() {
+            this.visible = false;
+        }));
+
+        this.add_action(escAction);
+        this.application.set_accels_for_action('win.close', ['Escape']);
+        this.close_button.set_action_name('win.close');
+        this.dismiss_button.set_action_name('win.close');
     },
 });
 
