@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.10"/>
+  <template class="Gjs_CodingInventoryItemBubble" parent="GtkBox">
+    <property name="visible">True</property>
+    <property name="hexpand">True</property>
+    <style>
+      <class name="rounded-bubble"/>
+      <class name="separated-bubble-internal-medium"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="hexpand">True</property>
+        <child>
+          <object class="GtkImage" id="artifact-icon-image">
+            <property name="visible">True</property>
+            <property name="height-request">48</property>
+            <property name="width-request">48</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="hexpand">True</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="hexpand">True</property>
+                <property name="spacing">10</property>
+                <property name="orientation">vertical</property>
+                <style>
+                  <class name="inventory-link"/>
+                </style>
+                <child>
+                  <object class="GtkLabel" id="artifact-name">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="halign">start</property>
+                    <property name="label"></property>
+                  </object>
+                </child>
+                <child>
+                  <!-- A box to hold the stage and points indicator for each artifact -->
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="halign">start</property>
+                    <property name="spacing">5</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="halign">start</property>
+                        <property name="spacing">3</property>
+                        <style>
+                          <class name="rounded-bubble"/>
+                          <class name="bubble-inner"/>
+                          <class name="separated-bubble-internal-small"/>
+                          <class name="header-small"/>
+                        </style>
+                        <child>
+                          <object class="GtkDrawingArea">
+                            <property name="visible">True</property>
+                            <property name="halign">start</property>
+                            <property name="width-request">24</property>
+                            <property name="height-request">24</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="artifact-stage-number-label">
+                            <property name="visible">True</property>
+                            <property name="label"></property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="halign">start</property>
+                        <property name="spacing">2</property>
+                        <style>
+                          <class name="rounded-bubble"/>
+                          <class name="bubble-inner"/>
+                          <class name="separated-bubble-internal-small"/>
+                          <class name="header-small"/>
+                        </style>
+                        <child>
+                          <object class="GtkDrawingArea">
+                            <property name="visible">True</property>
+                            <property name="halign">start</property>
+                            <property name="width-request">24</property>
+                            <property name="height-request">24</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="artifact-points-label">
+                            <property name="visible">True</property>
+                            <property name="label"></property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

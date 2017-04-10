@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.10"/>
+  <template class="Gjs_GrandCentralMainWindow" parent="GtkApplicationWindow">
+    <property name="can_focus">False</property>
+    <property name="width-request">850</property>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <property name="valign">fill</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="hexpand">True</property>
+            <property name="halign">fill</property>
+            <property name="orientation">horizontal</property>
+            <style>
+              <class name="header"/>
+            </style>
+            <child>
+              <object class="GtkLabel" id="today-date">
+                <property name="visible">True</property>
+                <property name="hexpand">True</property>
+                <property name="halign">center</property>
+                <style>
+                  <class name="date"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="close-button">
+                <property name="visible">True</property>
+                <property name="halign">end</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="halign">center</property>
+                    <property name="width-request">12</property>
+                    <style>
+                      <class name="close"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <property name="hexpand">True</property>
+                <property name="halign">fill</property>
+                <style>
+                  <class name="content-list-container"/>
+                </style>
+                <child>
+                  <object class="GtkListBox" id="cards">
+                    <property name="visible">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="valign">fill</property>
+                    <property name="selection-mode">none</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="hexpand">True</property>
+            <property name="halign">fill</property>
+            <property name="orientation">horizontal</property>
+            <style>
+              <class name="footer"/>
+            </style>
+            <child>
+              <object class="GtkButton" id="dismiss-button">
+                <property name="visible">True</property>
+                <property name="hexpand">True</property>
+                <property name="label">Dismiss</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="halign">center</property>
+                    <property name="width-request">24</property>
+                    <style>
+                      <class name="dismiss"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,13 @@
+#!@GJS@
+/* com.endlessm.GrandCentral
+ *
+ * Copyright (c) 2016 Endless Mobile Inc.
+ * All Rights Reserved.
+ *
+ * This file is the entrypoint to the "Grand Central" notification area
+ */
+imports.package.init({ name: "com.endlessm.GrandCentral",
+                       version: "@PACKAGE_VERSION@",
+                       prefix: "@prefix@",
+                       libdir: "@libdir@" });
+imports.package.run(imports.main);

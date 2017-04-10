@@ -1,0 +1,53 @@
+.content .title {
+  font-size: 22pt;
+  font-family: 'Serif';
+  color: #5b8291
+}
+
+.content .subtitle {
+  font-size: 11pt;
+  font-family: 'Lato';
+}
+
+.content .preview {
+  margin: 10px;
+  border-radius: 4px;
+}
+
+.content .article {
+  margin: 10px;
+}
+
+.content .app-info {
+  margin-top: 20px;
+}
+
+.content .app-info label {
+  font-size: 10pt;
+  color: #5b8291
+}
+
+.content-list-container {
+  margin: 0px 50px 0px 50px;
+}
+
+.header {
+  margin: 10px 5px 10px 5px;
+}
+
+.header .date {
+  font-size: 18px;
+  font-family: 'Lato';
+  color: #5b8291;
+}
+
+window {
+  background-color: #ffffff;
+}
+
+button .close {
+  background-image: url('resource:///com/endlessm/GrandCentral/img/close_button.svg');
+  background-size: 12px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
