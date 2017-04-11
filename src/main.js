@@ -303,12 +303,10 @@ const GrandCentralCard = new Lang.Class({
         this.app_label.label = this._app.get_display_name().toUpperCase();
         this.app_icon.gicon = this._app.get_icon() ||
                               Gio.ThemedIcon.new('gnome');
+    },
 
-        this.connect('activate', Lang.bind(this, function() {
-            this._app.launch([
-                Gio.File.new_for_uri(this.model.uri)
-            ], null);
-        }));
+    activate: function() {
+        this._app.launch([Gio.File.new_for_uri(this.model.uri)], null);
     }
 });
 
@@ -351,6 +349,10 @@ const GrandCentralMainWindow = new Lang.Class({
         this.application.set_accels_for_action('win.close', ['Escape']);
         this.close_button.set_action_name('win.close');
         this.dismiss_button.set_action_name('win.close');
+
+        this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
+            row.activate();
+        }));
     },
 });
 
