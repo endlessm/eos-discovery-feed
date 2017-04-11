@@ -283,7 +283,7 @@ const GrandCentralCard = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.title_label.label = this.model.title
+        this.title_label.label = this.model.title;
         this.synopsis_label.label = this.model.synopsis;
 
         let contentBackgroundProvider = new Gtk.CssProvider();
