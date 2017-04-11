@@ -299,16 +299,10 @@ const GrandCentralCard = new Lang.Class({
 
         // Read the desktop file and then set the app icon and label
         // appropriately
-        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
-        this.app_label.label = this._app.get_display_name().toUpperCase();
-        this.app_icon.gicon = this._app.get_icon() ||
+        this.app = Gio.DesktopAppInfo.new(this.model.desktop_id);
+        this.app_label.label = this.app.get_display_name().toUpperCase();
+        this.app_icon.gicon = this.app.get_icon() ||
                               Gio.ThemedIcon.new('gnome');
-
-        this.connect('activate', Lang.bind(this, function() {
-            this._app.launch([
-                Gio.File.new_for_uri(this.model.uri)
-            ], null);
-        }));
     }
 });
 
@@ -351,6 +345,12 @@ const GrandCentralMainWindow = new Lang.Class({
         this.application.set_accels_for_action('win.close', ['Escape']);
         this.close_button.set_action_name('win.close');
         this.dismiss_button.set_action_name('win.close');
+
+        this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
+            row.app.launch([Gio.File.new_for_uri(row.model.uri)], null);
+        }));
+
+
     },
 });
 
