@@ -29,6 +29,23 @@ const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
 const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed.View';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
+const KnowledgeSearchIface = '\
+<node> \
+  <interface name="com.endlessm.KnowledgeSearch"> \
+    <method name="LoadItem"> \
+      <arg type="s" name="EknID" direction="in" /> \
+      <arg type="s" name="Query" direction="in" /> \
+      <arg type="u" name="Timestamp" direction="in" /> \
+    </method> \
+    <method name="LoadQuery"> \
+      <arg type="s" name="Query" direction="in" /> \
+      <arg type="u" name="Timestamp" direction="in" /> \
+    </method> \
+  </interface> \
+</node>';
+
+var KnowledgeSearchProxyInfo = Gio.DBusInterfaceInfo.new_for_xml(KnowledgeSearchIface);
+
 const DiscoveryFeedIface = '\
 <node> \
   <interface name="' + DISCOVERY_FEED_NAME + '">  \
@@ -205,7 +222,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                           provider.path,
                                           provider.name),
                                 null),
-        desktopId: provider.desktopFileId
+        desktopId: provider.desktopFileId,
+        busName: provider.name
     }));
 }
 
@@ -238,6 +256,12 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         ''),
         'desktop-id': GObject.ParamSpec.string('desktop-id',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               ''),
+        'bus-name': GObject.ParamSpec.string('bus-name',
                                                '',
                                                '',
                                                GObject.ParamFlags.READWRITE |
@@ -303,10 +327,21 @@ const DiscoveryFeedCard = new Lang.Class({
         this.app_label.label = this._app.get_display_name().toUpperCase();
         this.app_icon.gicon = this._app.get_icon() ||
                               Gio.ThemedIcon.new('gnome');
+
+        this.proxy = new Gio.DBusProxy({ g_bus_type: Gio.BusType.SESSION,
+                                         g_name: this.model.bus_name,
+                                         g_object_path: '/' + this.model.bus_name.replace('.', '/', 'g'),
+                                         g_interface_info: KnowledgeSearchProxyInfo,
+                                         g_interface_name: KnowledgeSearchProxyInfo.name,
+                                         g_flags: (Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION |
+                                                   Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES),
+                                         g_default_timeout: GLib.MAXINT32 });
+        this.proxy.init(null);
+
     },
 
     activate: function() {
-        this._app.launch([Gio.File.new_for_uri(this.model.uri)], null);
+        this.proxy.LoadItemRemote(this.model.uri, '', Gdk.CURRENT_TIME);
     }
 });
 
@@ -404,6 +439,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             synopsis: sanitizeSynopsis(entry.synopsis),
                             thumbnail_uri: entry.thumbnail_uri,
                             desktop_id: proxy.desktopId,
+                            bus_name: proxy.busName,
                             uri: entry.ekn_id
                         }));
                     });
