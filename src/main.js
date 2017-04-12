@@ -361,8 +361,8 @@ const DiscoveryFeedCard = new Lang.Class({
 
     },
 
-    activate: function() {
-        this.proxy.LoadItemRemote(this.model.uri, '', Gdk.CURRENT_TIME);
+    activate: function(timestamp) {
+        this.proxy.LoadItemRemote(this.model.uri, '', timestamp);
     }
 });
 
@@ -407,7 +407,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.dismiss_button.set_action_name('win.close');
 
         this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
-            row.activate();
+            row.activate(Gtk.get_current_event_time());
         }));
     },
 });
