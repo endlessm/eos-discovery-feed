@@ -277,11 +277,11 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                                GObject.ParamFlags.CONSTRUCT_ONLY,
                                                ''),
         'bus-name': GObject.ParamSpec.string('bus-name',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               ''),
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             ''),
         'object-path': GObject.ParamSpec.string('object-path',
                                                 '',
                                                 '',
