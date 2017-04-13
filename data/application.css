@@ -45,12 +45,12 @@
 .quote-author {
   font-size: 10pt;
   font-family: 'Lato';
-  font-style: bold;
+  font-weight: bold;
 }
 
 .bolded-word {
   font-size: 14pt;
-  font-style: bold;
+  font-weight: bold;
   font-family: 'Serif';
   margin-top: 20px;
 }
