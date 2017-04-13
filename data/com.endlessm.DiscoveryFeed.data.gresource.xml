@@ -3,6 +3,7 @@
   <gresource prefix="/com/endlessm/DiscoveryFeed">
     <file preprocess="xml-stripblanks">main.ui</file>
     <file preprocess="xml-stripblanks">content-card.ui</file>
+    <file preprocess="xml-stripblanks">content-list-item.ui</file>
     <file>img/close_button.svg</file>
     <file>application.css</file>
   </gresource>

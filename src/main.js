@@ -310,7 +310,7 @@ const THUMBNAIL_WIDTH = 200;
 
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
-    Extends: Gtk.ListBoxRow,
+    Extends: Gtk.Box,
     Properties: {
         'model': GObject.ParamSpec.object('model',
                                           '',
@@ -378,7 +378,7 @@ const DiscoveryFeedCard = new Lang.Class({
                                                        'pack-type',
                                                        Gtk.PackType.END);
             }));
-        } 
+        }
     },
 
     activate: function(timestamp) {
@@ -397,9 +397,34 @@ const DiscoveryFeedCard = new Lang.Class({
     }
 });
 
+const DiscoveryFeedListItem = new Lang.Class({
+    Name: 'DiscoveryFeedListItem',
+    Extends: Gtk.ListBoxRow,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/content-list-item.ui',
+    Properties: {
+        'content': GObject.ParamSpec.object('content',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            Gtk.Widget)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this.add(this.content);
+    },
+
+    activateChild: function() {
+        return this.content.activate(Gtk.get_current_event_time());
+    }
+});
+
 function populateCardsListFromStore(store) {
-    return new DiscoveryFeedCard({
-        model: store
+    return new DiscoveryFeedListItem({
+        content: new DiscoveryFeedCard({
+            model: store
+        })
     });
 }
 
@@ -441,7 +466,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.dismiss_button.set_action_name('win.close');
 
         this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
-            row.activate(Gtk.get_current_event_time());
+            row.activateChild();
         }));
     },
 });
