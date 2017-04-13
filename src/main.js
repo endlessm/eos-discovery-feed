@@ -668,6 +668,23 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
 
+    let indexInsertFuncs = {
+        '2': () => {
+            model.append(new DiscoveryFeedWordQuotePairStore({
+                quote: new DiscoveryFeedQuoteStore({
+                    quote: 'You\'re the one running',
+                    author: 'Auron'
+                }),
+                word: new DiscoveryFeedWordStore({
+                    word: 'Tenentenba',
+                    pronunciation: 'Ten-ET-en-BA',
+                    definition: 'That\'s a nice Tenetenba you\'ve got there',
+                    word_type: 'noun'
+                })
+            }));
+        }
+    };
+
     proxies.forEach(function(proxy) {
         proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
             if (error) {
@@ -680,6 +697,10 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 try {
                     response.forEach(function(entry) {
                         let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+                        if (indexInsertFuncs[modelIndex]) {
+                            indexInsertFuncs[modelIndex++]();
+                        }
+
                         model.append(new DiscoveryFeedKnowledgeAppCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
@@ -698,19 +719,6 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             });
         });
     });
-
-    model.append(new DiscoveryFeedWordQuotePairStore({
-        quote: new DiscoveryFeedQuoteStore({
-            quote: 'You\'re the one running',
-            author: 'Auron'
-        }),
-        word: new DiscoveryFeedWordStore({
-            word: 'Tenentenba',
-            pronunciation: 'Ten-ET-en-BA',
-            definition: 'That\'s a nice Tenetenba you\'ve got there',
-            word_type: 'noun'
-        })
-    }));
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
