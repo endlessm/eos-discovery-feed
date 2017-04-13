@@ -415,7 +415,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
                 model: card_store
             });
         });
-        this.today_date.label = (new Date()).toLocaleFormat('%A %d %B, %Y').toUpperCase();
+        this.today_date.label = (new Date()).toLocaleFormat('%B %d').toUpperCase();
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button

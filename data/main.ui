@@ -55,7 +55,7 @@
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
                     <property name="halign">fill</property>
-                    <property name="orientation">horizontal</property>
+                    <property name="orientation">vertical</property>
                     <style>
                       <class name="header"/>
                     </style>
@@ -66,6 +66,17 @@
                         <property name="halign">center</property>
                         <style>
                           <class name="date"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="halign">center</property>
+                        <property name="label">RECOMMENDED STORIES</property>
+                        <style>
+                          <class name="recommended-stories"/>
                         </style>
                       </object>
                     </child>

@@ -36,9 +36,14 @@
 }
 
 .header .date {
-  font-size: 18px;
+  font-size: 64px;
   font-family: 'Lato';
   color: #5b8291;
+}
+
+.header .recommended-stories {
+  font-size: 18px;
+  font-family: 'Lato';
 }
 
 window {
