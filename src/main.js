@@ -397,6 +397,13 @@ const DiscoveryFeedCard = new Lang.Class({
     }
 });
 
+function populateCardsListFromStore(store) {
+    return new DiscoveryFeedCard({
+        model: store
+    });
+}
+
+
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
     Extends: Gtk.ApplicationWindow,
@@ -418,11 +425,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.cards.bind_model(this.card_model, function(card_store) {
-            return new DiscoveryFeedCard({
-                model: card_store
-            });
-        });
+        this.cards.bind_model(this.card_model, populateCardsListFromStore);
         this.today_date.label = (new Date()).toLocaleFormat('%B %d').toUpperCase();
 
         // Add an action so that we can dismiss the view by pressing the
