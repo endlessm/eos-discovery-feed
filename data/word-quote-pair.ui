@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.10"/>
+  <template class="Gjs_DiscoveryFeedWordQuotePair" parent="GtkBox">
+    <property name="visible">True</property>
+    <property name="hexpand">True</property>
+    <property name="halign">fill</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkBox" id="subcard-layout">
+        <property name="visible">True</property>
+        <property name="hexpand">True</property>
+        <property name="halign">fill</property>
+        <style>
+          <class name="subcard-layout"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="halign">fill</property>
+            <style>
+              <class name="subcard"/>
+            </style>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="vexpand">True</property>
+                <property name="valign">fill</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="label">Quote of the Day</property>
+                    <style>
+                      <class name="small-header"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="quote">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <style>
+                      <class name="bolded-word"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="quote-author">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <style>
+                      <class name="quote-author"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="halign">fill</property>
+            <style>
+              <class name="subcard"/>
+            </style>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="vexpand">True</property>
+                <property name="valign">fill</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="label">Word of the Day</property>
+                    <style>
+                      <class name="small-header"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="word">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <style>
+                      <class name="bolded-word"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="word-detail">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <style>
+                      <class name="word-detail"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="word-description">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <style>
+                      <class name="word-description"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

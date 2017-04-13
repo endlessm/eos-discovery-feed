@@ -230,18 +230,13 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
 }
 
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTICLE_CARD;
+const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_WORD_QUOTE_CARD;
 
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
     Extends: GObject.Object,
     Properties: {
-        'title': GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
         'type': GObject.ParamSpec.int('type',
                                       '',
                                       '',
@@ -274,10 +269,90 @@ const DiscoveryFeedAppCardStore = new Lang.Class({
     }
 });
 
+const DiscoveryFeedWordStore = new Lang.Class({
+    Name: 'DiscoveryFeedWordStore',
+    Extends: GObject.Object,
+    Properties: {
+        'word': GObject.ParamSpec.string('word',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         ''),
+        'word-type': GObject.ParamSpec.string('word-type',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ''),
+        'pronunciation': GObject.ParamSpec.string('pronunciation',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  ''),
+        'definition': GObject.ParamSpec.string('definition',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               '')
+    }
+});
+
+const DiscoveryFeedQuoteStore = new Lang.Class({
+    Name: 'DiscoveryFeedQuoteStore',
+    Extends: GObject.Object,
+    Properties: {
+        'quote': GObject.ParamSpec.string('quote',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          ''),
+        'author': GObject.ParamSpec.string('author',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           '')
+    }
+});
+
+const DiscoveryFeedWordQuotePairStore = new Lang.Class({
+    Name: 'DiscoveryFeedQuotePairStore',
+    Extends: DiscoveryFeedCardStore,
+    Properties: {
+        'quote': GObject.ParamSpec.object('quote',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedQuoteStore.$gtype),
+        'word': GObject.ParamSpec.object('word',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         DiscoveryFeedWordStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_WORD_QUOTE_CARD;
+        this.parent(params);
+    }
+});
+
 const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCardStore',
     Extends: DiscoveryFeedAppCardStore,
     Properties: {
+        'title': GObject.ParamSpec.string('title',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          ''),
         'uri': GObject.ParamSpec.string('uri',
                                         '',
                                         '',
@@ -414,6 +489,38 @@ const DiscoveryFeedCard = new Lang.Class({
     }
 });
 
+const DiscoveryFeedWordQuotePair = new Lang.Class({
+    Name: 'DiscoveryFeedWordQuotePair',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/word-quote-pair.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedWordQuotePairStore.$gtype)
+    },
+    Children: [
+        'word',
+        'quote',
+        'word-detail',
+        'word-description',
+        'quote-author'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.word.label = this.model.word.word;
+        this.word_detail.label = this.model.word.word_type + ' | ' +
+                                 this.model.word.pronunciation;
+        this.word_description.label = this.model.word.definition;
+        this.quote.label = this.model.quote.quote;
+        this.quote.author = this.model.quote.author;
+    }
+});
+
 const DiscoveryFeedListItem = new Lang.Class({
     Name: 'DiscoveryFeedListItem',
     Extends: Gtk.ListBoxRow,
@@ -442,6 +549,8 @@ function contentViewFromType(type, store) {
     switch (type) {
         case CARD_STORE_TYPE_ARTICLE_CARD:
             return new DiscoveryFeedCard(params);
+        case CARD_STORE_TYPE_WORD_QUOTE_CARD:
+            return new DiscoveryFeedWordQuotePair(params);
         default:
             throw new Error('Card type ' + type + ' not recognized');
     }
@@ -589,6 +698,19 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             });
         });
     });
+
+    model.append(new DiscoveryFeedWordQuotePairStore({
+        quote: new DiscoveryFeedQuoteStore({
+            quote: 'You\'re the one running',
+            author: 'Auron'
+        }),
+        word: new DiscoveryFeedWordStore({
+            word: 'Tenentenba',
+            pronunciation: 'Ten-ET-en-BA',
+            definition: 'That\'s a nice Tenetenba you\'ve got there',
+            word_type: 'noun'
+        })
+    }));
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
