@@ -44,8 +44,6 @@ const KnowledgeSearchIface = '\
   </interface> \
 </node>';
 
-var KnowledgeSearchProxyInfo = Gio.DBusInterfaceInfo.new_for_xml(KnowledgeSearchIface);
-
 const DiscoveryFeedIface = '\
 <node> \
   <interface name="' + DISCOVERY_FEED_NAME + '">  \
