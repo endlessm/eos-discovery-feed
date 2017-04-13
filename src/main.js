@@ -239,6 +239,40 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           ''),
+        'index': GObject.ParamSpec.int('index',
+                                       '',
+                                       '',
+                                       GObject.ParamFlags.READWRITE |
+                                       GObject.ParamFlags.CONSTRUCT_ONLY,
+                                       0,
+                                       GLib.MAXINT32,
+                                       0)
+    }
+});
+
+const DiscoveryFeedAppCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedAppCardStore',
+    Extends: DiscoveryFeedCardStore,
+    Properties: {
+        'desktop-id': GObject.ParamSpec.string('desktop-id',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               '')
+    }
+});
+
+const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppCardStore',
+    Extends: DiscoveryFeedAppCardStore,
+    Properties: {
+        'uri': GObject.ParamSpec.string('uri',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        ''),
         'synopsis': GObject.ParamSpec.string('synopsis',
                                              '',
                                              '',
@@ -251,18 +285,6 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
                                               Gio.InputStream),
-        'uri': GObject.ParamSpec.string('uri',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        ''),
-        'desktop-id': GObject.ParamSpec.string('desktop-id',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               ''),
         'bus-name': GObject.ParamSpec.string('bus-name',
                                              '',
                                              '',
@@ -280,19 +302,7 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                                      '',
                                                      GObject.ParamFlags.READWRITE |
                                                      GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                     ''),
-        'index': GObject.ParamSpec.int('index',
-                                       '',
-                                       '',
-                                       GObject.ParamFlags.READWRITE |
-                                       GObject.ParamFlags.CONSTRUCT_ONLY,
-                                       0,
-                                       GLib.MAXINT32,
-                                       0)
-    },
-
-    _init: function(params) {
-        this.parent(params);
+                                                     '')
     }
 });
 
@@ -307,7 +317,7 @@ const DiscoveryFeedCard = new Lang.Class({
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          DiscoveryFeedCardStore.$gtype)
+                                          DiscoveryFeedKnowledgeAppCardStore.$gtype)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
     Children: [
@@ -506,7 +516,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 try {
                     response.forEach(function(entry) {
                         let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-                        model.append(new DiscoveryFeedCardStore({
+                        model.append(new DiscoveryFeedKnowledgeAppCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
                             thumbnail: thumbnail,
