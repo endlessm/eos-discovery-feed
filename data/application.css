@@ -5,9 +5,9 @@
   margin-bottom: 10px;
 }
 
-.content .subtitle {
-  font-size: 11pt;
-  font-family: 'Lato';
+.content .synopsis {
+  font-size: 12pt;
+  font-family: 'Serif';
 }
 
 .content .article {
