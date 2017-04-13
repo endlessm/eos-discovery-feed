@@ -229,6 +229,9 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
     }));
 }
 
+const CARD_STORE_TYPE_ARTICLE_CARD = 0;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTICLE_CARD;
+
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
     Extends: GObject.Object,
@@ -239,6 +242,14 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           ''),
+        'type': GObject.ParamSpec.int('type',
+                                      '',
+                                      '',
+                                      GObject.ParamFlags.READWRITE |
+                                      GObject.ParamFlags.CONSTRUCT_ONLY,
+                                      0,
+                                      CARD_STORE_TYPE_MAX,
+                                      0),
         'index': GObject.ParamSpec.int('index',
                                        '',
                                        '',
@@ -303,6 +314,12 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                                      GObject.ParamFlags.READWRITE |
                                                      GObject.ParamFlags.CONSTRUCT_ONLY,
                                                      '')
+
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_ARTICLE_CARD;
+        this.parent(params);
     }
 });
 
@@ -420,11 +437,21 @@ const DiscoveryFeedListItem = new Lang.Class({
     }
 });
 
+function contentViewFromType(type, store) {
+    let params = { model: store };
+    switch (type) {
+        case CARD_STORE_TYPE_ARTICLE_CARD:
+            return new DiscoveryFeedCard(params);
+        default:
+            throw new Error('Card type ' + type + ' not recognized');
+    }
+}
+
 function populateCardsListFromStore(store) {
+    let contentView = contentViewFromType(store.type, store);
+
     return new DiscoveryFeedListItem({
-        content: new DiscoveryFeedCard({
-            model: store
-        })
+        content: contentViewFromType(store.type, store)
     });
 }
 
