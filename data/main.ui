@@ -88,6 +88,9 @@
                     <property name="vexpand">True</property>
                     <property name="valign">fill</property>
                     <property name="selection-mode">none</property>
+                    <style>
+                      <class name="stories" />
+                    </style>
                   </object>
                 </child>
               </object>
