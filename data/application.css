@@ -24,6 +24,16 @@
   color: #5b8291
 }
 
+list.stories row {
+  padding: 0px;
+  margin: 12.5px 0px 12.5px 0px;
+  box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
+}
+
+list.stories {
+  background-color: transparent;
+}
+
 .content-list-container {
   margin: 0px 50px 0px 50px;
 }
@@ -44,7 +54,7 @@
 }
 
 window {
-  background-color: #ffffff;
+  background-color: #f0efee;
 }
 
 button .close {
