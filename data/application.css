@@ -25,6 +25,46 @@
   color: #5b8291;
 }
 
+.subcard {
+  padding: 20px;
+  margin: 20px;
+  background-color: white;
+}
+
+.subcard-layout {
+  min-height: 250px;
+}
+
+.quote {
+  font-size: 16pt;
+  font-family: 'Lato';
+  font-style: oblique;
+  margin: 20px 0 20px 0;
+}
+
+.quote-author {
+  font-size: 10pt;
+  font-family: 'Lato';
+  font-style: bold;
+}
+
+.bolded-word {
+  font-size: 14pt;
+  font-style: bold;
+  font-family: 'Serif';
+  margin-top: 20px;
+}
+
+.word-detail {
+  font-size: 14pt;
+  font-style: oblique;
+  margin-top: 20px;
+}
+
+.word-description {
+  font-size: 14pt;
+}
+
 list.stories row .content {
   padding: 0px;
   margin: 12.5px 0px 12.5px 0px;
