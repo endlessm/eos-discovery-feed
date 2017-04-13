@@ -9,12 +9,8 @@
   font-family: 'Lato';
 }
 
-.content .preview {
-  margin: 10px;
-}
-
 .content .article {
-  margin: 10px;
+  margin: 0 10px 0px 10px;
 }
 
 .content .app-info {
