@@ -1,7 +1,8 @@
 .content .title {
-  font-size: 22pt;
+  font-size: 18pt;
   font-family: 'Serif';
-  color: #5b8291
+  color: #243239
+  margin-bottom: 10px;
 }
 
 .content .subtitle {
