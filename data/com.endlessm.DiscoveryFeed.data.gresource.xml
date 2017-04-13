@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/com/endlessm/GrandCentral">
+  <gresource prefix="/com/endlessm/DiscoveryFeed">
     <file preprocess="xml-stripblanks">main.ui</file>
     <file preprocess="xml-stripblanks">content-card.ui</file>
     <file>img/close_button.svg</file>

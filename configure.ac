@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([com.endlessm.GrandCentral],
+AC_INIT([com.endlessm.DiscoveryFeed],
         [0.0.0],
         [bugs@endlessm.com],
-        [com.endlessm.GrandCentral],
+        [com.endlessm.DiscoveryFeed],
         [http://www.endlessm.com])
 AM_INIT_AUTOMAKE([1.12 dist-xz no-dist-gzip foreign tar-ustar no-define serial-tests -Wno-portability])
 AM_SILENT_RULES([yes])

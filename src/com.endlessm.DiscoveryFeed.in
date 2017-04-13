@@ -1,12 +1,12 @@
 #!@GJS@
-/* com.endlessm.GrandCentral
+/* com.endlessm.DiscoveryFeed
  *
  * Copyright (c) 2016 Endless Mobile Inc.
  * All Rights Reserved.
  *
- * This file is the entrypoint to the "Grand Central" notification area
+ * This file is the entrypoint to the "Discovery Feed" notification area
  */
-imports.package.init({ name: "com.endlessm.GrandCentral",
+imports.package.init({ name: "com.endlessm.DiscoveryFeed",
                        version: "@PACKAGE_VERSION@",
                        prefix: "@prefix@",
                        libdir: "@libdir@" });
