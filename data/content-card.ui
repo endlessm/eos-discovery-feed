@@ -9,7 +9,7 @@
         <property name="halign">fill</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="content-layout">
             <property name="visible">True</property>
             <property name="hexpand">True</property>
             <property name="halign">fill</property>
