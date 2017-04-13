@@ -31,7 +31,8 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
-                    <property name="label">Quote of the Day</property>
+                    <property name="label">QUOTE OF THE DAY</property>
+                    <property name="xalign">0.0</property>
                     <style>
                       <class name="small-header"/>
                     </style>
@@ -41,6 +42,8 @@
                   <object class="GtkLabel" id="quote">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
+                    <property name="xalign">0.0</property>
+                    <property name="wrap">True</property>
                     <style>
                       <class name="bolded-word"/>
                     </style>
@@ -50,6 +53,7 @@
                   <object class="GtkLabel" id="quote-author">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
+                    <property name="xalign">0.0</property>
                     <style>
                       <class name="quote-author"/>
                     </style>
@@ -76,7 +80,8 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
-                    <property name="label">Word of the Day</property>
+                    <property name="label">WORD OF THE DAY</property>
+                    <property name="xalign">0.0</property>
                     <style>
                       <class name="small-header"/>
                     </style>
@@ -86,6 +91,7 @@
                   <object class="GtkLabel" id="word">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
+                    <property name="xalign">0.0</property>
                     <style>
                       <class name="bolded-word"/>
                     </style>
@@ -95,6 +101,7 @@
                   <object class="GtkLabel" id="word-detail">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
+                    <property name="xalign">0.0</property>
                     <style>
                       <class name="word-detail"/>
                     </style>
@@ -104,6 +111,8 @@
                   <object class="GtkLabel" id="word-description">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
+                    <property name="xalign">0.0</property>
+                    <property name="wrap">True</property>
                     <style>
                       <class name="word-description"/>
                     </style>

@@ -517,7 +517,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
                                  this.model.word.pronunciation;
         this.word_description.label = this.model.word.definition;
         this.quote.label = this.model.quote.quote;
-        this.quote.author = this.model.quote.author;
+        this.quote_author.label = this.model.quote.author.toUpperCase();
     }
 });
 
