@@ -604,7 +604,11 @@ const DiscoveryFeedListItem = new Lang.Class({
     },
 
     activateChild: function() {
-        return this.content.activate(Gtk.get_current_event_time());
+        if (this.content.activate) {
+            return this.content.activate(Gtk.get_current_event_time());
+        }
+
+        return null;
     }
 });
 
