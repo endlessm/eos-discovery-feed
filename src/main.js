@@ -231,7 +231,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
 
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
 const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_WORD_QUOTE_CARD;
+const CARD_STORE_TYPE_ARTWORK_CARD = 2;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTWORK_CARD;
 
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
@@ -342,6 +343,48 @@ const DiscoveryFeedWordQuotePairStore = new Lang.Class({
         this.parent(params);
     }
 });
+
+const LAYOUT_DIRECTION_IMAGE_FIRST = 0;
+const LAYOUT_DIRECTION_IMAGE_LAST = 1;
+
+const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowlegeArtworkCardStore',
+    Extends: DiscoveryFeedCardStore,
+    Properties: {
+        'title': GObject.ParamSpec.string('title',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          ''),
+        'author': GObject.ParamSpec.string('author',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  ''),
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_ARTWORK_CARD;
+        this.parent(params);
+    }
+});
+
 
 const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCardStore',
@@ -553,6 +596,33 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     }
 });
 
+const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeArtworkCard',
+    Extends: Gtk.Box,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        this.add(new DiscoveryFeedCard({
+            title: params.model.title,
+            synopsis: 'by ' + params.model.author,
+            thumbnail_uri: params.model.thumbnail_uri,
+            source_title: 'Masterpiece of the Day'.toUpperCase(),
+            layout_direction: params.model.layout_direction
+        }));
+        this.get_style_context().add_class('artwork');
+    }
+});
+
 const DiscoveryFeedWordQuotePair = new Lang.Class({
     Name: 'DiscoveryFeedWordQuotePair',
     Extends: Gtk.Box,
@@ -619,6 +689,8 @@ function contentViewFromType(type, store) {
             return new DiscoveryFeedKnowledgeAppCard(params);
         case CARD_STORE_TYPE_WORD_QUOTE_CARD:
             return new DiscoveryFeedWordQuotePair(params);
+        case CARD_STORE_TYPE_ARTWORK_CARD:
+            return new DiscoveryFeedKnowledgeArtworkCard(params);
         default:
             throw new Error('Card type ' + type + ' not recognized');
     }
@@ -751,15 +823,14 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 })
             }));
         },
-        '5': () => {
-            model.append(new DiscoveryFeedKnowledgeAppCardStore({
+        '4': () => {
+            model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
                 title: 'Summertime',
-                synopsis: 'by Mary Cassat',
+                author: 'Mary Cassat',
                 thumbnail_uri: 'ekn:///aec88cc64d36221110af5db22ceb82f83f6fc57d',
-                desktop_id: 'com.endlessm.animals.en.desktop',
-                uri: 'ekn:///deeb87a5c136b912f3771b760bbd668e207a55a3',
-                styles: 'artwork'
-            }))
+                layout_direction: modelIndex % 2 == 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+            }));
+            modelIndex++;
         }
     };
 
