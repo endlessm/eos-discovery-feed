@@ -424,12 +424,6 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                                      GObject.ParamFlags.READWRITE |
                                                      GObject.ParamFlags.CONSTRUCT_ONLY,
                                                      ''),
-        'styles': GObject.ParamSpec.string('styles',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
         'layout-direction': GObject.ParamSpec.int('layout-direction',
                                                   '',
                                                   '',
