@@ -636,7 +636,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
         this.word_detail.label = this.model.word.word_type + ' | ' +
                                  this.model.word.pronunciation;
         this.word_description.label = this.model.word.definition;
-        this.quote.label = this.model.quote.quote;
+        this.quote.label = '"' + this.model.quote.quote + '"';
         this.quote_author.label = this.model.quote.author.toUpperCase();
     }
 });
