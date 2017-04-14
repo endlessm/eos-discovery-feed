@@ -388,8 +388,13 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                                      '',
                                                      GObject.ParamFlags.READWRITE |
                                                      GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                     '')
-
+                                                     ''),
+        'styles': GObject.ParamSpec.string('styles',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           '')
     },
 
     _init: function(params) {
@@ -469,6 +474,13 @@ const DiscoveryFeedCard = new Lang.Class({
                 this.content_layout.child_set_property(child,
                                                        'pack-type',
                                                        Gtk.PackType.END);
+            }));
+        }
+        
+        if (this.model.styles) {
+            let context = this.get_style_context();
+            this.model.styles.split(',').forEach(Lang.bind(this, function(style) {
+                context.add_class(style);
             }));
         }
     },
@@ -682,6 +694,16 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                     word_type: 'noun'
                 })
             }));
+        },
+        '5': () => {
+            model.append(new DiscoveryFeedKnowledgeAppCardStore({
+                title: 'Summertime',
+                synopsis: 'by Mary Cassat',
+                thumbnail_uri: 'ekn:///aec88cc64d36221110af5db22ceb82f83f6fc57d',
+                desktop_id: 'com.endlessm.animals.en.desktop',
+                uri: 'ekn:///deeb87a5c136b912f3771b760bbd668e207a55a3',
+                styles: 'artwork'
+            }))
         }
     };
 
