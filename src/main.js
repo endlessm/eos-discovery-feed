@@ -409,12 +409,38 @@ const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
     Extends: Gtk.Box,
     Properties: {
-        'model': GObject.ParamSpec.object('model',
+        'source-title': GObject.ParamSpec.string('source-title',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 ''),
+        'title': GObject.ParamSpec.string('title',
                                           '',
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          DiscoveryFeedKnowledgeAppCardStore.$gtype)
+                                          ''),
+        'synopsis': GObject.ParamSpec.string('synopsis',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             ''),
+        'thumbnail': GObject.ParamSpec.string('thumbnail',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              Gio.InputStream),
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
     Children: [
@@ -428,8 +454,8 @@ const DiscoveryFeedCard = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.title_label.label = this.model.title;
-        this.synopsis_label.label = this.model.synopsis;
+        this.title_label.label = this.title;
+        this.synopsis_label.label = this.synopsis;
         this._knowledgeSearchProxy = null;
 
         if (this.model.thumbnail) {
@@ -443,12 +469,47 @@ const DiscoveryFeedCard = new Lang.Class({
             });
         }
 
+        this.app_label.label = this.source_title;
+
+        // If this is an odd card, adjust the packing order of all widgets
+        // in the box
+        if (this.layout_direction == LAYOUT_DIRECTION_IMAGE_FIRST) {
+            this.content_layout.get_children().forEach(Lang.bind(this, function(child) {
+                this.content_layout.child_set_property(child,
+                                                       'pack-type',
+                                                       Gtk.PackType.END);
+            }));
+        }
+    }
+});
+
+const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppCard',
+    Extends: Gtk.Box,
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedKnowledgeAppCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
         // Read the desktop file and then set the app icon and label
         // appropriately
-        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
-        this.app_label.label = this._app.get_display_name().toUpperCase();
-        this.app_icon.gicon = this._app.get_icon() ||
-                              Gio.ThemedIcon.new('gnome');
+        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+
+        this.add(new DiscoveryFeedCard({
+            title: params.model.title,
+            synopsis: params.model.synopsis,
+            thumbnail_uri: params.model.thumbnail_uri,
+            source_title: this._app.get_display_name().toUpperCase(),
+            layout_direction: params.model.layout_direction
+        }));
 
         if (this.model.knowledge_search_object_path) {
             let onProxyReady = function(initable, error) {
@@ -465,23 +526,6 @@ const DiscoveryFeedCard = new Lang.Class({
                                                           this.model.knowledge_search_object_path,
                                                           Lang.bind(this,
                                                                     onProxyReady));
-        }
-
-        // If this is an odd card, adjust the packing order of all widgets
-        // in the box
-        if (this.model.index % 2 !== 0) {
-            this.content_layout.get_children().forEach(Lang.bind(this, function(child) {
-                this.content_layout.child_set_property(child,
-                                                       'pack-type',
-                                                       Gtk.PackType.END);
-            }));
-        }
-        
-        if (this.model.styles) {
-            let context = this.get_style_context();
-            this.model.styles.split(',').forEach(Lang.bind(this, function(style) {
-                context.add_class(style);
-            }));
         }
     },
 
@@ -560,7 +604,7 @@ function contentViewFromType(type, store) {
     let params = { model: store };
     switch (type) {
         case CARD_STORE_TYPE_ARTICLE_CARD:
-            return new DiscoveryFeedCard(params);
+            return new DiscoveryFeedKnowledgeAppCard(params);
         case CARD_STORE_TYPE_WORD_QUOTE_CARD:
             return new DiscoveryFeedWordQuotePair(params);
         default:
