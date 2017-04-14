@@ -846,8 +846,12 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 try {
                     response.forEach(function(entry) {
                         let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+                        // We don't necessarily want to increment modelIndex
+                        // here - only if we are displaying a card where the
+                        // image and content should be flipped
                         if (indexInsertFuncs[modelIndex]) {
-                            indexInsertFuncs[modelIndex++]();
+                            indexInsertFuncs[modelIndex]();
                         }
 
                         model.append(new DiscoveryFeedKnowledgeAppCardStore({
