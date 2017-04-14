@@ -394,7 +394,15 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                            '',
                                            GObject.ParamFlags.READWRITE |
                                            GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           '')
+                                           ''),
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
     },
 
     _init: function(params) {
@@ -776,7 +784,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             knowledge_app_id: proxy.knowledgeAppId,
                             uri: entry.ekn_id,
-                            index: modelIndex++
+                            index: modelIndex++,
+                            layout_direction: modelIndex % 2 == 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
                         }));
                     });
                 } catch (e) {
