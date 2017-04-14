@@ -91,6 +91,10 @@ list.stories {
   background-color: transparent;
 }
 
+list.stories row:hover {
+  background-color: transparent;
+}
+
 .content-list-container {
   margin: 0px 50px 0px 50px;
 }
