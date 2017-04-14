@@ -245,15 +245,7 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                       GObject.ParamFlags.CONSTRUCT_ONLY,
                                       0,
                                       CARD_STORE_TYPE_MAX,
-                                      0),
-        'index': GObject.ParamSpec.int('index',
-                                       '',
-                                       '',
-                                       GObject.ParamFlags.READWRITE |
-                                       GObject.ParamFlags.CONSTRUCT_ONLY,
-                                       0,
-                                       GLib.MAXINT32,
-                                       0)
+                                      0)
     }
 });
 
@@ -863,9 +855,10 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             knowledge_app_id: proxy.knowledgeAppId,
                             uri: entry.ekn_id,
-                            index: modelIndex++,
                             layout_direction: modelIndex % 2 == 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
                         }));
+
+                        modelIndex++;
                     });
                 } catch (e) {
                     logError(e, 'Could not parse response');
