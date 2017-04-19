@@ -351,15 +351,20 @@ const DiscoveryFeedCard = new Lang.Class({
                               Gio.ThemedIcon.new('gnome');
 
         if (this.model.knowledge_search_object_path) {
-            this._knowledgeSearchProxy = new Gio.DBusProxy({ g_bus_type: Gio.BusType.SESSION,
-                                                        g_name: this.model.bus_name,
-                                                        g_object_path: this.model.knowledge_search_object_path,
-                                                        g_interface_info: KnowledgeSearchProxyInfo,
-                                                        g_interface_name: KnowledgeSearchProxyInfo.name,
-                                                        g_flags: (Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION |
-                                                                  Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES),
-                                                        g_default_timeout: GLib.MAXINT32 });
-            this._knowledgeSearchProxy.init(null);
+            let onProxyReady = function(initable, error) {
+                if (error) {
+                    logError(error, 'Could not create proxy for ' + this.model.knowledge_search_object_path);
+                    return;
+                }
+                log('Created proxy for ' + this.model.knowledge_search_object_path);
+            };
+
+            let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
+            this._knowledgeSearchProxy = interfaceWrapper(Gio.DBus.session,
+                                                          this.model.bus_name,
+                                                          this.model.knowledge_search_object_path,
+                                                          Lang.bind(this,
+                                                                    onProxyReady));
         }
     },
 
