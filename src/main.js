@@ -557,7 +557,7 @@ const GrandCentralApplication = new Lang.Class({
             y: workarea.y
         };
 
-        geometry.x = workarea.width - geometry.width;
+        geometry.x = (workarea.width - geometry.width) * 0.5;
         this._window.move(geometry.x, geometry.y);
         this._window.resize(geometry.width, geometry.height);
     }
