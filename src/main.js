@@ -169,7 +169,7 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
                                                  DISCOVERY_FEED_SECTION_NAME,
                                                  'DesktopId',
                                                  null),
-            objectPath: objectPath
+            knowledgeSearchObjectPath: objectPath
         });
     }
 
@@ -238,7 +238,7 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                 null),
         desktopId: provider.desktopFileId,
         busName: provider.name,
-        objectPath: provider.objectPath
+        knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath
     }));
 }
 
@@ -282,12 +282,12 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              ''),
-        'object-path': GObject.ParamSpec.string('object-path',
-                                                '',
-                                                '',
-                                                GObject.ParamFlags.READWRITE |
-                                                GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                '')
+        'knowledge-search-object-path': GObject.ParamSpec.string('knowledge-search-object-path',
+                                                                 '',
+                                                                 '',
+                                                                 GObject.ParamFlags.READWRITE |
+                                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                                 '')
     },
 
     _init: function(params) {
@@ -351,7 +351,7 @@ const DiscoveryFeedCard = new Lang.Class({
 
         this.proxy = new Gio.DBusProxy({ g_bus_type: Gio.BusType.SESSION,
                                          g_name: this.model.bus_name,
-                                         g_object_path: this.model.object_path,
+                                         g_object_path: this.model.knowledge_search_object_path,
                                          g_interface_info: KnowledgeSearchProxyInfo,
                                          g_interface_name: KnowledgeSearchProxyInfo.name,
                                          g_flags: (Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION |
@@ -461,7 +461,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             thumbnail_uri: entry.thumbnail_uri,
                             desktop_id: proxy.desktopId,
                             bus_name: proxy.busName,
-                            object_path: proxy.objectPath,
+                            knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             uri: entry.ekn_id
                         }));
                     });
