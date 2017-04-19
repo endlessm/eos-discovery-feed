@@ -330,6 +330,7 @@ const DiscoveryFeedCard = new Lang.Class({
         this.parent(params);
         this.title_label.label = this.model.title;
         this.synopsis_label.label = this.model.synopsis;
+        this._knowledgeSearchProxy = null;
 
         let contentBackgroundProvider = new Gtk.CssProvider();
         let contentBackgroundStyleContext = this.background_content.get_style_context();
@@ -349,20 +350,32 @@ const DiscoveryFeedCard = new Lang.Class({
         this.app_icon.gicon = this._app.get_icon() ||
                               Gio.ThemedIcon.new('gnome');
 
-        this.proxy = new Gio.DBusProxy({ g_bus_type: Gio.BusType.SESSION,
-                                         g_name: this.model.bus_name,
-                                         g_object_path: this.model.knowledge_search_object_path,
-                                         g_interface_info: KnowledgeSearchProxyInfo,
-                                         g_interface_name: KnowledgeSearchProxyInfo.name,
-                                         g_flags: (Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION |
-                                                   Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES),
-                                         g_default_timeout: GLib.MAXINT32 });
-        this.proxy.init(null);
-
+        if (this.model.knowledge_search_object_path) {
+            this._knowledgeSearchProxy = new Gio.DBusProxy({ g_bus_type: Gio.BusType.SESSION,
+                                                        g_name: this.model.bus_name,
+                                                        g_object_path: this.model.knowledge_search_object_path,
+                                                        g_interface_info: KnowledgeSearchProxyInfo,
+                                                        g_interface_name: KnowledgeSearchProxyInfo.name,
+                                                        g_flags: (Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION |
+                                                                  Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES),
+                                                        g_default_timeout: GLib.MAXINT32 });
+            this._knowledgeSearchProxy.init(null);
+        }
     },
 
     activate: function(timestamp) {
-        this.proxy.LoadItemRemote(this.model.uri, '', timestamp);
+        if (!this._knowledgeSearchProxy) {
+            this._app.launch([], null);
+            return;
+        }
+
+        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp,
+                                                  Lang.bind(this, function(result, excp) {
+            if (!excp)
+                return;
+            logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
+            this._app.launch([], null);
+        }));
     }
 });
 
