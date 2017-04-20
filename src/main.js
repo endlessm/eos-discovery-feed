@@ -29,6 +29,21 @@ const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
 const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed.View';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
+const KnowledgeSearchIface = '\
+<node> \
+  <interface name="com.endlessm.KnowledgeSearch"> \
+    <method name="LoadItem"> \
+      <arg type="s" name="EknID" direction="in" /> \
+      <arg type="s" name="Query" direction="in" /> \
+      <arg type="u" name="Timestamp" direction="in" /> \
+    </method> \
+    <method name="LoadQuery"> \
+      <arg type="s" name="Query" direction="in" /> \
+      <arg type="u" name="Timestamp" direction="in" /> \
+    </method> \
+  </interface> \
+</node>';
+
 const DiscoveryFeedIface = '\
 <node> \
   <interface name="' + DISCOVERY_FEED_NAME + '">  \
@@ -71,6 +86,7 @@ function maybeGetKeyfileString(keyFile, section, key, defaultValue) {
 }
 
 const DISCOVERY_FEED_SECTION_NAME = 'Discovery Feed Content Provider';
+const LOAD_ITEM_SECTION_NAME = 'Load Item Provider';
 
 //
 // readDiscoveryFeedProvidersInDirectory
@@ -126,6 +142,18 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
             continue;
         }
 
+        let objectPath = null;
+        if (keyFile.has_group(LOAD_ITEM_SECTION_NAME)) {
+            log('Key file ' + path + ' does have a section called ' + LOAD_ITEM_SECTION_NAME + ', processing...');
+            try {
+                objectPath = keyFile.get_string(LOAD_ITEM_SECTION_NAME,
+                                                'ObjectPath');
+            } catch(e) {
+                log('Key file ' + path + ' does not have key \'ObjectPath\', ignoring');
+                continue;
+            }
+        }
+
         providerBusDescriptors.push({
             path: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
                                      'ObjectPath'),
@@ -139,6 +167,7 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
                                                  DISCOVERY_FEED_SECTION_NAME,
                                                  'DesktopId',
                                                  null),
+            knowledgeSearchObjectPath: objectPath
         });
     }
 
@@ -205,7 +234,9 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                           provider.path,
                                           provider.name),
                                 null),
-        desktopId: provider.desktopFileId
+        desktopId: provider.desktopFileId,
+        busName: provider.name,
+        knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath
     }));
 }
 
@@ -242,7 +273,19 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                                '',
                                                GObject.ParamFlags.READWRITE |
                                                GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               '')
+                                               ''),
+        'bus-name': GObject.ParamSpec.string('bus-name',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             ''),
+        'knowledge-search-object-path': GObject.ParamSpec.string('knowledge-search-object-path',
+                                                                 '',
+                                                                 '',
+                                                                 GObject.ParamFlags.READWRITE |
+                                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                                 '')
     },
 
     _init: function(params) {
@@ -285,6 +328,7 @@ const DiscoveryFeedCard = new Lang.Class({
         this.parent(params);
         this.title_label.label = this.model.title;
         this.synopsis_label.label = this.model.synopsis;
+        this._knowledgeSearchProxy = null;
 
         let contentBackgroundProvider = new Gtk.CssProvider();
         let contentBackgroundStyleContext = this.background_content.get_style_context();
@@ -303,10 +347,38 @@ const DiscoveryFeedCard = new Lang.Class({
         this.app_label.label = this._app.get_display_name().toUpperCase();
         this.app_icon.gicon = this._app.get_icon() ||
                               Gio.ThemedIcon.new('gnome');
+
+        if (this.model.knowledge_search_object_path) {
+            let onProxyReady = function(initable, error) {
+                if (error) {
+                    logError(error, 'Could not create proxy for ' + this.model.knowledge_search_object_path);
+                    return;
+                }
+                log('Created proxy for ' + this.model.knowledge_search_object_path);
+            };
+
+            let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
+            this._knowledgeSearchProxy = interfaceWrapper(Gio.DBus.session,
+                                                          this.model.bus_name,
+                                                          this.model.knowledge_search_object_path,
+                                                          Lang.bind(this,
+                                                                    onProxyReady));
+        }
     },
 
-    activate: function() {
-        this._app.launch([Gio.File.new_for_uri(this.model.uri)], null);
+    activate: function(timestamp) {
+        if (!this._knowledgeSearchProxy) {
+            this._app.launch([], null);
+            return;
+        }
+
+        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp,
+                                                  Lang.bind(this, function(result, excp) {
+            if (!excp)
+                return;
+            logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
+            this._app.launch([], null);
+        }));
     }
 });
 
@@ -351,7 +423,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.dismiss_button.set_action_name('win.close');
 
         this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
-            row.activate();
+            row.activate(Gtk.get_current_event_time());
         }));
     },
 });
@@ -404,6 +476,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             synopsis: sanitizeSynopsis(entry.synopsis),
                             thumbnail_uri: entry.thumbnail_uri,
                             desktop_id: proxy.desktopId,
+                            bus_name: proxy.busName,
+                            knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             uri: entry.ekn_id
                         }));
                     });
