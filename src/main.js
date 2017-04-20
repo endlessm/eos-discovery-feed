@@ -189,7 +189,7 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
             return;
         }
 
-        log('Created Grand Central proxy for ' + objectPath);
+        log('Created Discovery Feed proxy for ' + objectPath);
 
         if (remaining < 1) {
             done(proxies);
@@ -392,7 +392,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     proxies.forEach(function(proxy) {
         proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
             if (error) {
-                logError(error, 'Failed to execute Grand Central query');
+                logError(error, 'Failed to execute Discovery Feed query');
                 return;
             }
 
@@ -421,7 +421,7 @@ const DiscoveryFeedApplication = new Lang.Class({
 
     _init: function() {
         this.parent({ application_id: pkg.name });
-        GLib.set_application_name(_('Grand Central'));
+        GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
         this._changedSignalId = 0;
         this._discoveryFeedProxies = [];
