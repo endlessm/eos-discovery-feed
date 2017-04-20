@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2016-2017 Endless Mobile Inc.
 //
-// This file is the file first run by the entrypoint to the com.endlessm.GrandCentral
+// This file is the file first run by the entrypoint to the com.endlessm.DiscoveryFeed
 // package.
 pkg.initGettext();
 pkg.initFormat();
@@ -24,14 +24,14 @@ const Wnck = imports.gi.Wnck;
 
 const Lang = imports.lang;
 
-const GRAND_CENTRAL_NAME = 'com.endlessm.GrandCentral';
-const GRAND_CENTRAL_PATH = '/com/endlessm/GrandCentral';
-const GRAND_CENTRAL_IFACE = 'com.endlessm.GrandCentral.View';
+const DISCOVERY_FEED_NAME = 'com.endlessm.DiscoveryFeed';
+const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
+const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed.View';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
-const GrandCentralIface = '\
+const DiscoveryFeedIface = '\
 <node> \
-  <interface name="' + GRAND_CENTRAL_NAME + '">  \
+  <interface name="' + DISCOVERY_FEED_NAME + '">  \
     <method name="show">  \
       <arg type="u" direction="in" name="timestamp"/>  \
     </method>  \
@@ -42,9 +42,9 @@ const GrandCentralIface = '\
   </interface> \
 </node>';
 
-const GrandCentralContentIface = '\
+const DiscoveryFeedContentIface = '\
 <node> \
-  <interface name="com.endlessm.GrandCentralContent"> \
+  <interface name="com.endlessm.DiscoveryFeedContent"> \
     <method name="ArticleCardDescriptions"> \
       <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
@@ -70,18 +70,18 @@ function maybeGetKeyfileString(keyFile, section, key, defaultValue) {
     }
 }
 
-const GRAND_CENTRAL_SECTION_NAME = 'Grand Central Content Provider';
+const DISCOVERY_FEED_SECTION_NAME = 'Discovery Feed Content Provider';
 
 //
-// readGrandCentralProvidersInDirectory
+// readDiscoveryFeedProvidersInDirectory
 //
-// Read all the grand central providers in a directory, calling
+// Read all the discovery feed providers in a directory, calling
 // done with an array of all providers when they have been read in.
 //
 // @param {object.Gio.File} directory - The directory to enumerate.
 // @param {function} done - The function to call with a list of providers
 //                          when done.
-function readGrandCentralProvidersInDirectory(directory) {
+function readDiscoveryFeedProvidersInDirectory(directory) {
     let enumerator = null;
     let info = null;
     let providerBusDescriptors = [];
@@ -112,12 +112,12 @@ function readGrandCentralProvidersInDirectory(directory) {
             logError(e, 'Key file ' + path + ' could not be loaded, ignored');
         }
 
-        if (!keyFile.has_group(GRAND_CENTRAL_SECTION_NAME)) {
-            log('Key file ' + path + ' does not have a section called ' + GRAND_CENTRAL_SECTION_NAME + ', ignored');
+        if (!keyFile.has_group(DISCOVERY_FEED_SECTION_NAME)) {
+            log('Key file ' + path + ' does not have a section called ' + DISCOVERY_FEED_SECTION_NAME + ', ignored');
             continue;
         }
 
-        let keys = keyFile.get_keys(GRAND_CENTRAL_SECTION_NAME)[0];
+        let keys = keyFile.get_keys(DISCOVERY_FEED_SECTION_NAME)[0];
         let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName'];
 
         let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
@@ -127,16 +127,16 @@ function readGrandCentralProvidersInDirectory(directory) {
         }
 
         providerBusDescriptors.push({
-            path: keyFile.get_string(GRAND_CENTRAL_SECTION_NAME,
+            path: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
                                      'ObjectPath'),
-            name: keyFile.get_string(GRAND_CENTRAL_SECTION_NAME,
+            name: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
                                      'BusName'),
             knowledgeAppId: maybeGetKeyfileString(keyFile,
-                                                  GRAND_CENTRAL_SECTION_NAME,
+                                                  DISCOVERY_FEED_SECTION_NAME,
                                                   'AppID',
                                                   null),
             desktopFileId: maybeGetKeyfileString(keyFile,
-                                                 GRAND_CENTRAL_SECTION_NAME,
+                                                 DISCOVERY_FEED_SECTION_NAME,
                                                  'DesktopId',
                                                  null),
         });
@@ -145,21 +145,21 @@ function readGrandCentralProvidersInDirectory(directory) {
     return providerBusDescriptors;
 }
 
-function readGrandCentralProvidersInDataDirectories() {
+function readDiscoveryFeedProvidersInDataDirectories() {
     let dataDirectories = GLib.get_system_data_dirs();
     return dataDirectories.reduce((allProviders, directory) => {
         let dir = Gio.File.new_for_path(GLib.build_filenamev([
             directory,
-            'com.endlessm.GrandCentral',
+            'eos-discovery-feed',
             'content-providers'
         ]));
         Array.prototype.push.apply(allProviders,
-                                   readGrandCentralProvidersInDirectory(dir));
+                                   readDiscoveryFeedProvidersInDirectory(dir));
         return allProviders;
     }, []);
 }
 
-function instantiateShardsFromGrandCentralProviders(providers) {
+function instantiateShardsFromDiscoveryFeedProviders(providers) {
     let shards = providers.filter(provider => {
         return provider.knowledgeAppId !== null;
     }).map(provider => {
@@ -173,11 +173,11 @@ function instantiateShardsFromGrandCentralProviders(providers) {
     Eknc.default_vfs_set_shards(shards);
 }
 
-function instantiateObjectsFromGrandCentralProviders(connection,
-                                                     interfaceName,
-                                                     providers,
-                                                     done) {
-    let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(GrandCentralContentIface);
+function instantiateObjectsFromDiscoveryFeedProviders(connection,
+                                                      interfaceName,
+                                                      providers,
+                                                      done) {
+    let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface);
     let remaining = providers.length;
 
     let onProxyReady = function(initable, error, objectPath, name) {
@@ -189,7 +189,7 @@ function instantiateObjectsFromGrandCentralProviders(connection,
             return;
         }
 
-        log('Created Grand Central proxy for ' + objectPath);
+        log('Created Discovery Feed proxy for ' + objectPath);
 
         if (remaining < 1) {
             done(proxies);
@@ -209,8 +209,8 @@ function instantiateObjectsFromGrandCentralProviders(connection,
     }));
 }
 
-const GrandCentralCardStore = new Lang.Class({
-    Name: 'GrandCentralCardStore',
+const DiscoveryFeedCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedCardStore',
     Extends: GObject.Object,
     Properties: {
         'title': GObject.ParamSpec.string('title',
@@ -261,8 +261,8 @@ const CSSAllocator = (function() {
     };
 })();
 
-const GrandCentralCard = new Lang.Class({
-    Name: 'GrandCentralCard',
+const DiscoveryFeedCard = new Lang.Class({
+    Name: 'DiscoveryFeedCard',
     Extends: Gtk.ListBoxRow,
     Properties: {
         'model': GObject.ParamSpec.object('model',
@@ -270,9 +270,9 @@ const GrandCentralCard = new Lang.Class({
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          GrandCentralCardStore.$gtype)
+                                          DiscoveryFeedCardStore.$gtype)
     },
-    Template: 'resource:///com/endlessm/GrandCentral/content-card.ui',
+    Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
     Children: [
         'title-label',
         'synopsis-label',
@@ -310,8 +310,8 @@ const GrandCentralCard = new Lang.Class({
     }
 });
 
-const GrandCentralMainWindow = new Lang.Class({
-    Name: 'GrandCentralMainWindow',
+const DiscoveryFeedMainWindow = new Lang.Class({
+    Name: 'DiscoveryFeedMainWindow',
     Extends: Gtk.ApplicationWindow,
     Properties: {
         'card-model': GObject.ParamSpec.object('card-model',
@@ -321,7 +321,7 @@ const GrandCentralMainWindow = new Lang.Class({
                                                GObject.ParamFlags.CONSTRUCT_ONLY,
                                                Gio.ListModel)
     },
-    Template: 'resource:///com/endlessm/GrandCentral/main.ui',
+    Template: 'resource:///com/endlessm/DiscoveryFeed/main.ui',
     Children: [
         'cards',
         'today-date',
@@ -332,7 +332,7 @@ const GrandCentralMainWindow = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.cards.bind_model(this.card_model, function(card_store) {
-            return new GrandCentralCard({
+            return new DiscoveryFeedCard({
                 model: card_store
             });
         });
@@ -385,21 +385,21 @@ function sanitizeSynopsis(synopsis) {
     return synopsis;
 }
 
-function populateGrandCentralModelFromQueries(model, proxies) {
+function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let remaining = proxies.length;
     model.remove_all();
 
     proxies.forEach(function(proxy) {
         proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
             if (error) {
-                logError(error, 'Failed to execute Grand Central query');
+                logError(error, 'Failed to execute Discovery Feed query');
                 return;
             }
 
             results.forEach(function(response) {
                 try {
                     response.forEach(function(entry) {
-                        model.append(new GrandCentralCardStore({
+                        model.append(new DiscoveryFeedCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
                             thumbnail_uri: entry.thumbnail_uri,
@@ -415,32 +415,32 @@ function populateGrandCentralModelFromQueries(model, proxies) {
     });
 }
 
-const GrandCentralApplication = new Lang.Class({
-    Name: 'GrandCentralApplication',
+const DiscoveryFeedApplication = new Lang.Class({
+    Name: 'DiscoveryFeedApplication',
     Extends: Gtk.Application,
 
     _init: function() {
         this.parent({ application_id: pkg.name });
-        GLib.set_application_name(_('Grand Central'));
+        GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
         this._changedSignalId = 0;
-        this._grandCentralProxies = [];
+        this._discoveryFeedProxies = [];
         this._contentAppIds = [];
-        this._grandCentralCardModel = new Gio.ListStore({
-            item_type: GrandCentralCardStore.$gtype
+        this._discoveryFeedCardModel = new Gio.ListStore({
+            item_type: DiscoveryFeedCardStore.$gtype
         });
     },
 
     vfunc_startup: function() {
         this.parent();
 
-        load_style_sheet('/com/endlessm/GrandCentral/application.css');
+        load_style_sheet('/com/endlessm/DiscoveryFeed/application.css');
 
-        this._window = new GrandCentralMainWindow({
+        this._window = new DiscoveryFeedMainWindow({
             application: this,
             type_hint: Gdk.WindowTypeHint.DOCK,
             role: SIDE_COMPONENT_ROLE,
-            card_model: this._grandCentralCardModel,
+            card_model: this._discoveryFeedCardModel,
             opacity: 0.9
         });
 
@@ -478,18 +478,18 @@ const GrandCentralApplication = new Lang.Class({
     },
 
     vfunc_dbus_register: function(connection, path) {
-        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(GrandCentralIface, this);
+        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
         this._dbusImpl.export(Gio.DBus.session, path);
 
-        let providers = readGrandCentralProvidersInDataDirectories();
+        let providers = readDiscoveryFeedProvidersInDataDirectories();
         let onProxiesInstantiated = Lang.bind(this, function(proxies) {
-            Array.prototype.push.apply(this._grandCentralProxies, proxies);
+            Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
         });
-        instantiateObjectsFromGrandCentralProviders(connection,
-                                                    'com.endlessm.GrandCentralContent',
-                                                    providers,
-                                                    onProxiesInstantiated);
-        instantiateShardsFromGrandCentralProviders(providers);
+        instantiateObjectsFromDiscoveryFeedProviders(connection,
+                                                     'com.endlessm.DiscoveryFeedContent',
+                                                     providers,
+                                                     onProxiesInstantiated);
+        instantiateShardsFromDiscoveryFeedProviders(providers);
 
         return this.parent(connection, path);
     },
@@ -502,8 +502,8 @@ const GrandCentralApplication = new Lang.Class({
         this._window.show();
         this._window.present_with_time(timestamp);
 
-        populateGrandCentralModelFromQueries(this._grandCentralCardModel,
-                                             this._grandCentralProxies);
+        populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
+                                              this._discoveryFeedProxies);
     },
 
     hide: function() {
@@ -513,14 +513,14 @@ const GrandCentralApplication = new Lang.Class({
     _on_visibility_changed: function() {
         this.Visible = this._window.is_visible();
         let propChangedVariant = new GLib.Variant('(sa{sv}as)', [
-            GRAND_CENTRAL_IFACE, {
+            DISCOVERY_FEED_IFACE, {
                 'Visible': new GLib.Variant('b', this.Visible)
             },
             []
         ]);
 
         Gio.DBus.session.emit_signal(null,
-                                     GRAND_CENTRAL_PATH,
+                                     DISCOVERY_FEED_PATH,
                                      'org.freedesktop.DBus.Properties',
                                      'PropertiesChanged',
                                      propChangedVariant);
@@ -564,5 +564,5 @@ const GrandCentralApplication = new Lang.Class({
 });
 
 function main(argv) { // eslint-disable-line no-unused-vars
-    return (new GrandCentralApplication()).run(argv);
+    return (new DiscoveryFeedApplication()).run(argv);
 }
