@@ -424,9 +424,9 @@ const DiscoveryFeedApplication = new Lang.Class({
         GLib.set_application_name(_('Grand Central'));
         this.Visible = false;
         this._changedSignalId = 0;
-        this._DiscoveryFeedProxies = [];
+        this._discoveryFeedProxies = [];
         this._contentAppIds = [];
-        this._DiscoveryFeedCardModel = new Gio.ListStore({
+        this._discoveryFeedCardModel = new Gio.ListStore({
             item_type: DiscoveryFeedCardStore.$gtype
         });
     },
@@ -440,7 +440,7 @@ const DiscoveryFeedApplication = new Lang.Class({
             application: this,
             type_hint: Gdk.WindowTypeHint.DOCK,
             role: SIDE_COMPONENT_ROLE,
-            card_model: this._DiscoveryFeedCardModel,
+            card_model: this._discoveryFeedCardModel,
             opacity: 0.9
         });
 
@@ -483,7 +483,7 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         let providers = readDiscoveryFeedProvidersInDataDirectories();
         let onProxiesInstantiated = Lang.bind(this, function(proxies) {
-            Array.prototype.push.apply(this._DiscoveryFeedProxies, proxies);
+            Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
         });
         instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                      'com.endlessm.DiscoveryFeedContent',
@@ -502,8 +502,8 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window.show();
         this._window.present_with_time(timestamp);
 
-        populateDiscoveryFeedModelFromQueries(this._DiscoveryFeedCardModel,
-                                              this._DiscoveryFeedProxies);
+        populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
+                                              this._discoveryFeedProxies);
     },
 
     hide: function() {
