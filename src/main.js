@@ -236,7 +236,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                 null),
         desktopId: provider.desktopFileId,
         busName: provider.name,
-        knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath
+        knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
+        knowledgeAppId: provider.knowledgeAppId
     }));
 }
 
@@ -285,7 +286,13 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                                                  '',
                                                                  GObject.ParamFlags.READWRITE |
                                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                                 '')
+                                                                 ''),
+        'knowledge-app-id': GObject.ParamSpec.string('knowledge-app-id',
+                                                     '',
+                                                     '',
+                                                     GObject.ParamFlags.READWRITE |
+                                                     GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                     '')
     },
 
     _init: function(params) {
@@ -359,7 +366,7 @@ const DiscoveryFeedCard = new Lang.Class({
 
             let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
             this._knowledgeSearchProxy = interfaceWrapper(Gio.DBus.session,
-                                                          this.model.bus_name,
+                                                          this.model.knowledge_app_id,
                                                           this.model.knowledge_search_object_path,
                                                           Lang.bind(this,
                                                                     onProxyReady));
@@ -478,6 +485,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             desktop_id: proxy.desktopId,
                             bus_name: proxy.busName,
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                            knowledge_app_id: proxy.knowledgeAppId,
                             uri: entry.ekn_id
                         }));
                     });
