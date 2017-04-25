@@ -9,7 +9,7 @@
         <property name="halign">fill</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="content-layout">
             <property name="visible">True</property>
             <property name="hexpand">True</property>
             <property name="halign">fill</property>
@@ -39,6 +39,34 @@
                   <class name="article"/>
                 </style>
                 <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="halign">start</property>
+                    <style>
+                      <class name="app-info"/>
+                    </style>
+                    <child>
+                      <object class="GtkImage" id="app-icon">
+                        <property name="width_request">32</property>
+                        <property name="height_request">32</property>
+                        <property name="visible">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="app-label">
+                        <property name="visible">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="halign">start</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="app-name" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkLabel" id="title-label">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
@@ -61,44 +89,8 @@
                     </style>
                   </object>
                 </child>
-                <child>
-                  <object class="GtkBox">
-                    <property name="visible">True</property>
-                    <property name="hexpand">True</property>
-                    <property name="halign">start</property>
-                    <style>
-                      <class name="app-info"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage" id="app-icon">
-                        <property name="width_request">32</property>
-                        <property name="height_request">32</property>
-                        <property name="visible">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="app-label">
-                        <property name="visible">True</property>
-                        <property name="hexpand">True</property>
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <style>
-                          <class name="app-name" />
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkSeparator">
-            <property name="visible">True</property>
-            <property name="orientation">horizontal</property>
-            <property name="halign">fill</property>
-            <property name="hexpand">True</property>
           </object>
         </child>
       </object>

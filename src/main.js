@@ -292,7 +292,15 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                                      '',
                                                      GObject.ParamFlags.READWRITE |
                                                      GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                     '')
+                                                     ''),
+        'index': GObject.ParamSpec.int('index',
+                                       '',
+                                       '',
+                                       GObject.ParamFlags.READWRITE |
+                                       GObject.ParamFlags.CONSTRUCT_ONLY,
+                                       0,
+                                       GLib.MAXINT32,
+                                       0)
     },
 
     _init: function(params) {
@@ -328,7 +336,8 @@ const DiscoveryFeedCard = new Lang.Class({
         'synopsis-label',
         'background-content',
         'app-icon',
-        'app-label'
+        'app-label',
+        'content-layout'
     ],
 
     _init: function(params) {
@@ -371,6 +380,16 @@ const DiscoveryFeedCard = new Lang.Class({
                                                           Lang.bind(this,
                                                                     onProxyReady));
         }
+
+        // If this is an odd card, adjust the packing order of all widgets
+        // in the box
+        if (this.model.index % 2 !== 0) {
+            this.content_layout.get_children().forEach(Lang.bind(this, function(child) {
+                this.content_layout.child_set_property(child,
+                                                       'pack-type',
+                                                       Gtk.PackType.END);
+            }));
+        } 
     },
 
     activate: function(timestamp) {
@@ -415,7 +434,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
                 model: card_store
             });
         });
-        this.today_date.label = (new Date()).toLocaleFormat('%A %d %B, %Y').toUpperCase();
+        this.today_date.label = (new Date()).toLocaleFormat('%B %d').toUpperCase();
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button
@@ -466,6 +485,7 @@ function sanitizeSynopsis(synopsis) {
 
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let remaining = proxies.length;
+    let modelIndex = 0;
     model.remove_all();
 
     proxies.forEach(function(proxy) {
@@ -486,7 +506,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             bus_name: proxy.busName,
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             knowledge_app_id: proxy.knowledgeAppId,
-                            uri: entry.ekn_id
+                            uri: entry.ekn_id,
+                            index: modelIndex++
                         }));
                     });
                 } catch (e) {

@@ -16,24 +16,11 @@
             <property name="visible">True</property>
             <property name="hexpand">True</property>
             <property name="halign">fill</property>
-            <property name="orientation">horizontal</property>
-            <style>
-              <class name="header"/>
-            </style>
-            <child>
-              <object class="GtkLabel" id="today-date">
-                <property name="visible">True</property>
-                <property name="hexpand">True</property>
-                <property name="halign">center</property>
-                <style>
-                  <class name="date"/>
-                </style>
-              </object>
-            </child>
             <child>
               <object class="GtkButton" id="close-button">
                 <property name="visible">True</property>
                 <property name="halign">end</property>
+                <property name="hexpand">True</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -64,11 +51,46 @@
                   <class name="content-list-container"/>
                 </style>
                 <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="halign">fill</property>
+                    <property name="orientation">vertical</property>
+                    <style>
+                      <class name="header"/>
+                    </style>
+                    <child>
+                      <object class="GtkLabel" id="today-date">
+                        <property name="visible">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="halign">center</property>
+                        <style>
+                          <class name="date"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="halign">center</property>
+                        <property name="label">RECOMMENDED STORIES</property>
+                        <style>
+                          <class name="recommended-stories"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkListBox" id="cards">
                     <property name="visible">True</property>
                     <property name="vexpand">True</property>
                     <property name="valign">fill</property>
                     <property name="selection-mode">none</property>
+                    <style>
+                      <class name="stories" />
+                    </style>
                   </object>
                 </child>
               </object>

@@ -1,30 +1,38 @@
 .content .title {
-  font-size: 22pt;
+  font-size: 18pt;
   font-family: 'Serif';
-  color: #5b8291
+  color: #243239;
+  margin-bottom: 10px;
 }
 
-.content .subtitle {
-  font-size: 11pt;
-  font-family: 'Lato';
-}
-
-.content .preview {
-  margin: 10px;
-  border-radius: 4px;
+.content .synopsis {
+  font-size: 12pt;
+  font-family: 'Serif';
 }
 
 .content .article {
-  margin: 10px;
+  margin: 0 10px 10px 10px;
 }
 
 .content .app-info {
   margin-top: 20px;
+  margin-bottom: 25px;
 }
 
 .content .app-info label {
-  font-size: 10pt;
-  color: #5b8291
+  font-size: 9pt;
+  font-weight: bold;
+  color: #5b8291;
+}
+
+list.stories row {
+  padding: 0px;
+  margin: 12.5px 0px 12.5px 0px;
+  box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
+}
+
+list.stories {
+  background-color: transparent;
 }
 
 .content-list-container {
@@ -36,13 +44,18 @@
 }
 
 .header .date {
-  font-size: 18px;
+  font-size: 64px;
   font-family: 'Lato';
   color: #5b8291;
 }
 
+.header .recommended-stories {
+  font-size: 18px;
+  font-family: 'Lato';
+}
+
 window {
-  background-color: #ffffff;
+  background-color: #f0efee;
 }
 
 button .close {
