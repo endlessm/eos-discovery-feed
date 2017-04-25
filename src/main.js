@@ -26,7 +26,7 @@ const Lang = imports.lang;
 
 const DISCOVERY_FEED_NAME = 'com.endlessm.DiscoveryFeed';
 const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
-const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed.View';
+const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
 const KnowledgeSearchIface = '\
@@ -46,7 +46,7 @@ const KnowledgeSearchIface = '\
 
 const DiscoveryFeedIface = '\
 <node> \
-  <interface name="' + DISCOVERY_FEED_NAME + '">  \
+  <interface name="' + DISCOVERY_FEED_IFACE + '">  \
     <method name="show">  \
       <arg type="u" direction="in" name="timestamp"/>  \
     </method>  \
