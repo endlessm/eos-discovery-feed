@@ -61,6 +61,7 @@ const DiscoveryFeedContentIface = '\
 <node> \
   <interface name="com.endlessm.DiscoveryFeedContent"> \
     <method name="ArticleCardDescriptions"> \
+      <arg type="as" name="Shards" direction="out" /> \
       <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
   </interface> \
@@ -494,8 +495,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 logError(error, 'Failed to execute Discovery Feed query');
                 return;
             }
-
-            results.forEach(function(response) {
+            let items = results.slice(1, results.length);
+            items.forEach(function(response) {
                 try {
                     response.forEach(function(entry) {
                         model.append(new DiscoveryFeedCardStore({
