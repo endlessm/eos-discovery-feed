@@ -296,6 +296,8 @@ const DiscoveryFeedCardStore = new Lang.Class({
     }
 });
 
+const THUMBNAIL_WIDTH = 200;
+
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
     Extends: Gtk.ListBoxRow,
@@ -324,9 +326,13 @@ const DiscoveryFeedCard = new Lang.Class({
         this._knowledgeSearchProxy = null;
 
         if (this.model.thumbnail) {
-            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, 200, -1, true, null, (stream, res) => {
-                let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
-                this.thumbnail.set_from_pixbuf(pixbuf);
+            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
+                try {
+                    let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
+                    this.thumbnail.set_from_pixbuf(pixbuf);
+                } catch (e) {
+                    return;
+                }
             });
         }
 
