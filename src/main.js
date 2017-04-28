@@ -324,8 +324,10 @@ const DiscoveryFeedCard = new Lang.Class({
         this._knowledgeSearchProxy = null;
 
         if (this.model.thumbnail) {
-            let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(this.model.thumbnail, 200, -1, true, null);
-            this.thumbnail.set_from_pixbuf(pixbuf);
+            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, 200, -1, true, null, (stream, res) => {
+                let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
+                this.thumbnail.set_from_pixbuf(pixbuf);
+            });
         }
 
         // Read the desktop file and then set the app icon and label
