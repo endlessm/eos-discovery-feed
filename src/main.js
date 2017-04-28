@@ -323,8 +323,10 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.model.synopsis;
         this._knowledgeSearchProxy = null;
 
-        let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(this.model.thumbnail, 200, -1, true, null);
-        this.thumbnail.set_from_pixbuf(pixbuf);
+        if (this.model.thumbnail) {
+            let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(this.model.thumbnail, 200, -1, true, null);
+            this.thumbnail.set_from_pixbuf(pixbuf);
+        }
 
         // Read the desktop file and then set the app icon and label
         // appropriately
@@ -452,6 +454,25 @@ function sanitizeSynopsis(synopsis) {
     return synopsis;
 }
 
+function find_thumbnail_in_shards (shards, thumbnail_uri) {
+    for (let i = 0; i < shards.length; i++) {
+        let shard_file = new EosShard.ShardFile({ path: shards[i] });
+        shard_file.init(null);
+        let record = shard_file.find_record_by_hex_name(normalize_ekn_id(thumbnail_uri));
+        if (record === null)
+            continue;
+        let data = record.data;
+        if (data === null)
+            continue;
+        let stream = data.get_stream();
+        if (stream === null)
+            continue;
+        return data.get_stream();
+    }
+    log('Thumbnail with uri ' +  thumbnail_uri + ' could not be found in shards.');
+    return null;
+}
+
 // from a famous frog
 function normalize_ekn_id (ekn_id) {
     if (ekn_id.startsWith('ekn://')) {
@@ -472,19 +493,15 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 return;
             }
             let shards = results[0];
-            let shard_file = new EosShard.ShardFile({ path: shards [0] });
-            shard_file.init(null);
-
             let items = results.slice(1, results.length);
             items.forEach(function(response) {
                 try {
                     response.forEach(function(entry) {
-                        let record = shard_file.find_record_by_hex_name(normalize_ekn_id(entry.thumbnail_uri));
-                        let data = record.data;
+                        let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
                         model.append(new DiscoveryFeedCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
-                            thumbnail: data.get_stream(),
+                            thumbnail: thumbnail,
                             desktop_id: proxy.desktopId,
                             bus_name: proxy.busName,
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
