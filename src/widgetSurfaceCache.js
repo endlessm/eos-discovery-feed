@@ -10,7 +10,7 @@ const Lang = imports.lang;
  * Class: WidgetSurfaceCache
  * A helper for caching the results of a draw function to a surface.
  *
- * This object takes in a widget and a draw function, and will ready a cairo
+ * This object takes in a widget and a draw function, and will return a cairo
  * surface with the results of the draw call whenever <get_surface> is called.
  *
  * Careful with this helper, only cache surfaces you know will not update!
