@@ -7,5 +7,6 @@
     <file preprocess="xml-stripblanks">word-quote-pair.ui</file>
     <file>img/close_button.svg</file>
     <file>application.css</file>
+    <file>img/summertime-1894.jpg</file>
   </gresource>
 </gresources>
