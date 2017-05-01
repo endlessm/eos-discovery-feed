@@ -18,7 +18,6 @@
           <object class="GtkBox" id="background-content">
             <property name="visible">True</property>
             <property name="halign">fill</property>
-            <property name="halign">fill</property>
             <property name="hexpand">True</property>
             <style>
               <class name="preview"/>
