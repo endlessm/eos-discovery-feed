@@ -34,16 +34,17 @@ const ImageCoverFrame = new Lang.Class({
 
     set_content: function (stream) {
         this._stream = stream;
-        this.queue_draw();
-        this._surface_cache.invalidate();
+        GdkPixbuf.Pixbuf.new_from_stream_async(this._stream, null, Lang.bind(this, function(src, result) {
+            this._pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(result);
+            this.queue_draw();
+            this._surface_cache.invalidate();
+        }));
     },
 
     _draw_scaled_pixbuf: function (cr) {
-        if (!this._stream)
+        if (!this._pixbuf)
             return;
 
-        if (!this._pixbuf)
-            this._pixbuf = GdkPixbuf.Pixbuf.new_from_stream(this._stream, null);
         let allocation = this.get_allocation();
 
         // Helps to read these transforms in reverse. We center the pixbuf at
@@ -60,7 +61,7 @@ const ImageCoverFrame = new Lang.Class({
     },
 
     vfunc_draw: function (cr) {
-        if (this._stream) {
+        if (this._pixbuf) {
             // This is just a static image, we should only need to redraw after a
             // resize of the contents is changed
             let allocation = this.get_allocation();
