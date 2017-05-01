@@ -245,12 +245,12 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              ''),
-        'thumbnail': GObject.ParamSpec.object('thumbnail',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Gio.InputStream),
+        'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  ''),
         'uri': GObject.ParamSpec.string('uri',
                                         '',
                                         '',
@@ -296,7 +296,16 @@ const DiscoveryFeedCardStore = new Lang.Class({
     }
 });
 
-const THUMBNAIL_WIDTH = 200;
+const CSSAllocator = (function() {
+    let counter = 0;
+    return function(properties) {
+        let class_name = 'themed-widget-' + counter++;
+        return [class_name, '.' + class_name + ' { ' +
+        Object.keys(properties).map(function(key) {
+            return key.replace('_', '-') + ': ' + properties[key] + ';';
+        }).join(' ') + ' }'];
+    };
+})();
 
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
@@ -313,7 +322,7 @@ const DiscoveryFeedCard = new Lang.Class({
     Children: [
         'title-label',
         'synopsis-label',
-        'thumbnail',
+        'background-content',
         'app-icon',
         'app-label',
         'content-layout'
@@ -325,16 +334,16 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.model.synopsis;
         this._knowledgeSearchProxy = null;
 
-        if (this.model.thumbnail) {
-            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
-                try {
-                    let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
-                    this.thumbnail.set_from_pixbuf(pixbuf);
-                } catch (e) {
-                    return;
-                }
-            });
-        }
+        let contentBackgroundProvider = new Gtk.CssProvider();
+        let contentBackgroundStyleContext = this.background_content.get_style_context();
+        let [className, backgroundCss] = CSSAllocator({
+            background_image: 'url("' + this.model.thumbnail_uri +'")',
+            background_size: 'cover'
+        });
+        contentBackgroundProvider.load_from_data(backgroundCss);
+        contentBackgroundStyleContext.add_class(className);
+        contentBackgroundStyleContext.add_provider(contentBackgroundProvider,
+                                      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         // Read the desktop file and then set the app icon and label
         // appropriately
