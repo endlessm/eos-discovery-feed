@@ -355,12 +355,12 @@ const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
                                            GObject.ParamFlags.READWRITE |
                                            GObject.ParamFlags.CONSTRUCT_ONLY,
                                            ''),
-        'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  ''),
+        'thumbnail': GObject.ParamSpec.object('thumbnail',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              Gio.InputStream),
         'layout-direction': GObject.ParamSpec.int('layout-direction',
                                                   '',
                                                   '',
@@ -464,12 +464,12 @@ const DiscoveryFeedCard = new Lang.Class({
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              ''),
-        'thumbnail': GObject.ParamSpec.object('thumbnail',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Gio.InputStream),
+        'thumbnail-data': GObject.ParamSpec.object('thumbnail-data',
+                                                   '',
+                                                   '',
+                                                   GObject.ParamFlags.READWRITE |
+                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                   Gio.InputStream),
         'layout-direction': GObject.ParamSpec.int('layout-direction',
                                                   '',
                                                   '',
@@ -495,8 +495,8 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.synopsis;
         this._knowledgeSearchProxy = null;
 
-        if (this.model.thumbnail) {
-            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
+        if (this.thumbnail_data) {
+            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.thumbnail_data, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
                 try {
                     let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
                     this.thumbnail.set_from_pixbuf(pixbuf);
@@ -543,7 +543,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         this.add(new DiscoveryFeedCard({
             title: params.model.title,
             synopsis: params.model.synopsis,
-            thumbnail_uri: params.model.thumbnail_uri,
+            thumbnail_data: params.model.thumbnail,
             source_title: this._app.get_display_name().toUpperCase(),
             layout_direction: params.model.layout_direction
         }));
@@ -601,7 +601,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
         this.add(new DiscoveryFeedCard({
             title: params.model.title,
             synopsis: 'by ' + params.model.author,
-            thumbnail_uri: params.model.thumbnail_uri,
+            thumbnail_data: params.model.thumbnail,
             source_title: 'Masterpiece of the Day'.toUpperCase(),
             layout_direction: params.model.layout_direction
         }));
@@ -808,10 +808,11 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             }));
         },
         '4': () => {
+            let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
             model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
                 title: 'Summertime',
                 author: 'Mary Cassat',
-                thumbnail_uri: 'ekn:///aec88cc64d36221110af5db22ceb82f83f6fc57d',
+                thumbnail: Gio.File.new_for_uri(thumbnail_uri).read(null),
                 layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
             }));
             modelIndex++;
