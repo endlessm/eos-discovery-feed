@@ -27,7 +27,7 @@ const ImageCoverFrame = new Lang.Class({
         this._last_height = 0;
 
         this._surface_cache = new WidgetSurfaceCache.WidgetSurfaceCache(this, this._draw_scaled_pixbuf.bind(this), {
-            has_alpha: false,
+            has_alpha: false
         });
     },
 
