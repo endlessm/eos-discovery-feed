@@ -243,9 +243,9 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                       '',
                                       GObject.ParamFlags.READWRITE |
                                       GObject.ParamFlags.CONSTRUCT_ONLY,
-                                      0,
+                                      CARD_STORE_TYPE_ARTICLE_CARD,
                                       CARD_STORE_TYPE_MAX,
-                                      0)
+                                      CARD_STORE_TYPE_ARTICLE_CARD)
     }
 });
 
