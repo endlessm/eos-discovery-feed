@@ -22,7 +22,6 @@ const ImageCoverFrame = new Lang.Class({
         this.parent(props);
         this.set_has_window(false);
 
-        this._stream = null;
         this._pixbuf = null;
         this._last_width = 0;
         this._last_height = 0;
@@ -33,8 +32,7 @@ const ImageCoverFrame = new Lang.Class({
     },
 
     set_content: function (stream) {
-        this._stream = stream;
-        GdkPixbuf.Pixbuf.new_from_stream_async(this._stream, null, Lang.bind(this, function(src, result) {
+        GdkPixbuf.Pixbuf.new_from_stream_async(stream, null, Lang.bind(this, function(src, result) {
             this._pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(result);
             this.queue_draw();
             this._surface_cache.invalidate();
