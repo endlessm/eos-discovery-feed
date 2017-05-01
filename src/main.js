@@ -497,12 +497,12 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.synopsis;
         this._knowledgeSearchProxy = null;
 
-        if (this.model.thumbnail) {
+        if (this.thumbnail_data) {
             let frame = new ImageCoverFrame.ImageCoverFrame({
                 hexpand: true
             });
             try {
-                frame.set_content(this.model.thumbnail_data);
+                frame.set_content(this.thumbnail_data);
             } catch (e) {
                 log('Couldn\'t load thumbnail data from file');
             }
