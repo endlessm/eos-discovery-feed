@@ -25,6 +25,8 @@ const Wnck = imports.gi.Wnck;
 
 const Lang = imports.lang;
 
+const ImageCoverFrame = imports.imageCoverFrame;
+
 const DISCOVERY_FEED_NAME = 'com.endlessm.DiscoveryFeed';
 const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
 const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed';
@@ -483,7 +485,7 @@ const DiscoveryFeedCard = new Lang.Class({
     Children: [
         'title-label',
         'synopsis-label',
-        'thumbnail',
+        'thumbnail-container',
         'app-icon',
         'app-label',
         'content-layout'
@@ -495,15 +497,16 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.synopsis;
         this._knowledgeSearchProxy = null;
 
-        if (this.thumbnail_data) {
-            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.thumbnail_data, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
-                try {
-                    let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
-                    this.thumbnail.set_from_pixbuf(pixbuf);
-                } catch (e) {
-                    return;
-                }
+        if (this.model.thumbnail) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
             });
+            try {
+                frame.set_content(this.model.thumbnail_data);
+            } catch (e) {
+                log('Couldn\'t load thumbnail data from file');
+            }
+            this.thumbnail_container.add(frame);
         }
 
         this.app_label.label = this.source_title;

@@ -31,7 +31,7 @@
                   <class name="preview"/>
                 </style>
                 <child>
-                  <object class="GtkImage" id="thumbnail">
+                  <object class="GtkBox" id="thumbnail-container">
                     <property name="visible">True</property>
                   </object>
                 </child>
