@@ -683,8 +683,6 @@ function contentViewFromType(type, store) {
 }
 
 function populateCardsListFromStore(store) {
-    let contentView = contentViewFromType(store.type, store);
-
     return new DiscoveryFeedListItem({
         content: contentViewFromType(store.type, store)
     });
