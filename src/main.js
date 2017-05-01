@@ -245,12 +245,12 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              ''),
-        'thumbnail': GObject.ParamSpec.object('thumbnail',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Gio.InputStream),
+        'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  ''),
         'uri': GObject.ParamSpec.string('uri',
                                         '',
                                         '',
@@ -296,7 +296,16 @@ const DiscoveryFeedCardStore = new Lang.Class({
     }
 });
 
-const THUMBNAIL_WIDTH = 200;
+const CSSAllocator = (function() {
+    let counter = 0;
+    return function(properties) {
+        let class_name = 'themed-widget-' + counter++;
+        return [class_name, '.' + class_name + ' { ' +
+        Object.keys(properties).map(function(key) {
+            return key.replace('_', '-') + ': ' + properties[key] + ';';
+        }).join(' ') + ' }'];
+    };
+})();
 
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
@@ -313,7 +322,7 @@ const DiscoveryFeedCard = new Lang.Class({
     Children: [
         'title-label',
         'synopsis-label',
-        'thumbnail',
+        'background-content',
         'app-icon',
         'app-label',
         'content-layout'
@@ -325,16 +334,16 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.model.synopsis;
         this._knowledgeSearchProxy = null;
 
-        if (this.model.thumbnail) {
-            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
-                try {
-                    let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
-                    this.thumbnail.set_from_pixbuf(pixbuf);
-                } catch (e) {
-                    return;
-                }
-            });
-        }
+        let contentBackgroundProvider = new Gtk.CssProvider();
+        let contentBackgroundStyleContext = this.background_content.get_style_context();
+        let [className, backgroundCss] = CSSAllocator({
+            background_image: 'url("' + this.model.thumbnail_uri +'")',
+            background_size: 'cover'
+        });
+        contentBackgroundProvider.load_from_data(backgroundCss);
+        contentBackgroundStyleContext.add_class(className);
+        contentBackgroundStyleContext.add_provider(contentBackgroundProvider,
+                                      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         // Read the desktop file and then set the app icon and label
         // appropriately
@@ -469,13 +478,7 @@ function find_thumbnail_in_shards (shards, thumbnail_uri) {
         let record = shard_file.find_record_by_hex_name(normalize_ekn_id(thumbnail_uri));
         if (record === null)
             continue;
-        let data = record.data;
-        if (data === null)
-            continue;
-        let stream = data.get_stream();
-        if (stream === null)
-            continue;
-        return data.get_stream();
+        return record.data;
     }
     log('Thumbnail with uri ' +  thumbnail_uri + ' could not be found in shards.');
     return null;
@@ -489,7 +492,9 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function populateDiscoveryFeedModelFromQueries(model, proxies) {
+const DISCOVERY_FEED_URI_HEADER = "discoveryfeed://";
+
+function populateDiscoveryFeedModelFromQueries(model, assetProvider, proxies) {
     let remaining = proxies.length;
     let modelIndex = 0;
     model.remove_all();
@@ -506,10 +511,15 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 try {
                     response.forEach(function(entry) {
                         let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+                        let uri = DISCOVERY_FEED_URI_HEADER + [
+                            proxy.knowledgeAppId,
+                            entry.thumbnail_uri
+                        ].join('/');
+                        assetProvider.addBlob(thumbnail, uri);
                         model.append(new DiscoveryFeedCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
-                            thumbnail: thumbnail,
+                            thumbnail_uri: uri,
                             desktop_id: proxy.desktopId,
                             bus_name: proxy.busName,
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
@@ -526,6 +536,30 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     });
 }
 
+const DiscoveryFeedAssetProvider = new Lang.Class({
+    Name: 'DiscoveryFeedAssetProvider',
+
+    _init: function() {
+        this._assets = new Map();
+
+        Gio.Vfs.get_default().register_uri_scheme("discoveryfeed",
+                                                  Lang.bind(this, this._lookupFile),
+                                                  null);
+    },
+
+    _lookupFile: function(vfs, uri) {
+        let asset = this._assets[uri];
+        if (asset)
+            return EosShard.File.new(uri, "discoveryfeed", asset);
+
+        return null;
+    },
+
+    addBlob: function(blob, uri) {
+        this._assets[uri] = blob;
+    }
+});
+
 const DiscoveryFeedApplication = new Lang.Class({
     Name: 'DiscoveryFeedApplication',
     Extends: Gtk.Application,
@@ -540,6 +574,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._discoveryFeedCardModel = new Gio.ListStore({
             item_type: DiscoveryFeedCardStore.$gtype
         });
+        this._assetProvider = new DiscoveryFeedAssetProvider();
     },
 
     vfunc_startup: function() {
@@ -580,8 +615,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         let display = Gdk.Display.get_default();
         display.connect('monitor-added', Lang.bind(this,
                                                    this._update_geometry));
-        display.connect('monitor-added', Lang.bind(this,
-                                                   this._update_geometry));
         let monitor = display.get_primary_monitor();
         monitor.connect('notify::workarea', Lang.bind(this,
                                                       this._update_geometry));
@@ -613,6 +646,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window.present_with_time(timestamp);
 
         populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
+                                              this._assetProvider,
                                               this._discoveryFeedProxies);
     },
 
