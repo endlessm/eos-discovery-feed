@@ -41,6 +41,8 @@
 
 .underline {
   background-color: #5b8291;
+  margin-right: 218px;
+  min-height: 2px;
 }
 
 .subcard {
