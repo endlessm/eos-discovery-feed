@@ -464,7 +464,7 @@ const DiscoveryFeedCard = new Lang.Class({
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              ''),
-        'thumbnail': GObject.ParamSpec.string('thumbnail',
+        'thumbnail': GObject.ParamSpec.object('thumbnail',
                                               '',
                                               '',
                                               GObject.ParamFlags.READWRITE |
