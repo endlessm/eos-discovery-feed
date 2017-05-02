@@ -13,6 +13,17 @@ service_in_files = \
 	data/com.endlessm.DiscoveryFeed.service.in \
         $(NULL)
 
+# Tests
+javascript_tests = \
+	tests/js/testDiscoveryFeed.js \
+	$(NULL)
+
+# All JS files (used for linting)
+all_js_files = \
+	$(javascript_tests) \
+	$(resource_files) \
+	$(NULL)
+
 # Set EXTRA_DIST and CLEANFILES initially
 EXTRA_DIST = \
 	$(resource_files) \
@@ -56,4 +67,48 @@ CLEANFILES = \
 	$(service_DATA) \
 	src/com.endlessm.DiscoveryFeed \
 	$(NULL)
+
+#  Run tests when running 'make check'
+TESTS = \
+	$(javascript_tests) \
+	run_coverage.coverage \
+	run_eslint.eslint \
+	$(NULL)
+LOG_COMPILER = gtester
+AM_LOG_FLAGS = -k --verbose
+
+TEST_EXTENSIONS = .js .coverage .eslint
+
+JS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/tap-driver.sh
+JS_LOG_DRIVER_FLAGS = --comments
+JS_LOG_COMPILER = jasmine
+AM_JS_LOG_FLAGS = --tap --no-config @JASMINE_REPORT_ARGUMENT@
+
+# Use locally built versions of S modules, and
+# libraries. We clobber GJS_PATH and include the js directory and the
+# $(top_srcdir) for including test helper files.
+# (May need to change to AM_TESTS_ENVIRONMENT in a later version of Automake)
+TESTS_ENVIRONMENT = \
+	export GJS_PATH="$(top_srcdir):$(top_srcdir)/src"; \
+	export GI_TYPELIB_PATH="$(top_builddir)$${GI_TYPELIB_PATH:+:$$GI_TYPELIB_PATH}"; \
+	export LD_LIBRARY_PATH="$(top_builddir)/.libs$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}"; \
+	export G_TEST_SRCDIR="$(abs_srcdir)/tests"; \
+	export G_TEST_BUILDDIR="$(abs_builddir)/tests"; \
+	export LC_ALL=C; \
+	$(NULL)
+
+# # # COVERAGE # # #
+
+# Don't specify the resource:/// URIs here, because the tests load modules from
+# the local directory, not from the GResource
+EOS_JS_COVERAGE_FILES := $(patsubst $(srcdir)/%,%,$(wildcard $(srcdir)/src/*.js))
+
+@EOS_COVERAGE_RULES@
+
+# # # LINTING # # #
+EOS_ESLINT_FILES := $(all_js_files)
+
+@EOS_ESLINT_RULES@
+
+AM_JS_LOG_FLAGS += @EOS_JS_COVERAGE_LOG_FLAGS@
 
