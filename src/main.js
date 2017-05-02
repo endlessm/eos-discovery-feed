@@ -486,8 +486,6 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     }
 });
 
-const THUMBNAIL_WIDTH = 200;
-
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
     Extends: Gtk.Box,
