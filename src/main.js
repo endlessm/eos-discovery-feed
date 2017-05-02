@@ -16,7 +16,6 @@ pkg.require({
 
 const EosShard = imports.gi.EosShard;
 const Gdk = imports.gi.Gdk;
-const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
