@@ -812,7 +812,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 title: 'Summertime',
                 author: 'Mary Cassat',
                 thumbnail_uri: 'ekn:///aec88cc64d36221110af5db22ceb82f83f6fc57d',
-                layout_direction: modelIndex % 2 == 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
             }));
             modelIndex++;
         }
@@ -847,7 +847,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             knowledge_app_id: proxy.knowledgeAppId,
                             uri: entry.ekn_id,
-                            layout_direction: modelIndex % 2 == 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                            layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
                         }));
 
                         modelIndex++;
