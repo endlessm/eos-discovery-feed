@@ -14,8 +14,9 @@ pkg.require({
     GLib: '2.0',
 });
 
-const Eknc = imports.gi.EosKnowledgeContent;
+const EosShard = imports.gi.EosShard;
 const Gdk = imports.gi.Gdk;
+const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
@@ -61,6 +62,7 @@ const DiscoveryFeedContentIface = '\
 <node> \
   <interface name="com.endlessm.DiscoveryFeedContent"> \
     <method name="ArticleCardDescriptions"> \
+      <arg type="as" name="Shards" direction="out" /> \
       <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
   </interface> \
@@ -188,20 +190,6 @@ function readDiscoveryFeedProvidersInDataDirectories() {
     }, []);
 }
 
-function instantiateShardsFromDiscoveryFeedProviders(providers) {
-    let shards = providers.filter(provider => {
-        return provider.knowledgeAppId !== null;
-    }).map(provider => {
-        let engine = Eknc.Engine.get_default();
-        return engine.get_domain_for_app(provider.knowledgeAppId).get_shards();
-    }).reduce((allShards, shards) => {
-        Array.prototype.push.apply(allShards, shards);
-        return allShards;
-    }, []);
-
-    Eknc.default_vfs_set_shards(shards);
-}
-
 function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       interfaceName,
                                                       providers,
@@ -257,12 +245,12 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              ''),
-        'thumbnail_uri': GObject.ParamSpec.string('thumbnail_uri',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  ''),
+        'thumbnail': GObject.ParamSpec.object('thumbnail',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              Gio.InputStream),
         'uri': GObject.ParamSpec.string('uri',
                                         '',
                                         '',
@@ -308,16 +296,7 @@ const DiscoveryFeedCardStore = new Lang.Class({
     }
 });
 
-const CSSAllocator = (function() {
-    let counter = 0;
-    return function(properties) {
-        let class_name = 'themed-widget-' + counter++;
-        return [class_name, '.' + class_name + ' { ' +
-        Object.keys(properties).map(function(key) {
-            return key.replace('_', '-') + ': ' + properties[key] + ';';
-        }).join(' ') + ' }'];
-    };
-})();
+const THUMBNAIL_WIDTH = 200;
 
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
@@ -334,7 +313,7 @@ const DiscoveryFeedCard = new Lang.Class({
     Children: [
         'title-label',
         'synopsis-label',
-        'background-content',
+        'thumbnail',
         'app-icon',
         'app-label',
         'content-layout'
@@ -346,16 +325,16 @@ const DiscoveryFeedCard = new Lang.Class({
         this.synopsis_label.label = this.model.synopsis;
         this._knowledgeSearchProxy = null;
 
-        let contentBackgroundProvider = new Gtk.CssProvider();
-        let contentBackgroundStyleContext = this.background_content.get_style_context();
-        let [className, backgroundCss] = CSSAllocator({
-            background_image: 'url("' + this.model.thumbnail_uri +'")',
-            background_size: 'cover'
-        });
-        contentBackgroundProvider.load_from_data(backgroundCss);
-        contentBackgroundStyleContext.add_class(className);
-        contentBackgroundStyleContext.add_provider(contentBackgroundProvider,
-                                      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+        if (this.model.thumbnail) {
+            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
+                try {
+                    let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
+                    this.thumbnail.set_from_pixbuf(pixbuf);
+                } catch (e) {
+                    return;
+                }
+            });
+        }
 
         // Read the desktop file and then set the app icon and label
         // appropriately
@@ -483,6 +462,33 @@ function sanitizeSynopsis(synopsis) {
     return synopsis;
 }
 
+function find_thumbnail_in_shards (shards, thumbnail_uri) {
+    for (let i = 0; i < shards.length; i++) {
+        let shard_file = new EosShard.ShardFile({ path: shards[i] });
+        shard_file.init(null);
+        let record = shard_file.find_record_by_hex_name(normalize_ekn_id(thumbnail_uri));
+        if (record === null)
+            continue;
+        let data = record.data;
+        if (data === null)
+            continue;
+        let stream = data.get_stream();
+        if (stream === null)
+            continue;
+        return data.get_stream();
+    }
+    log('Thumbnail with uri ' +  thumbnail_uri + ' could not be found in shards.');
+    return null;
+}
+
+// from a famous frog
+function normalize_ekn_id (ekn_id) {
+    if (ekn_id.startsWith('ekn://')) {
+        return ekn_id.split('/').pop();
+    }
+    return ekn_id;
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let remaining = proxies.length;
     let modelIndex = 0;
@@ -494,14 +500,16 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 logError(error, 'Failed to execute Discovery Feed query');
                 return;
             }
-
-            results.forEach(function(response) {
+            let shards = results[0];
+            let items = results.slice(1, results.length);
+            items.forEach(function(response) {
                 try {
                     response.forEach(function(entry) {
+                        let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
                         model.append(new DiscoveryFeedCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
-                            thumbnail_uri: entry.thumbnail_uri,
+                            thumbnail: thumbnail,
                             desktop_id: proxy.desktopId,
                             bus_name: proxy.busName,
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
@@ -592,7 +600,6 @@ const DiscoveryFeedApplication = new Lang.Class({
                                                      'com.endlessm.DiscoveryFeedContent',
                                                      providers,
                                                      onProxiesInstantiated);
-        instantiateShardsFromDiscoveryFeedProviders(providers);
 
         return this.parent(connection, path);
     },
