@@ -841,7 +841,6 @@ function normalize_ekn_id (ekn_id) {
 }
 
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
-    let remaining = proxies.length;
     let modelIndex = 0;
     model.remove_all();
 
