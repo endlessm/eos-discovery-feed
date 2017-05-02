@@ -26,7 +26,6 @@ const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
 
-const DISCOVERY_FEED_NAME = 'com.endlessm.DiscoveryFeed';
 const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
 const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
