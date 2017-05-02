@@ -13,7 +13,7 @@ const WidgetSurfaceCache = imports.widgetSurfaceCache;
  * space it is allocated and then centered.
  *
  */
-const ImageCoverFrame = new Lang.Class({
+const ImageCoverFrame = new Lang.Class({ // eslint-disable-line no-unused-vars
     Name: 'ImageCoverFrame',
     Extends: Gtk.Widget,
 
