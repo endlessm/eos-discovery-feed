@@ -617,8 +617,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             return;
         }
 
-        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp,
-                                                  Lang.bind(this, function(result, excp) {
+        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
             if (!excp)
                 return;
             logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
@@ -716,14 +715,14 @@ const DiscoveryFeedListItem = new Lang.Class({
 function contentViewFromType(type, store) {
     let params = { model: store };
     switch (type) {
-        case CARD_STORE_TYPE_ARTICLE_CARD:
-            return new DiscoveryFeedKnowledgeAppCard(params);
-        case CARD_STORE_TYPE_WORD_QUOTE_CARD:
-            return new DiscoveryFeedWordQuotePair(params);
-        case CARD_STORE_TYPE_ARTWORK_CARD:
-            return new DiscoveryFeedKnowledgeArtworkCard(params);
-        default:
-            throw new Error('Card type ' + type + ' not recognized');
+    case CARD_STORE_TYPE_ARTICLE_CARD:
+        return new DiscoveryFeedKnowledgeAppCard(params);
+    case CARD_STORE_TYPE_WORD_QUOTE_CARD:
+        return new DiscoveryFeedWordQuotePair(params);
+    case CARD_STORE_TYPE_ARTWORK_CARD:
+        return new DiscoveryFeedKnowledgeArtworkCard(params);
+    default:
+        throw new Error('Card type ' + type + ' not recognized');
     }
 }
 
