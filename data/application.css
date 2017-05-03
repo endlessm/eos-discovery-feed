@@ -11,7 +11,7 @@
 }
 
 .content .article {
-  margin: 0 10px 10px 10px;
+  padding: 30px;
 }
 
 .content .app-info {
@@ -19,19 +19,81 @@
   margin-bottom: 25px;
 }
 
-.content .app-info label {
+.artwork .preview {
+  min-height: 400px;
+  min-width: 400px;
+}
+
+.artwork .title {
+  font-size: 22pt;
+}
+
+.artwork .synopsis {
+  font-size: 16pt;
+  color: black;
+}
+
+.small-header {
   font-size: 9pt;
   font-weight: bold;
   color: #5b8291;
 }
 
-list.stories row {
+.underline {
+  background-color: #5b8291;
+  margin-right: 218px;
+  min-height: 2px;
+}
+
+.subcard {
+  padding: 20px;
+  margin: 20px;
+  background-color: white;
+}
+
+.subcard-layout {
+  min-height: 250px;
+}
+
+.quote {
+  font-size: 16pt;
+  font-family: 'Lato';
+  font-style: oblique;
+  margin: 20px 0 20px 0;
+}
+
+.quote-author {
+  color: #2a383e;
+}
+
+.bolded-word {
+  font-size: 14pt;
+  font-weight: bold;
+  font-family: 'Serif';
+  margin-top: 20px;
+}
+
+.word-detail {
+  font-size: 14pt;
+  font-style: oblique;
+  margin-top: 20px;
+}
+
+.word-description {
+  font-size: 14pt;
+}
+
+list.stories row .content {
   padding: 0px;
   margin: 12.5px 0px 12.5px 0px;
   box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
 }
 
 list.stories {
+  background-color: transparent;
+}
+
+list.stories row:hover {
   background-color: transparent;
 }
 

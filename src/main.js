@@ -229,9 +229,119 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
     }));
 }
 
+const CARD_STORE_TYPE_ARTICLE_CARD = 0;
+const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
+const CARD_STORE_TYPE_ARTWORK_CARD = 2;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTWORK_CARD;
+
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
     Extends: GObject.Object,
+    Properties: {
+        'type': GObject.ParamSpec.int('type',
+                                      '',
+                                      '',
+                                      GObject.ParamFlags.READWRITE |
+                                      GObject.ParamFlags.CONSTRUCT_ONLY,
+                                      CARD_STORE_TYPE_ARTICLE_CARD,
+                                      CARD_STORE_TYPE_MAX,
+                                      CARD_STORE_TYPE_ARTICLE_CARD)
+    }
+});
+
+const DiscoveryFeedAppCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedAppCardStore',
+    Extends: DiscoveryFeedCardStore,
+    Properties: {
+        'desktop-id': GObject.ParamSpec.string('desktop-id',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               '')
+    }
+});
+
+const DiscoveryFeedWordStore = new Lang.Class({
+    Name: 'DiscoveryFeedWordStore',
+    Extends: GObject.Object,
+    Properties: {
+        'word': GObject.ParamSpec.string('word',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         ''),
+        'word-type': GObject.ParamSpec.string('word-type',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ''),
+        'pronunciation': GObject.ParamSpec.string('pronunciation',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  ''),
+        'definition': GObject.ParamSpec.string('definition',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               '')
+    }
+});
+
+const DiscoveryFeedQuoteStore = new Lang.Class({
+    Name: 'DiscoveryFeedQuoteStore',
+    Extends: GObject.Object,
+    Properties: {
+        'quote': GObject.ParamSpec.string('quote',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          ''),
+        'author': GObject.ParamSpec.string('author',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           '')
+    }
+});
+
+const DiscoveryFeedWordQuotePairStore = new Lang.Class({
+    Name: 'DiscoveryFeedQuotePairStore',
+    Extends: DiscoveryFeedCardStore,
+    Properties: {
+        'quote': GObject.ParamSpec.object('quote',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedQuoteStore.$gtype),
+        'word': GObject.ParamSpec.object('word',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         DiscoveryFeedWordStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_WORD_QUOTE_CARD;
+        this.parent(params);
+    }
+});
+
+const LAYOUT_DIRECTION_IMAGE_FIRST = 0;
+const LAYOUT_DIRECTION_IMAGE_LAST = 1;
+
+const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowlegeArtworkCardStore',
+    Extends: DiscoveryFeedCardStore,
     Properties: {
         'title': GObject.ParamSpec.string('title',
                                           '',
@@ -239,6 +349,51 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           ''),
+        'author': GObject.ParamSpec.string('author',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        'thumbnail': GObject.ParamSpec.object('thumbnail',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              Gio.InputStream),
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_ARTWORK_CARD;
+        this.parent(params);
+    }
+});
+
+
+const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppCardStore',
+    Extends: DiscoveryFeedAppCardStore,
+    Properties: {
+        'title': GObject.ParamSpec.string('title',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          ''),
+        'uri': GObject.ParamSpec.string('uri',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        ''),
         'synopsis': GObject.ParamSpec.string('synopsis',
                                              '',
                                              '',
@@ -251,18 +406,6 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
                                               Gio.InputStream),
-        'uri': GObject.ParamSpec.string('uri',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        ''),
-        'desktop-id': GObject.ParamSpec.string('desktop-id',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               ''),
         'bus-name': GObject.ParamSpec.string('bus-name',
                                              '',
                                              '',
@@ -281,17 +424,18 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                                      GObject.ParamFlags.READWRITE |
                                                      GObject.ParamFlags.CONSTRUCT_ONLY,
                                                      ''),
-        'index': GObject.ParamSpec.int('index',
-                                       '',
-                                       '',
-                                       GObject.ParamFlags.READWRITE |
-                                       GObject.ParamFlags.CONSTRUCT_ONLY,
-                                       0,
-                                       GLib.MAXINT32,
-                                       0)
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
     },
 
     _init: function(params) {
+        params.type = CARD_STORE_TYPE_ARTICLE_CARD;
         this.parent(params);
     }
 });
@@ -300,14 +444,40 @@ const THUMBNAIL_WIDTH = 200;
 
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
-    Extends: Gtk.ListBoxRow,
+    Extends: Gtk.Box,
     Properties: {
-        'model': GObject.ParamSpec.object('model',
+        'source-title': GObject.ParamSpec.string('source-title',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 ''),
+        'title': GObject.ParamSpec.string('title',
                                           '',
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          DiscoveryFeedCardStore.$gtype)
+                                          ''),
+        'synopsis': GObject.ParamSpec.string('synopsis',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             ''),
+        'thumbnail-data': GObject.ParamSpec.object('thumbnail-data',
+                                                   '',
+                                                   '',
+                                                   GObject.ParamFlags.READWRITE |
+                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                   Gio.InputStream),
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
     Children: [
@@ -321,12 +491,12 @@ const DiscoveryFeedCard = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.title_label.label = this.model.title;
-        this.synopsis_label.label = this.model.synopsis;
+        this.title_label.label = this.title;
+        this.synopsis_label.label = this.synopsis;
         this._knowledgeSearchProxy = null;
 
-        if (this.model.thumbnail) {
-            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.model.thumbnail, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
+        if (this.thumbnail_data) {
+            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(this.thumbnail_data, THUMBNAIL_WIDTH, -1, true, null, (stream, res) => {
                 try {
                     let pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(res);
                     this.thumbnail.set_from_pixbuf(pixbuf);
@@ -336,12 +506,47 @@ const DiscoveryFeedCard = new Lang.Class({
             });
         }
 
+        this.app_label.label = this.source_title;
+
+        // If this is an odd card, adjust the packing order of all widgets
+        // in the box
+        if (this.layout_direction == LAYOUT_DIRECTION_IMAGE_FIRST) {
+            this.content_layout.get_children().forEach(Lang.bind(this, function(child) {
+                this.content_layout.child_set_property(child,
+                                                       'pack-type',
+                                                       Gtk.PackType.END);
+            }));
+        }
+    }
+});
+
+const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppCard',
+    Extends: Gtk.Box,
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedKnowledgeAppCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
         // Read the desktop file and then set the app icon and label
         // appropriately
-        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
-        this.app_label.label = this._app.get_display_name().toUpperCase();
-        this.app_icon.gicon = this._app.get_icon() ||
-                              Gio.ThemedIcon.new('gnome');
+        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+
+        this.add(new DiscoveryFeedCard({
+            title: params.model.title,
+            synopsis: params.model.synopsis,
+            thumbnail_data: params.model.thumbnail,
+            source_title: this._app.get_display_name().toUpperCase(),
+            layout_direction: params.model.layout_direction
+        }));
 
         if (this.model.knowledge_search_object_path) {
             let onProxyReady = function(initable, error) {
@@ -359,16 +564,6 @@ const DiscoveryFeedCard = new Lang.Class({
                                                           Lang.bind(this,
                                                                     onProxyReady));
         }
-
-        // If this is an odd card, adjust the packing order of all widgets
-        // in the box
-        if (this.model.index % 2 !== 0) {
-            this.content_layout.get_children().forEach(Lang.bind(this, function(child) {
-                this.content_layout.child_set_property(child,
-                                                       'pack-type',
-                                                       Gtk.PackType.END);
-            }));
-        } 
     },
 
     activate: function(timestamp) {
@@ -386,6 +581,113 @@ const DiscoveryFeedCard = new Lang.Class({
         }));
     }
 });
+
+const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeArtworkCard',
+    Extends: Gtk.Box,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        this.add(new DiscoveryFeedCard({
+            title: params.model.title,
+            synopsis: 'by ' + params.model.author,
+            thumbnail_data: params.model.thumbnail,
+            source_title: 'Masterpiece of the Day'.toUpperCase(),
+            layout_direction: params.model.layout_direction
+        }));
+        this.get_style_context().add_class('artwork');
+    }
+});
+
+const DiscoveryFeedWordQuotePair = new Lang.Class({
+    Name: 'DiscoveryFeedWordQuotePair',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/word-quote-pair.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedWordQuotePairStore.$gtype)
+    },
+    Children: [
+        'word',
+        'quote',
+        'word-detail',
+        'word-description',
+        'quote-author'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.word.label = this.model.word.word;
+        this.word_detail.label = this.model.word.word_type + ' | ' +
+                                 this.model.word.pronunciation;
+        this.word_description.label = this.model.word.definition;
+        this.quote.label = '"' + this.model.quote.quote + '"';
+        this.quote_author.label = this.model.quote.author.toUpperCase();
+    }
+});
+
+const DiscoveryFeedListItem = new Lang.Class({
+    Name: 'DiscoveryFeedListItem',
+    Extends: Gtk.ListBoxRow,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/content-list-item.ui',
+    Properties: {
+        'content': GObject.ParamSpec.object('content',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            Gtk.Widget)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this.add(this.content);
+    },
+
+    activateChild: function() {
+        if (this.content.activate) {
+            return this.content.activate(Gtk.get_current_event_time());
+        }
+
+        return null;
+    }
+});
+
+function contentViewFromType(type, store) {
+    let params = { model: store };
+    switch (type) {
+        case CARD_STORE_TYPE_ARTICLE_CARD:
+            return new DiscoveryFeedKnowledgeAppCard(params);
+        case CARD_STORE_TYPE_WORD_QUOTE_CARD:
+            return new DiscoveryFeedWordQuotePair(params);
+        case CARD_STORE_TYPE_ARTWORK_CARD:
+            return new DiscoveryFeedKnowledgeArtworkCard(params);
+        default:
+            throw new Error('Card type ' + type + ' not recognized');
+    }
+}
+
+function populateCardsListFromStore(store) {
+    return new DiscoveryFeedListItem({
+        content: contentViewFromType(store.type, store)
+    });
+}
+
 
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
@@ -408,11 +710,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.cards.bind_model(this.card_model, function(card_store) {
-            return new DiscoveryFeedCard({
-                model: card_store
-            });
-        });
+        this.cards.bind_model(this.card_model, populateCardsListFromStore);
         this.today_date.label = (new Date()).toLocaleFormat('%B %d').toUpperCase();
 
         // Add an action so that we can dismiss the view by pressing the
@@ -428,7 +726,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.dismiss_button.set_action_name('win.close');
 
         this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
-            row.activate(Gtk.get_current_event_time());
+            row.activateChild();
         }));
     },
 });
@@ -494,6 +792,33 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
 
+    let indexInsertFuncs = {
+        '2': () => {
+            model.append(new DiscoveryFeedWordQuotePairStore({
+                quote: new DiscoveryFeedQuoteStore({
+                    quote: 'You\'re the one running',
+                    author: 'Auron'
+                }),
+                word: new DiscoveryFeedWordStore({
+                    word: 'Tenentenba',
+                    pronunciation: 'Ten-ET-en-BA',
+                    definition: 'That\'s a nice Tenetenba you\'ve got there',
+                    word_type: 'noun'
+                })
+            }));
+        },
+        '4': () => {
+            let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
+            model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
+                title: 'Summertime',
+                author: 'Mary Cassat',
+                thumbnail: Gio.File.new_for_uri(thumbnail_uri).read(null),
+                layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+            }));
+            modelIndex++;
+        }
+    };
+
     proxies.forEach(function(proxy) {
         proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
             if (error) {
@@ -506,7 +831,15 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 try {
                     response.forEach(function(entry) {
                         let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-                        model.append(new DiscoveryFeedCardStore({
+
+                        // We don't necessarily want to increment modelIndex
+                        // here - only if we are displaying a card where the
+                        // image and content should be flipped
+                        if (indexInsertFuncs[modelIndex]) {
+                            indexInsertFuncs[modelIndex]();
+                        }
+
+                        model.append(new DiscoveryFeedKnowledgeAppCardStore({
                             title: entry.title,
                             synopsis: sanitizeSynopsis(entry.synopsis),
                             thumbnail: thumbnail,
@@ -515,8 +848,10 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                             knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                             knowledge_app_id: proxy.knowledgeAppId,
                             uri: entry.ekn_id,
-                            index: modelIndex++
+                            layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
                         }));
+
+                        modelIndex++;
                     });
                 } catch (e) {
                     logError(e, 'Could not parse response');
