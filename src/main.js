@@ -1002,7 +1002,7 @@ const DiscoveryFeedApplication = new Lang.Class({
             y: workarea.y
         };
 
-        geometry.x = (workarea.width - geometry.width) * 0.5;
+        geometry.x = workarea.x + ((workarea.width - geometry.width) * 0.5);
         this._window.move(geometry.x, geometry.y);
         this._window.resize(geometry.width, geometry.height);
     }
