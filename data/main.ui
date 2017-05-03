@@ -114,16 +114,6 @@
                 <style>
                   <class name="flat"/>
                 </style>
-                <child>
-                  <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="halign">center</property>
-                    <property name="width-request">24</property>
-                    <style>
-                      <class name="dismiss"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
           </object>
