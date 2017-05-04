@@ -915,8 +915,8 @@ const DiscoveryFeedApplication = new Lang.Class({
         let display = Gdk.Display.get_default();
         display.connect('monitor-added', Lang.bind(this,
                                                    this._update_geometry));
-        display.connect('monitor-added', Lang.bind(this,
-                                                   this._update_geometry));
+        display.connect('monitor-removed', Lang.bind(this,
+                                                     this._update_geometry));
         let monitor = display.get_primary_monitor();
         monitor.connect('notify::workarea', Lang.bind(this,
                                                       this._update_geometry));
