@@ -930,6 +930,8 @@ const DiscoveryFeedApplication = new Lang.Class({
         let providers = readDiscoveryFeedProvidersInDataDirectories();
         let onProxiesInstantiated = Lang.bind(this, function(proxies) {
             Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
+            populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
+                                                  this._discoveryFeedProxies);
         });
         instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                      'com.endlessm.DiscoveryFeedContent',
