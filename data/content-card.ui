@@ -17,24 +17,17 @@
         <child>
           <object class="GtkBox" id="background-content">
             <property name="visible">True</property>
-            <property name="halign">start</property>
+            <property name="halign">fill</property>
+            <property name="halign">fill</property>
+            <property name="hexpand">True</property>
             <style>
               <class name="preview"/>
             </style>
             <child>
-              <object class="GtkBox">
+              <object class="GtkBox" id="thumbnail-container">
                 <property name="width_request">200</property>
                 <property name="height_request">200</property>
                 <property name="visible">True</property>
-                <property name="halign">start</property>
-                <style>
-                  <class name="preview"/>
-                </style>
-                <child>
-                  <object class="GtkImage" id="thumbnail">
-                    <property name="visible">True</property>
-                  </object>
-                </child>
               </object>
             </child>
           </object>

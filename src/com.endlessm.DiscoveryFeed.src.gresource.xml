@@ -2,5 +2,7 @@
 <gresources>
   <gresource prefix="/com/endlessm/DiscoveryFeed/js">
     <file>main.js</file>
+    <file>widgetSurfaceCache.js</file>
+    <file>imageCoverFrame.js</file>
   </gresource>
 </gresources>
