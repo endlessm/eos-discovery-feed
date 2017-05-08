@@ -108,6 +108,19 @@ function languageCodeIsCompatible(language, languages) {
 }
 
 //
+// appLanguage
+function appLanguage(desktopId) {
+    let appInfo = Gio.DesktopAppInfo.new(desktopId);
+    if (!appInfo) {
+        // This case shouldn't happen - the app id passed must always
+        // be valid.
+        throw new Error('Could not create GDesktopAppInfo for ' + desktopId);
+    }
+
+    return appInfo.get_string('X-Endless-Content-Language');
+}
+
+//
 // readDiscoveryFeedProvidersInDirectory
 //
 // Read all the discovery feed providers in a directory, calling
@@ -181,14 +194,15 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
 
         // Now, if we have a Desktop ID, we'll want to check it
         // to see if there's an embedded language code in the
-        // name. If so, filter out anything that is not
-        // the system language.
-        if (desktopId && desktopId.indexOf('com.endlessm') === 0) {
-            let providerLocale = desktopId.split('.').slice(3, 4)[0];
-            if (!languageCodeIsCompatible(providerLocale, languages)) {
+        // desktop file. If so, filter out this application if it
+        // would not be compatible
+        if (desktopId) {
+            let providerLocale = appLanguage(desktopId);
+            if (providerLocale &&
+                !languageCodeIsCompatible(providerLocale, languages)) {
                 log('Language code ' + providerLocale + ' is not compatible ' +
                     'with language codes ' + languages.join(' ') +
-                    ', skipping');
+                    ', skipping ' + path);
                 continue;
             }
         }
