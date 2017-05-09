@@ -751,6 +751,10 @@ function load_style_sheet(resourcePath) {
 // @param {string} synopsis - The synopsis to sanitize.
 // @returns {string} A sanitized synopsis.
 function sanitizeSynopsis(synopsis) {
+    if (!synopsis.trim()) {
+        return '';
+    }
+
     // Square brackets with numbers are just references
     synopsis = synopsis.replace(/\[\d+\]/g, '').trim();
     // Typically the things found in parens are alternatve pronunciations
