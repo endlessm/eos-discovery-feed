@@ -949,14 +949,14 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
 
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
-            case 'com.endlessm.DiscoveryFeedContent':
-                appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
-                break;
-            case 'com.endlessm.DiscoveryFeedNews':
-                appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
-                break;
-            default:
-                throw new Error('Don\'t know how to handle interface ' + interfaceName);
+        case 'com.endlessm.DiscoveryFeedContent':
+            appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
+            break;
+        case 'com.endlessm.DiscoveryFeedNews':
+            appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
+            break;
+        default:
+            throw new Error('Don\'t know how to handle interface ' + interfaceName);
         }
     });
 }
