@@ -297,12 +297,12 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
             knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
             knowledgeAppId: provider.knowledgeAppId
         }))
-   ).reduce((list, incoming) => list.concat(incoming), []);
+    ).reduce((list, incoming) => list.concat(incoming), []);
 
-   // Update remaining based on flatMap. We're fine to do this here
-   // since the asynchronous functions don't start running until we've
-   // left this function
-   let remaining = proxies.length;
+    // Update remaining based on flatMap. We're fine to do this here
+    // since the asynchronous functions don't start running until we've
+    // left this function
+    let remaining = proxies.length;
 }
 
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
