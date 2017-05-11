@@ -923,13 +923,13 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 })
             }));
         },
-        '4': () => {
+        '4': (modelIndex) => {
             let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
             model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
                 title: 'Summertime',
                 author: 'Mary Cassat',
                 thumbnail: Gio.File.new_for_uri(thumbnail_uri).read(null),
-                layout_direction: 1 % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
             }));
             modelIndex++;
         }
@@ -940,7 +940,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         // here - only if we are displaying a card where the
         // image and content should be flipped
         if (indexInsertFuncs[modelIndex]) {
-            indexInsertFuncs[modelIndex]();
+            indexInsertFuncs[modelIndex](modelIndex);
         }
 
         model.append(modelBuildForIndexFunc(modelIndex));
