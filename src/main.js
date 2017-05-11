@@ -273,7 +273,15 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
 
     // Map to proxies and then flat map
     let proxies = providers.map(provider =>
-        provider.interfaces.map(interfaceName => ({
+        provider.interfaces.filter(interfaceName => {
+            if (Object.keys(interfaceWrappers).indexOf(interfaceName) !== -1) {
+                log('Filtering out unrecognised interface ' + interfaceName);
+                return false;
+            }
+            
+            return true;
+        })
+        .map(interfaceName => ({
             iface: interfaceWrappers[interfaceName](connection,
                                                     provider.name,
                                                     provider.path,
