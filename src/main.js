@@ -278,7 +278,7 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                 log('Filtering out unrecognised interface ' + interfaceName);
                 return false;
             }
-            
+
             return true;
         })
         .map(interfaceName => ({
