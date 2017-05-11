@@ -255,7 +255,7 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
         'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
     };
 
-    let onProxyReady = function(initable, error, objectPath, name) {
+    let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
         remaining--;
 
         if (error) {
@@ -288,7 +288,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                     Lang.bind(this,
                                                               onProxyReady,
                                                               provider.path,
-                                                              provider.name),
+                                                              provider.name,
+                                                              interfaceName),
                                                     null),
             interfaceName: interfaceName,
             desktopId: provider.desktopFileId,
