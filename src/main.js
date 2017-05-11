@@ -956,7 +956,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
             break;
         default:
-            throw new Error('Don\'t know how to handle interface ' + interfaceName);
+            throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
         }
     });
 }
