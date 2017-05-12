@@ -83,14 +83,21 @@
   font-size: 14pt;
 }
 
-list.stories row .shadow {
-  padding: 0px;
-  margin: 12.5px 0px 12.5px 0px;
-  box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
-}
-
 list.stories .content {
   padding: 0px;
+}
+
+list.stories .button {
+  padding: 0px;
+  background-image: none;
+  border-radius: 0px;
+  box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
+  margin: 12.5px 10px 12.5px 10px;
+}
+
+list.stories .button:hover {
+  background-color: white;
+  box-shadow: 1px 1px 6px 3px rgba(0,0,0,0.6);
 }
 
 list.stories {
