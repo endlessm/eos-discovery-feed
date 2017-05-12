@@ -531,7 +531,8 @@ const DiscoveryFeedCard = new Lang.Class({
         'thumbnail-container',
         'app-icon',
         'app-label',
-        'content-layout'
+        'content-layout',
+        'content-event-box'
     ],
 
     _init: function(params) {
@@ -563,6 +564,14 @@ const DiscoveryFeedCard = new Lang.Class({
                                                        Gtk.PackType.END);
             }));
         }
+
+        // We need to put the content inside of another event box so that
+        // it gets its own window. Then when the event box window is realized
+        // we can set its cursor to the hand cursor.
+        this.content_event_box.connect('realize', Lang.bind(this, function(widget) {
+            widget.window.set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                              'pointer'));
+        }));
     }
 });
 
