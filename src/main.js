@@ -659,7 +659,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             thumbnail_data: params.model.thumbnail,
             source_title: this._app.get_display_name().toUpperCase(),
             layout_direction: params.model.layout_direction
-        })
+        });
         this.add(card);
         card.connect('activate', Lang.bind(this, function() {
             recordMetricsEvent(EVENT_DISCOVERYFEED_CLICK, new GLib.Variant('a{ss}', {
