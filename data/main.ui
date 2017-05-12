@@ -41,6 +41,7 @@
         <child>
           <object class="GtkScrolledWindow">
             <property name="visible">True</property>
+            <property name="overlay-scrolling">True</property>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
