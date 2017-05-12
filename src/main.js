@@ -842,35 +842,41 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
+function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appendFunc) {
+    items.forEach(function(response) {
+        try {
+            response.forEach(function(entry) {
+                let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+                appendFunc(model, modelIndex => new DiscoveryFeedKnowledgeAppCardStore({
+                    title: entry.title,
+                    synopsis: TextSanitization.synopsis(entry.synopsis),
+                    thumbnail: thumbnail,
+                    desktop_id: proxy.desktopId,
+                    bus_name: proxy.busName,
+                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                    knowledge_app_id: proxy.knowledgeAppId,
+                    uri: entry.ekn_id,
+                    layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                }));
+            });
+        } catch (e) {
+            logError(e, 'Could not parse response');
+        }
+    });
+}
+
 function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
     proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
         if (error) {
             logError(error, 'Failed to execute Discovery Feed Content query');
             return;
         }
-        let shards = results[0];
-        let items = results.slice(1, results.length);
-        items.forEach(function(response) {
-            try {
-                response.forEach(function(entry) {
-                    let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-                    appendToModel(model, modelIndex => new DiscoveryFeedKnowledgeAppCardStore({
-                        title: entry.title,
-                        synopsis: TextSanitization.synopsis(entry.synopsis),
-                        thumbnail: thumbnail,
-                        desktop_id: proxy.desktopId,
-                        bus_name: proxy.busName,
-                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                        knowledge_app_id: proxy.knowledgeAppId,
-                        uri: entry.ekn_id,
-                        layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
-                    }));
-                });
-            } catch (e) {
-                logError(e, 'Could not parse response');
-            }
-        });
+        appendArticleCardsFromShardsAndItems(results[0],
+                                             results.slice(1, results.length),
+                                             proxy,
+                                             model,
+                                             appendToModel);
     });
 }
 
@@ -880,29 +886,11 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
             logError(error, 'Failed to execute Discovery Feed News query');
             return;
         }
-        let shards = results[0];
-        let items = results.slice(1, results.length);
-        items.forEach(function(response) {
-            try {
-                response.forEach(function(entry) {
-                    let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-                    appendToModel(model, modelIndex => new DiscoveryFeedKnowledgeAppCardStore({
-                        title: entry.title,
-                        synopsis: TextSanitization.synopsis(entry.synopsis),
-                        thumbnail: thumbnail,
-                        desktop_id: proxy.desktopId,
-                        bus_name: proxy.busName,
-                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                        knowledge_app_id: proxy.knowledgeAppId,
-                        uri: entry.ekn_id,
-                        layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
-                    }));
-                });
-            } catch (e) {
-                logError(e, 'Could not parse response');
-            }
-        });
+        appendArticleCardsFromShardsAndItems(results[0],
+                                             results.slice(1, results.length),
+                                             proxy,
+                                             model,
+                                             appendToModel);
     });
 }
 
