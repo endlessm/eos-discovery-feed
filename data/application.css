@@ -97,7 +97,7 @@ list.stories .button {
 
 .invisible-button {
   box-shadow: none;
-  border-color: none;
+  border-color: transparent;
   border: 0;
   margin: 0;
   padding: 0px;
