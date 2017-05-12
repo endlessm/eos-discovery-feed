@@ -535,7 +535,6 @@ const DiscoveryFeedCard = new Lang.Class({
         'app-icon',
         'app-label',
         'content-layout',
-        'content-event-box',
         'content-button'
     ],
 
@@ -569,16 +568,12 @@ const DiscoveryFeedCard = new Lang.Class({
             }));
         }
 
-        // We need to put the content inside of another event box so that
-        // it gets its own window (despite the fact that we have a GtkButton
-        // as the immediate child). Then when the event box window is realized
-        // we can set its cursor to the hand cursor. Note that we attach
-        // the cursor to the button's window as opposed to the event box's
-        //
-        // Note: This currently does not work.
-        this.content_event_box.connect('realize', Lang.bind(this, function(widget) {
-            widget.window.set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
-                                                              'pointer'));
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
         }));
         this.content_button.connect('clicked', Lang.bind(this, function() {
             this.emit('activate');
