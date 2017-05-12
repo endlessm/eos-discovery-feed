@@ -83,10 +83,14 @@
   font-size: 14pt;
 }
 
-list.stories row .content {
+list.stories row .shadow {
   padding: 0px;
   margin: 12.5px 0px 12.5px 0px;
   box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
+}
+
+list.stories .content {
+  padding: 0px;
 }
 
 list.stories {
