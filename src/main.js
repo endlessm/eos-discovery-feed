@@ -672,7 +672,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                 return;
             }
 
-            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', GLib.get_real_time(), Lang.bind(this, function(result, excp) {
+            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', Gdk.CURRENT_TIME, Lang.bind(this, function(result, excp) {
                 if (!excp)
                     return;
                 logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
