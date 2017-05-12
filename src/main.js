@@ -524,6 +524,9 @@ const DiscoveryFeedCard = new Lang.Class({
                                                   LAYOUT_DIRECTION_IMAGE_LAST,
                                                   LAYOUT_DIRECTION_IMAGE_FIRST)
     },
+    Signals: {
+        'activate': [ ]
+    },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
     Children: [
         'title-label',
@@ -532,7 +535,8 @@ const DiscoveryFeedCard = new Lang.Class({
         'app-icon',
         'app-label',
         'content-layout',
-        'content-event-box'
+        'content-event-box',
+        'content-button'
     ],
 
     _init: function(params) {
@@ -566,11 +570,18 @@ const DiscoveryFeedCard = new Lang.Class({
         }
 
         // We need to put the content inside of another event box so that
-        // it gets its own window. Then when the event box window is realized
-        // we can set its cursor to the hand cursor.
+        // it gets its own window (despite the fact that we have a GtkButton
+        // as the immediate child). Then when the event box window is realized
+        // we can set its cursor to the hand cursor. Note that we attach
+        // the cursor to the button's window as opposed to the event box's
+        //
+        // Note: This currently does not work.
         this.content_event_box.connect('realize', Lang.bind(this, function(widget) {
             widget.window.set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
                                                               'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            this.emit('activate');
         }));
     }
 });
@@ -594,13 +605,26 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         // Read the desktop file and then set the app icon and label
         // appropriately
         this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
-
-        this.add(new DiscoveryFeedCard({
+        let card = new DiscoveryFeedCard({
             title: params.model.title,
             synopsis: params.model.synopsis,
             thumbnail_data: params.model.thumbnail,
             source_title: this._app.get_display_name().toUpperCase(),
             layout_direction: params.model.layout_direction
+        })
+        this.add(card);
+        card.connect('activate', Lang.bind(this, function() {
+            if (!this._knowledgeSearchProxy) {
+                this._app.launch([], null);
+                return;
+            }
+
+            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
+                if (!excp)
+                    return;
+                logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
+                this._app.launch([], null);
+            }));
         }));
 
         if (this.model.knowledge_search_object_path) {
@@ -619,20 +643,6 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                                                           Lang.bind(this,
                                                                     onProxyReady));
         }
-    },
-
-    activate: function(timestamp) {
-        if (!this._knowledgeSearchProxy) {
-            this._app.launch([], null);
-            return;
-        }
-
-        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
-            if (!excp)
-                return;
-            logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
-            this._app.launch([], null);
-        }));
     }
 });
 
@@ -711,14 +721,6 @@ const DiscoveryFeedListItem = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.add(this.content);
-    },
-
-    activateChild: function() {
-        if (this.content.activate) {
-            return this.content.activate(Gtk.get_current_event_time());
-        }
-
-        return null;
     }
 });
 
@@ -776,10 +778,6 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.add_action(escAction);
         this.application.set_accels_for_action('win.close', ['Escape']);
         this.close_button.set_action_name('win.close');
-
-        this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
-            row.activateChild();
-        }));
     },
 });
 
