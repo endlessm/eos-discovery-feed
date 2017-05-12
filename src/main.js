@@ -325,7 +325,7 @@ const EVENT_DISCOVERYFEED_CLICK = 'f2f31a64-2193-42b5-ae39-ca0b4d1f0691';
 // a GVariant for the given event ID).
 function recordMetricsEvent(eventId, payload) {
     if (Config.enable_metrics) {
-        EosMetrics.EventRecorder.get_default().record_event_sync(eventId, payload);
+        EosMetrics.EventRecorder.get_default().record_event(eventId, payload);
     }
 }
 
