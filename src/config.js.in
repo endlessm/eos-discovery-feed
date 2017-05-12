@@ -1,0 +1,7 @@
+// src/config.js.in
+//
+// Copyright (c) 2016-2017 Endless Mobile Inc.
+//
+// Contains some configuration variables used by the Discovery Feed
+// eslint-disable-next-line no-unused-vars
+const enable_metrics = @enable_metrics@;

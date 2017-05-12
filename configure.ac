@@ -37,6 +37,13 @@ PKG_CHECK_MODULES(DISCOVERY_FEED, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk
 
 # Checks for library functions.
 
+# --enable-metrics: Don't send metrics to Endless, and don't require the
+# optional eos-metrics dependency
+AC_ARG_ENABLE([metrics], AS_HELP_STRING([--enable-metrics],
+    [Sending metrics requires eos-metrics dependency (default=no)]))
+AS_IF([test "x$enable_metrics" != "xyes"], [enable_metrics=false], [enable_metrics=true])
+AC_SUBST([enable_metrics])
+
 # JASMINE_JUNIT_REPORTS_DIR: Where to put test reports
 AC_MSG_CHECKING([where to put test reports])
 AC_ARG_VAR([JASMINE_JUNIT_REPORTS_DIR], [Where to put test reports])
@@ -58,5 +65,6 @@ EOS_ESLINT
 # Substitute variables
 AC_SUBST(GLIB_COMPILE_RESOURCES)
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([src/config.js])
 AC_OUTPUT
 
