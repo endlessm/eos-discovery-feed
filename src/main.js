@@ -749,8 +749,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     Children: [
         'cards',
         'today-date',
-        'close-button',
-        'dismiss-button'
+        'close-button'
     ],
 
     _init: function(params) {
@@ -768,7 +767,6 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.add_action(escAction);
         this.application.set_accels_for_action('win.close', ['Escape']);
         this.close_button.set_action_name('win.close');
-        this.dismiss_button.set_action_name('win.close');
 
         this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
             row.activateChild();
