@@ -95,6 +95,16 @@ list.stories .button {
   margin: 12.5px 10px 12.5px 10px;
 }
 
+.invisible-button {
+  box-shadow: none;
+  border-color: none;
+  border: 0;
+  margin: 0;
+  padding: 0px;
+  background-image: none;
+  border-radius: 0px;
+}
+
 list.stories .button:hover {
   background-color: white;
   box-shadow: 1px 1px 6px 3px rgba(0,0,0,0.6);

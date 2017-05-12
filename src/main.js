@@ -701,7 +701,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
 
 const DiscoveryFeedWordQuotePair = new Lang.Class({
     Name: 'DiscoveryFeedWordQuotePair',
-    Extends: Gtk.Box,
+    Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/DiscoveryFeed/word-quote-pair.ui',
     Properties: {
         'model': GObject.ParamSpec.object('model',
