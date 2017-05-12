@@ -122,7 +122,7 @@ window {
 
 button .close {
   background-image: url('resource:///com/endlessm/DiscoveryFeed/img/close_button.svg');
-  background-size: 12px;
+  background-size: 24px;
   background-position: 50%;
   background-repeat: no-repeat;
 }
