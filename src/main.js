@@ -125,6 +125,8 @@ function appLanguage(desktopId) {
         // be valid.
         throw new Error('Could not create GDesktopAppInfo for ' + desktopId);
     }
+
+    return appInfo.get_string('X-Endless-Content-Language');
 }
 
 //
