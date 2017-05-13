@@ -93,6 +93,34 @@ const DISCOVERY_FEED_SECTION_NAME = 'Discovery Feed Content Provider';
 const LOAD_ITEM_SECTION_NAME = 'Load Item Provider';
 
 //
+// languageCodeIsCompatible
+//
+// True if the provided language code is compatible with the provided
+// languages. We check both the locale variant and the actual language
+// code itself
+//
+// @param {string} language - The language code to check
+// @param {array.String} languages - The supported user languages
+// @returns {bool} - True if the language is supported
+function languageCodeIsCompatible(language, languages) {
+    let languageCode = language.split('_')[0];
+    return languages.some(l => l === languageCode);
+}
+
+//
+// appLanguage
+function appLanguage(desktopId) {
+    let appInfo = Gio.DesktopAppInfo.new(desktopId);
+    if (!appInfo) {
+        // This case shouldn't happen - the app id passed must always
+        // be valid.
+        throw new Error('Could not create GDesktopAppInfo for ' + desktopId);
+    }
+
+    return appInfo.get_string('X-Endless-Content-Language');
+}
+
+//
 // readDiscoveryFeedProvidersInDirectory
 //
 // Read all the discovery feed providers in a directory, calling
@@ -105,6 +133,7 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
     let enumerator = null;
     let info = null;
     let providerBusDescriptors = [];
+    let languages = GLib.get_language_names();
 
     try {
         enumerator = directory.enumerate_children('standard::name,standard::type',
@@ -158,6 +187,26 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
             }
         }
 
+        let desktopId = maybeGetKeyfileString(keyFile,
+                                              DISCOVERY_FEED_SECTION_NAME,
+                                              'DesktopId',
+                                              null);
+
+        // Now, if we have a Desktop ID, we'll want to check it
+        // to see if there's an embedded language code in the
+        // desktop file. If so, filter out this application if it
+        // would not be compatible
+        if (desktopId) {
+            let providerLocale = appLanguage(desktopId);
+            if (providerLocale &&
+                !languageCodeIsCompatible(providerLocale, languages)) {
+                log('Language code ' + providerLocale + ' is not compatible ' +
+                    'with language codes ' + languages.join(' ') +
+                    ', skipping ' + path);
+                continue;
+            }
+        }
+
         providerBusDescriptors.push({
             path: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
                                      'ObjectPath'),
@@ -167,10 +216,7 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
                                                   DISCOVERY_FEED_SECTION_NAME,
                                                   'AppID',
                                                   null),
-            desktopFileId: maybeGetKeyfileString(keyFile,
-                                                 DISCOVERY_FEED_SECTION_NAME,
-                                                 'DesktopId',
-                                                 null),
+            desktopFileId: desktopId,
             knowledgeSearchObjectPath: objectPath
         });
     }
