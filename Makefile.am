@@ -105,10 +105,10 @@ EOS_JS_COVERAGE_FILES := $(patsubst $(srcdir)/%,%,$(wildcard $(srcdir)/src/*.js)
 
 @EOS_COVERAGE_RULES@
 
+AM_JS_LOG_FLAGS += @EOS_JS_COVERAGE_LOG_FLAGS@
+
 # # # LINTING # # #
 EOS_ESLINT_FILES := $(all_js_files)
 
 @EOS_ESLINT_RULES@
-
-AM_JS_LOG_FLAGS += @EOS_JS_COVERAGE_LOG_FLAGS@
 
