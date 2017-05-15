@@ -27,6 +27,7 @@ all_js_files = \
 # Set EXTRA_DIST and CLEANFILES initially
 EXTRA_DIST = \
 	$(resource_files) \
+	$(javascript_tests) \
 	$(service_in_files) \
 	$(app_resource_files) \
 	src/com.endlessm.DiscoveryFeed.in \
