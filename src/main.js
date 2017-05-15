@@ -16,7 +16,6 @@ pkg.require({
 
 const EosShard = imports.gi.EosShard;
 const Gdk = imports.gi.Gdk;
-const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
@@ -26,8 +25,8 @@ const Wnck = imports.gi.Wnck;
 const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
+const TextSanitization = imports.textSanitization;
 
-const DISCOVERY_FEED_NAME = 'com.endlessm.DiscoveryFeed';
 const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
 const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
@@ -488,8 +487,6 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     }
 });
 
-const THUMBNAIL_WIDTH = 200;
-
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
     Extends: Gtk.Box,
@@ -621,8 +618,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             return;
         }
 
-        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp,
-                                                  Lang.bind(this, function(result, excp) {
+        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
             if (!excp)
                 return;
             logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
@@ -720,14 +716,14 @@ const DiscoveryFeedListItem = new Lang.Class({
 function contentViewFromType(type, store) {
     let params = { model: store };
     switch (type) {
-        case CARD_STORE_TYPE_ARTICLE_CARD:
-            return new DiscoveryFeedKnowledgeAppCard(params);
-        case CARD_STORE_TYPE_WORD_QUOTE_CARD:
-            return new DiscoveryFeedWordQuotePair(params);
-        case CARD_STORE_TYPE_ARTWORK_CARD:
-            return new DiscoveryFeedKnowledgeArtworkCard(params);
-        default:
-            throw new Error('Card type ' + type + ' not recognized');
+    case CARD_STORE_TYPE_ARTICLE_CARD:
+        return new DiscoveryFeedKnowledgeAppCard(params);
+    case CARD_STORE_TYPE_WORD_QUOTE_CARD:
+        return new DiscoveryFeedWordQuotePair(params);
+    case CARD_STORE_TYPE_ARTWORK_CARD:
+        return new DiscoveryFeedKnowledgeArtworkCard(params);
+    default:
+        throw new Error('Card type ' + type + ' not recognized');
     }
 }
 
@@ -788,31 +784,6 @@ function load_style_sheet(resourcePath) {
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-//
-// sanitizeSynopsis
-//
-// Sanitize a provided synopsis provided from an article. Remove references
-// and other uninteresting information. Truncate to a few sentences.
-//
-// @param {string} synopsis - The synopsis to sanitize.
-// @returns {string} A sanitized synopsis.
-function sanitizeSynopsis(synopsis) {
-    if (!synopsis.trim()) {
-        return '';
-    }
-
-    // Square brackets with numbers are just references
-    synopsis = synopsis.replace(/\[\d+\]/g, '').trim();
-    // Typically the things found in parens are alternatve pronunciations
-    // or translations.
-    synopsis = synopsis.replace(/\(.*?\)/g, '').trim();
-    // Only show the first two sentences.
-    synopsis = synopsis.split('.').slice(0, 2).join('.') + '.';
-    // Normalize whitespace
-    synopsis = synopsis.replace(/\s+/g, ' ').trim();
-    return synopsis;
-}
-
 function find_thumbnail_in_shards (shards, thumbnail_uri) {
     for (let i = 0; i < shards.length; i++) {
         let shard_file = new EosShard.ShardFile({ path: shards[i] });
@@ -841,7 +812,6 @@ function normalize_ekn_id (ekn_id) {
 }
 
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
-    let remaining = proxies.length;
     let modelIndex = 0;
     model.remove_all();
 
@@ -894,7 +864,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
 
                         model.append(new DiscoveryFeedKnowledgeAppCardStore({
                             title: entry.title,
-                            synopsis: sanitizeSynopsis(entry.synopsis),
+                            synopsis: TextSanitization.synopsis(entry.synopsis),
                             thumbnail: thumbnail,
                             desktop_id: proxy.desktopId,
                             bus_name: proxy.busName,

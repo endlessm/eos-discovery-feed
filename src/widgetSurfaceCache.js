@@ -15,7 +15,7 @@ const Lang = imports.lang;
  *
  * Careful with this helper, only cache surfaces you know will not update!
  */
-const WidgetSurfaceCache = new Lang.Class({
+const WidgetSurfaceCache = new Lang.Class({ // eslint-disable-line no-unused-vars
     Name: 'WidgetSurfaceCache',
     Extends: GObject.Object,
 
