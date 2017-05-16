@@ -749,14 +749,13 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     Children: [
         'cards',
         'today-date',
-        'close-button',
-        'dismiss-button'
+        'close-button'
     ],
 
     _init: function(params) {
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
-        this.today_date.label = (new Date()).toLocaleFormat('%B %d').toUpperCase();
+        this.today_date.label = (new Date()).toLocaleFormat('%B %e').toUpperCase();
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button
@@ -768,7 +767,6 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.add_action(escAction);
         this.application.set_accels_for_action('win.close', ['Escape']);
         this.close_button.set_action_name('win.close');
-        this.dismiss_button.set_action_name('win.close');
 
         this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
             row.activateChild();
@@ -1029,7 +1027,10 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         geometry.x = workarea.x + ((workarea.width - geometry.width) * 0.5);
         this._window.move(geometry.x, geometry.y);
-        this._window.resize(geometry.width, geometry.height);
+
+        // We'll take up 7/8ths of the screen height, leaving
+        // some below
+        this._window.resize(geometry.width, geometry.height * (7 / 8));
     }
 });
 
