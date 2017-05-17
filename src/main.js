@@ -524,6 +524,9 @@ const DiscoveryFeedCard = new Lang.Class({
                                                   LAYOUT_DIRECTION_IMAGE_LAST,
                                                   LAYOUT_DIRECTION_IMAGE_FIRST)
     },
+    Signals: {
+        'activate': [ ]
+    },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
     Children: [
         'title-label',
@@ -531,7 +534,8 @@ const DiscoveryFeedCard = new Lang.Class({
         'thumbnail-container',
         'app-icon',
         'app-label',
-        'content-layout'
+        'content-layout',
+        'content-button'
     ],
 
     _init: function(params) {
@@ -563,6 +567,17 @@ const DiscoveryFeedCard = new Lang.Class({
                                                        Gtk.PackType.END);
             }));
         }
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            this.emit('activate');
+        }));
     }
 });
 
@@ -585,13 +600,26 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         // Read the desktop file and then set the app icon and label
         // appropriately
         this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
-
-        this.add(new DiscoveryFeedCard({
+        let card = new DiscoveryFeedCard({
             title: params.model.title,
             synopsis: params.model.synopsis,
             thumbnail_data: params.model.thumbnail,
             source_title: this._app.get_display_name().toUpperCase(),
             layout_direction: params.model.layout_direction
+        })
+        this.add(card);
+        card.connect('activate', Lang.bind(this, function() {
+            if (!this._knowledgeSearchProxy) {
+                this._app.launch([], null);
+                return;
+            }
+
+            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
+                if (!excp)
+                    return;
+                logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
+                this._app.launch([], null);
+            }));
         }));
 
         if (this.model.knowledge_search_object_path) {
@@ -610,20 +638,6 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                                                           Lang.bind(this,
                                                                     onProxyReady));
         }
-    },
-
-    activate: function(timestamp) {
-        if (!this._knowledgeSearchProxy) {
-            this._app.launch([], null);
-            return;
-        }
-
-        this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
-            if (!excp)
-                return;
-            logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
-            this._app.launch([], null);
-        }));
     }
 });
 
@@ -702,14 +716,6 @@ const DiscoveryFeedListItem = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.add(this.content);
-    },
-
-    activateChild: function() {
-        if (this.content.activate) {
-            return this.content.activate(Gtk.get_current_event_time());
-        }
-
-        return null;
     }
 });
 
@@ -767,10 +773,6 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.add_action(escAction);
         this.application.set_accels_for_action('win.close', ['Escape']);
         this.close_button.set_action_name('win.close');
-
-        this.cards.connect('row-activated', Lang.bind(this, function(listbox, row) {
-            row.activateChild();
-        }));
     },
 });
 
