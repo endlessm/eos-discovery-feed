@@ -69,6 +69,16 @@ const DiscoveryFeedContentIface = '\
   </interface> \
 </node>';
 
+const DiscoveryFeedNewsIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedNews"> \
+    <method name="GetRecentNews"> \
+      <arg type="as" name="Shards" direction="out" /> \
+      <arg type="aa{ss}" name="Result" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
 //
 // maybeGetKeyfileString
 //
@@ -166,7 +176,7 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
         }
 
         let keys = keyFile.get_keys(DISCOVERY_FEED_SECTION_NAME)[0];
-        let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName'];
+        let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName', 'SupportedInterfaces'];
 
         let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
         if (notFoundKeys.length) {
@@ -211,6 +221,8 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
                                      'ObjectPath'),
             name: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
                                      'BusName'),
+            interfaces: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
+                                           'SupportedInterfaces').split(';'),
             knowledgeAppId: maybeGetKeyfileString(keyFile,
                                                   DISCOVERY_FEED_SECTION_NAME,
                                                   'AppID',
@@ -238,13 +250,14 @@ function readDiscoveryFeedProvidersInDataDirectories() {
 }
 
 function instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                      interfaceName,
                                                       providers,
                                                       done) {
-    let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface);
-    let remaining = providers.length;
+    let interfaceWrappers = {
+        'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
+        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
+    };
 
-    let onProxyReady = function(initable, error, objectPath, name) {
+    let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
         remaining--;
 
         if (error) {
@@ -260,20 +273,38 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
         }
     };
 
-    let proxies = providers.map(provider => ({
-        iface: interfaceWrapper(connection,
-                                provider.name,
-                                provider.path,
-                                Lang.bind(this,
-                                          onProxyReady,
-                                          provider.path,
-                                          provider.name),
-                                null),
-        desktopId: provider.desktopFileId,
-        busName: provider.name,
-        knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
-        knowledgeAppId: provider.knowledgeAppId
-    }));
+    // Map to proxies and then flat map
+    let proxies = providers.map(provider =>
+        provider.interfaces.filter(interfaceName => {
+            if (Object.keys(interfaceWrappers).indexOf(interfaceName) === -1) {
+                log('Filtering out unrecognised interface ' + interfaceName);
+                return false;
+            }
+
+            return true;
+        })
+        .map(interfaceName => ({
+            iface: interfaceWrappers[interfaceName](connection,
+                                                    provider.name,
+                                                    provider.path,
+                                                    Lang.bind(this,
+                                                              onProxyReady,
+                                                              provider.path,
+                                                              provider.name,
+                                                              interfaceName),
+                                                    null),
+            interfaceName: interfaceName,
+            desktopId: provider.desktopFileId,
+            busName: provider.name,
+            knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
+            knowledgeAppId: provider.knowledgeAppId
+        }))
+    ).reduce((list, incoming) => list.concat(incoming), []);
+
+    // Update remaining based on flatMap. We're fine to do this here
+    // since the asynchronous functions don't start running until we've
+    // left this function
+    let remaining = proxies.length;
 }
 
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
@@ -811,6 +842,58 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
+function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appendFunc) {
+    items.forEach(function(response) {
+        try {
+            response.forEach(function(entry) {
+                let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+                appendFunc(model, modelIndex => new DiscoveryFeedKnowledgeAppCardStore({
+                    title: entry.title,
+                    synopsis: TextSanitization.synopsis(entry.synopsis),
+                    thumbnail: thumbnail,
+                    desktop_id: proxy.desktopId,
+                    bus_name: proxy.busName,
+                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                    knowledge_app_id: proxy.knowledgeAppId,
+                    uri: entry.ekn_id,
+                    layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                }));
+            });
+        } catch (e) {
+            logError(e, 'Could not parse response');
+        }
+    });
+}
+
+function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Content query');
+            return;
+        }
+        appendArticleCardsFromShardsAndItems(results[0],
+                                             results.slice(1, results.length),
+                                             proxy,
+                                             model,
+                                             appendToModel);
+    });
+}
+
+function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetRecentNewsRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed News query');
+            return;
+        }
+        appendArticleCardsFromShardsAndItems(results[0],
+                                             results.slice(1, results.length),
+                                             proxy,
+                                             model,
+                                             appendToModel);
+    });
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
@@ -830,7 +913,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                 })
             }));
         },
-        '4': () => {
+        '4': (modelIndex) => {
             let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
             model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
                 title: 'Summertime',
@@ -842,45 +925,29 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         }
     };
 
+    let appendToModel = function(model, modelBuildForIndexFunc) {
+        // We don't necessarily want to increment modelIndex
+        // here - only if we are displaying a card where the
+        // image and content should be flipped
+        if (indexInsertFuncs[modelIndex]) {
+            indexInsertFuncs[modelIndex](modelIndex);
+        }
+
+        model.append(modelBuildForIndexFunc(modelIndex));
+        modelIndex++;
+    };
+
     proxies.forEach(function(proxy) {
-        proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
-            if (error) {
-                logError(error, 'Failed to execute Discovery Feed query');
-                return;
-            }
-            let shards = results[0];
-            let items = results.slice(1, results.length);
-            items.forEach(function(response) {
-                try {
-                    response.forEach(function(entry) {
-                        let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-                        // We don't necessarily want to increment modelIndex
-                        // here - only if we are displaying a card where the
-                        // image and content should be flipped
-                        if (indexInsertFuncs[modelIndex]) {
-                            indexInsertFuncs[modelIndex]();
-                        }
-
-                        model.append(new DiscoveryFeedKnowledgeAppCardStore({
-                            title: entry.title,
-                            synopsis: TextSanitization.synopsis(entry.synopsis),
-                            thumbnail: thumbnail,
-                            desktop_id: proxy.desktopId,
-                            bus_name: proxy.busName,
-                            knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                            knowledge_app_id: proxy.knowledgeAppId,
-                            uri: entry.ekn_id,
-                            layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
-                        }));
-
-                        modelIndex++;
-                    });
-                } catch (e) {
-                    logError(e, 'Could not parse response');
-                }
-            });
-        });
+        switch (proxy.interfaceName) {
+        case 'com.endlessm.DiscoveryFeedContent':
+            appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
+            break;
+        case 'com.endlessm.DiscoveryFeedNews':
+            appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
+            break;
+        default:
+            throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
+        }
     });
 }
 
@@ -957,7 +1024,6 @@ const DiscoveryFeedApplication = new Lang.Class({
                                                   this._discoveryFeedProxies);
         });
         instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                     'com.endlessm.DiscoveryFeedContent',
                                                      providers,
                                                      onProxiesInstantiated);
 
