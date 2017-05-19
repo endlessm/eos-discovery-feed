@@ -69,6 +69,18 @@ const DiscoveryFeedContentIface = '\
   </interface> \
 </node>';
 
+const DiscoveryFeedEvergreenIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedEvergreen"> \
+    <method name="GetWordOfTheDay"> \
+      <arg type="a{ss}" name="Results" direction="out" /> \
+    </method> \
+    <method name="GetQuoteOfTheDay"> \
+      <arg type="a{ss}" name="Results" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
 const DiscoveryFeedNewsIface = '\
 <node> \
   <interface name="com.endlessm.DiscoveryFeedNews"> \
@@ -254,6 +266,7 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       done) {
     let interfaceWrappers = {
         'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
+        'com.endlessm.DiscoveryFeedEvergreen': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedEvergreenIface),
         'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
     };
 
@@ -866,6 +879,33 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
     });
 }
 
+function appendDiscoveryFeedEvergreenToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetWordOfTheDayRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Evergreen query');
+            return;
+        }
+        try {
+            results.forEach(function(entry) {
+                appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
+                    quote: new DiscoveryFeedQuoteStore({
+                        quote: TextSanitization.synopsis(entry.synopsis),
+                        author: 'Auron'
+                    }),
+                    word: new DiscoveryFeedWordStore({
+                        word: 'Tenentenba',
+                        pronunciation: 'Ten-ET-en-BA',
+                        definition: 'That\'s a nice Tenetenba you\'ve got there',
+                        word_type: 'noun'
+                    })
+                }));
+            });
+        } catch (e) {
+            logError(e, 'Could not parse response');
+        }
+    });
+}
+
 function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
     proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
         if (error) {
@@ -899,20 +939,6 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     model.remove_all();
 
     let indexInsertFuncs = {
-        '2': () => {
-            model.append(new DiscoveryFeedWordQuotePairStore({
-                quote: new DiscoveryFeedQuoteStore({
-                    quote: 'You\'re the one running',
-                    author: 'Auron'
-                }),
-                word: new DiscoveryFeedWordStore({
-                    word: 'Tenentenba',
-                    pronunciation: 'Ten-ET-en-BA',
-                    definition: 'That\'s a nice Tenetenba you\'ve got there',
-                    word_type: 'noun'
-                })
-            }));
-        },
         '4': (modelIndex) => {
             let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
             model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
@@ -942,6 +968,11 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         case 'com.endlessm.DiscoveryFeedContent':
             appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
             break;
+        case 'com.endlessm.DiscoveryFeedEvergreen':
+        {
+            appendDiscoveryFeedEvergreenToModelFromProxy(proxy, model, appendToModel);
+            break;
+        }
         case 'com.endlessm.DiscoveryFeedNews':
             appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
             break;
