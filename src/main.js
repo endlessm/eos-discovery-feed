@@ -69,12 +69,18 @@ const DiscoveryFeedContentIface = '\
   </interface> \
 </node>';
 
-const DiscoveryFeedEvergreenIface = '\
+const DiscoveryFeedWordIface = '\
 <node> \
-  <interface name="com.endlessm.DiscoveryFeedEvergreen"> \
+  <interface name="com.endlessm.DiscoveryFeedWord"> \
     <method name="GetWordOfTheDay"> \
       <arg type="a{ss}" name="Results" direction="out" /> \
     </method> \
+  </interface> \
+</node>';
+
+const DiscoveryFeedQuoteIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedQuote"> \
     <method name="GetQuoteOfTheDay"> \
       <arg type="a{ss}" name="Results" direction="out" /> \
     </method> \
@@ -266,7 +272,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       done) {
     let interfaceWrappers = {
         'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedEvergreen': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedEvergreenIface),
+        'com.endlessm.DiscoveryFeedQuote': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedQuoteIface),
+        'com.endlessm.DiscoveryFeedWord': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedWordIface),
         'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
     };
 
@@ -879,10 +886,10 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
     });
 }
 
-function appendDiscoveryFeedEvergreenToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetWordOfTheDayRemote(function(results, error) {
+function appendDiscoveryFeedQuoteToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetQuoteOfTheDayRemote(function(results, error) {
         if (error) {
-            logError(error, 'Failed to execute Discovery Feed Evergreen query');
+            logError(error, 'Failed to execute Discovery Feed Quote query');
             return;
         }
         try {
@@ -904,6 +911,24 @@ function appendDiscoveryFeedEvergreenToModelFromProxy(proxy, model, appendToMode
             logError(e, 'Could not parse response');
         }
     });
+}
+
+function appendDiscoveryFeedWordToModelFromProxy(proxy, model, appendToModel) {
+    /*
+    proxy.iface.GetWordOfTheDayRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Quote query');
+            return;
+        }
+        try {
+            results.forEach(function(entry) {
+                print('---> Word of the day');
+            });
+        } catch (e) {
+            logError(e, 'Could not parse response');
+        }
+    });
+    */
 }
 
 function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
@@ -968,9 +993,14 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         case 'com.endlessm.DiscoveryFeedContent':
             appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
             break;
-        case 'com.endlessm.DiscoveryFeedEvergreen':
+        case 'com.endlessm.DiscoveryFeedQuote':
         {
-            appendDiscoveryFeedEvergreenToModelFromProxy(proxy, model, appendToModel);
+            appendDiscoveryFeedQuoteToModelFromProxy(proxy, model, appendToModel);
+            break;
+        }
+        case 'com.endlessm.DiscoveryFeedWord':
+        {
+            appendDiscoveryFeedWordToModelFromProxy(proxy, model, appendToModel);
             break;
         }
         case 'com.endlessm.DiscoveryFeedNews':
