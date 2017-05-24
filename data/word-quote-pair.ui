@@ -99,16 +99,6 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="word-detail">
-                    <property name="visible">True</property>
-                    <property name="hexpand">True</property>
-                    <property name="xalign">0.0</property>
-                    <style>
-                      <class name="word-detail"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
                   <object class="GtkLabel" id="word-description">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>

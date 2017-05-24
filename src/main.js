@@ -376,12 +376,6 @@ const DiscoveryFeedWordStore = new Lang.Class({
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
                                               ''),
-        'pronunciation': GObject.ParamSpec.string('pronunciation',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  ''),
         'definition': GObject.ParamSpec.string('definition',
                                                '',
                                                '',
@@ -734,7 +728,6 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
     Children: [
         'word',
         'quote',
-        'word-detail',
         'word-description',
         'quote-author'
     ],
@@ -743,9 +736,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
         this.parent(params);
 
         this.word.label = this.model.word.word;
-        this.word_detail.label = this.model.word.word_type + ' | ' +
-                                 this.model.word.pronunciation;
-        this.word_description.label = this.model.word.definition;
+        this.word_description.label = '(' + this.model.word.word_type + ') ' + this.model.word.definition;
         this.quote.label = '"' + this.model.quote.quote + '"';
         this.quote_author.label = this.model.quote.author.toUpperCase();
     }
@@ -909,7 +900,6 @@ function appendDiscoveryFeedQuoteToModelFromProxy(quoteProxy, wordProxy, model, 
                         }),
                         word: new DiscoveryFeedWordStore({
                             word: word.title,
-                            pronunciation: 'Ten-ET-en-BA',
                             definition: TextSanitization.synopsis(word.synopsis),
                             word_type: word.license
                         })
