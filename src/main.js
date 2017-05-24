@@ -886,49 +886,42 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
     });
 }
 
-function appendDiscoveryFeedQuoteToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetQuoteOfTheDayRemote(function(results, error) {
+function appendDiscoveryFeedQuoteToModelFromProxy(quoteProxy, wordProxy, model, appendToModel) {
+    let quote, word;
+    quoteProxy.iface.GetQuoteOfTheDayRemote(function(results, error) {
         if (error) {
             logError(error, 'Failed to execute Discovery Feed Quote query');
             return;
         }
         try {
-            results.forEach(function(entry) {
-                appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
-                    quote: new DiscoveryFeedQuoteStore({
-                        quote: TextSanitization.synopsis(entry.synopsis),
-                        author: 'Auron'
-                    }),
-                    word: new DiscoveryFeedWordStore({
-                        word: 'Tenentenba',
-                        pronunciation: 'Ten-ET-en-BA',
-                        definition: 'That\'s a nice Tenetenba you\'ve got there',
-                        word_type: 'noun'
-                    })
-                }));
+            quote = results[0];
+            wordProxy.iface.GetWordOfTheDayRemote(function(results, error) {
+                if (error) {
+                    logError(error, 'Failed to execute Discovery Feed Word query');
+                    return;
+                }
+                try {
+                    word = results[0];
+                    appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
+                        quote: new DiscoveryFeedQuoteStore({
+                            quote: TextSanitization.synopsis(quote.synopsis),
+                            author: quote.title
+                        }),
+                        word: new DiscoveryFeedWordStore({
+                            word: word.title,
+                            pronunciation: 'Ten-ET-en-BA',
+                            definition: TextSanitization.synopsis(word.synopsis),
+                            word_type: word.license
+                        })
+                    }));
+                } catch (e) {
+                    logError(e, 'Could not parse response');
+                }
             });
         } catch (e) {
             logError(e, 'Could not parse response');
         }
     });
-}
-
-function appendDiscoveryFeedWordToModelFromProxy(proxy, model, appendToModel) {
-    /*
-    proxy.iface.GetWordOfTheDayRemote(function(results, error) {
-        if (error) {
-            logError(error, 'Failed to execute Discovery Feed Quote query');
-            return;
-        }
-        try {
-            results.forEach(function(entry) {
-                print('---> Word of the day');
-            });
-        } catch (e) {
-            logError(e, 'Could not parse response');
-        }
-    });
-    */
 }
 
 function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
@@ -988,6 +981,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         modelIndex++;
     };
 
+    let quoteProxy, wordProxy;
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
         case 'com.endlessm.DiscoveryFeedContent':
@@ -995,12 +989,12 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             break;
         case 'com.endlessm.DiscoveryFeedQuote':
         {
-            appendDiscoveryFeedQuoteToModelFromProxy(proxy, model, appendToModel);
+            quoteProxy = proxy;
             break;
         }
         case 'com.endlessm.DiscoveryFeedWord':
         {
-            appendDiscoveryFeedWordToModelFromProxy(proxy, model, appendToModel);
+            wordProxy = proxy;
             break;
         }
         case 'com.endlessm.DiscoveryFeedNews':
@@ -1010,6 +1004,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
         }
     });
+    appendDiscoveryFeedQuoteToModelFromProxy(quoteProxy, wordProxy, model, appendToModel);
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
