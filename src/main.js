@@ -803,6 +803,7 @@ function createSearchProxyFromObjectPath(appId, objectPath) {
                 logError(error, 'Could not create proxy for ' + objectPath);
                 return;
             }
+            log('Created proxy for ' + objectPath);
         };
 
         let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
