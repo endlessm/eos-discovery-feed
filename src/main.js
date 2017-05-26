@@ -309,9 +309,9 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
 }
 
 
-const EVENT_DISCOVERYFEED_OPEN = 'd54cbd8c-c977-4dac-ae72-535ad5633877';
-const EVENT_DISCOVERYFEED_CLOSE = 'e7932cbd-7c20-49eb-94e9-4bf075e0c0c0';
-const EVENT_DISCOVERYFEED_CLICK = 'f2f31a64-2193-42b5-ae39-ca0b4d1f0691';
+const EVENT_DISCOVERY_FEED_OPEN = 'd54cbd8c-c977-4dac-ae72-535ad5633877';
+const EVENT_DISCOVERY_FEED_CLOSE = 'e7932cbd-7c20-49eb-94e9-4bf075e0c0c0';
+const EVENT_DISCOVERY_FEED_CLICK = 'f2f31a64-2193-42b5-ae39-ca0b4d1f0691';
 
 // recordMetricsEvent
 //
@@ -658,7 +658,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         });
         this.add(card);
         card.connect('activate', Lang.bind(this, function() {
-            recordMetricsEvent(EVENT_DISCOVERYFEED_CLICK, new GLib.Variant('a{ss}', {
+            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
                 app_id: this._app.get_id(),
                 content_type: 'knowledge_article'
             }));
@@ -753,7 +753,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
         this.quote_author.label = this.model.quote.author.toUpperCase();
 
         this.connect('clicked', function() {
-            recordMetricsEvent(EVENT_DISCOVERYFEED_CLICK, new GLib.Variant('a{ss}', {
+            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
                 app_id: 'com.endlessm.WordOfTheDay'
             }));
         });
@@ -819,7 +819,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     ],
 
     close: function(method) {
-        recordMetricsEvent(EVENT_DISCOVERYFEED_CLOSE, new GLib.Variant('a{ss}', {
+        recordMetricsEvent(EVENT_DISCOVERY_FEED_CLOSE, new GLib.Variant('a{ss}', {
             closed_by: method,
             time: String(GLib.get_real_time() - this._openedAtTime)
         }));
@@ -1085,7 +1085,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window.show();
         this._window.present_with_time(timestamp);
 
-        recordMetricsEvent(EVENT_DISCOVERYFEED_OPEN, new GLib.Variant('a{ss}', {
+        recordMetricsEvent(EVENT_DISCOVERY_FEED_OPEN, new GLib.Variant('a{ss}', {
             opened_by: 'shell_button',
             language: GLib.get_language_names()[0]
         }));
