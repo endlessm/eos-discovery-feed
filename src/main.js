@@ -14,8 +14,6 @@ pkg.require({
     GLib: '2.0',
 });
 
-const Config = imports.config;
-
 const EosShard = imports.gi.EosShard;
 const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
@@ -324,9 +322,7 @@ const EVENT_DISCOVERYFEED_CLICK = 'f2f31a64-2193-42b5-ae39-ca0b4d1f0691';
 // The caller is responsible for passing the correct payload (serialized as
 // a GVariant for the given event ID).
 function recordMetricsEvent(eventId, payload) {
-    if (Config.enable_metrics) {
-        EosMetrics.EventRecorder.get_default().record_event(eventId, payload);
-    }
+    EosMetrics.EventRecorder.get_default().record_event(eventId, payload);
 }
 
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;

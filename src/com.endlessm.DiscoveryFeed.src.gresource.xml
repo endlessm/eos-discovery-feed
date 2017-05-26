@@ -5,6 +5,5 @@
     <file>textSanitization.js</file>
     <file>widgetSurfaceCache.js</file>
     <file>imageCoverFrame.js</file>
-    <file>config.js</file>
   </gresource>
 </gresources>
