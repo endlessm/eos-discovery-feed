@@ -1415,7 +1415,6 @@ function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToMo
     });
 }
 
-
 const N_APPS_TO_DISPLAY = 5;
 
 function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel) {
