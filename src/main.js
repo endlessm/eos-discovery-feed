@@ -1387,6 +1387,25 @@ function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, append
 }
 
 
+function withLeadingZero(value) {
+    if (value < 10)
+        return '0' + value;
+
+    return String(value);
+}
+
+function parseDuration(duration) {
+    let durationTotalSeconds = Number.parseInt(duration);
+    let durationHours = Math.floor(durationTotalSeconds / 3600);
+    let durationMinutes = Math.floor(durationTotalSeconds / 60) % 60;
+    let durationSeconds = durationTotalSeconds % 60;
+
+    if (durationHours > 0)
+        return durationHours + ':' + withLeadingZero(durationMinutes);
+
+    return durationMinutes + ':' + withLeadingZero(durationSeconds);
+}
+
 function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
     proxy.iface.GetRelevantVideoRemote(function(results, error) {
         if (error) {
@@ -1409,7 +1428,7 @@ function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
                         knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                         knowledge_app_id: proxy.knowledgeAppId,
                         uri: entry.ekn_id,
-                        duration: entry.duration
+                        duration: parseDuration(entry.duration)
                     }));
                 });
             } catch (e) {
