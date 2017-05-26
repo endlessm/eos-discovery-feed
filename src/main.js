@@ -691,7 +691,6 @@ const DiscoveryFeedCard = new Lang.Class({
         this.parent(params);
         this.title_label.label = this.title;
         this.synopsis_label.label = this.synopsis;
-        this._knowledgeSearchProxy = null;
 
         if (this.thumbnail_data) {
             let frame = new ImageCoverFrame.ImageCoverFrame({
