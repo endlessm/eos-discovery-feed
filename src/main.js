@@ -629,6 +629,53 @@ const DiscoveryFeedCard = new Lang.Class({
     }
 });
 
+// loadKnowledgeAppContent
+//
+// Try to load a specific EknURI in a knowledge app, opening the app
+// itself if that fails.
+function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType) {
+    recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
+        app_id: app.get_id(),
+        content_type: contentType
+    }));
+
+    if (!knowledgeSearchProxy) {
+        app.launch([], null);
+        return;
+    }
+
+    knowledgeSearchProxy.LoadItemRemote(uri, '', Gdk.CURRENT_TIME, function(result, excp) {
+        if (!excp)
+            return;
+        logError(excp, 'Could not load app with article ' + uri + ' fallback to just launch the app, trace');
+        app.launch([], null);
+    });
+}
+
+// createSearchProxyFromObjectPath
+//
+// Using the given object path, create a KnowledgeSearchProxy from it
+// asynchronously
+function createSearchProxyFromObjectPath(appId, objectPath) {
+    if (objectPath) {
+        let onProxyReady = function(initable, error) {
+            if (error) {
+                logError(error, 'Could not create proxy for ' + objectPath);
+                return;
+            }
+            log('Created proxy for ' + objectPath);
+        };
+
+        let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
+        return interfaceWrapper(Gio.DBus.session,
+                                appId,
+                                objectPath,
+                                onProxyReady);
+    }
+
+    return null;
+}
+
 const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCard',
     Extends: Gtk.Box,
@@ -657,40 +704,13 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         });
         this.add(card);
         card.connect('activate', Lang.bind(this, function() {
-            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
-                app_id: this._app.get_id(),
-                content_type: 'knowledge_article'
-            }));
-
-            if (!this._knowledgeSearchProxy) {
-                this._app.launch([], null);
-                return;
-            }
-
-            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', Gdk.CURRENT_TIME, Lang.bind(this, function(result, excp) {
-                if (!excp)
-                    return;
-                logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
-                this._app.launch([], null);
-            }));
+            loadKnowledgeAppContent(this._app,
+                                    this._knowledgeSearchProxy,
+                                    this.model.uri,
+                                    'knowledge_content');
         }));
-
-        if (this.model.knowledge_search_object_path) {
-            let onProxyReady = function(initable, error) {
-                if (error) {
-                    logError(error, 'Could not create proxy for ' + this.model.knowledge_search_object_path);
-                    return;
-                }
-                log('Created proxy for ' + this.model.knowledge_search_object_path);
-            };
-
-            let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
-            this._knowledgeSearchProxy = interfaceWrapper(Gio.DBus.session,
-                                                          this.model.knowledge_app_id,
-                                                          this.model.knowledge_search_object_path,
-                                                          Lang.bind(this,
-                                                                    onProxyReady));
-        }
+        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
+                                                                     this.model.knowledge_search_object_path);
     }
 });
 
