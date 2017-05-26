@@ -4,6 +4,7 @@
     <file preprocess="xml-stripblanks">main.ui</file>
     <file preprocess="xml-stripblanks">content-card.ui</file>
     <file preprocess="xml-stripblanks">content-list-item.ui</file>
+    <file preprocess="xml-stripblanks">video-card.ui</file>
     <file preprocess="xml-stripblanks">word-quote-pair.ui</file>
     <file>application.css</file>
     <file>img/summertime-1894.jpg</file>

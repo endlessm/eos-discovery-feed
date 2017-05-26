@@ -14,6 +14,7 @@ pkg.require({
     GLib: '2.0',
 });
 
+const Cairo = imports.cairo;
 const EosShard = imports.gi.EosShard;
 const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
@@ -74,6 +75,16 @@ const DiscoveryFeedNewsIface = '\
 <node> \
   <interface name="com.endlessm.DiscoveryFeedNews"> \
     <method name="GetRecentNews"> \
+      <arg type="as" name="Shards" direction="out" /> \
+      <arg type="aa{ss}" name="Result" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
+const DiscoveryFeedVideoIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedVideo"> \
+    <method name="GetRelevantVideo"> \
       <arg type="as" name="Shards" direction="out" /> \
       <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
@@ -255,7 +266,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       done) {
     let interfaceWrappers = {
         'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
+        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface),
+        'com.endlessm.DiscoveryFeedVideo': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedVideoIface)
     };
 
     let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
@@ -328,7 +340,8 @@ function recordMetricsEvent(eventId, payload) {
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
 const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
 const CARD_STORE_TYPE_ARTWORK_CARD = 2;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTWORK_CARD;
+const CARD_STORE_TYPE_VIDEO_CARD = 3;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_VIDEO_CARD;
 
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
@@ -531,7 +544,25 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     },
 
     _init: function(params) {
-        params.type = CARD_STORE_TYPE_ARTICLE_CARD;
+        params.type = params.type || CARD_STORE_TYPE_ARTICLE_CARD;
+        this.parent(params);
+    }
+});
+
+const DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppVideoCardStore',
+    Extends: DiscoveryFeedKnowledgeAppCardStore,
+    Properties: {
+        'duration': GObject.ParamSpec.string('duration',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             '')
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_VIDEO_CARD;
         this.parent(params);
     }
 });
@@ -741,6 +772,145 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
     }
 });
 
+const PLAY_BUTTON_IMAGE = (function() {
+    let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 200, 200);
+    let cr = new Cairo.Context(surface);
+
+    // Circle
+    cr.setSourceRGBA(0, 0, 0, 1.0);
+    cr.arc(100, 100, 50, 0, 2 * Math.PI);
+    cr.fill();
+
+    // Play icon itself
+    cr.setSourceRGBA(1, 1, 1, 1.0);
+
+    // Simple equilateral triangle
+    cr.moveTo(130, 100);
+    cr.lineTo(80, 130);
+    cr.lineTo(80, 70);
+    cr.closePath();
+    cr.fill();
+
+    let pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0, 200, 200);
+    cr.$dispose();
+
+    return pixbuf;
+})();
+
+const DiscoveryFeedVideoCard = new Lang.Class({
+    Name: 'DiscoveryFeedVideoCard',
+    Extends: Gtk.Box,
+    Properties: {
+        title: GObject.ParamSpec.string('title',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        ''),
+        source_name: GObject.ParamSpec.string('source_name',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ''),
+        duration: GObject.ParamSpec.string('duration',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        thumbnail_data: GObject.ParamSpec.object('thumbnail-data',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 Gio.InputStream)
+    },
+    Signals: {
+        'activate': [ ]
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/video-card.ui',
+    Children: [
+        'title-label',
+        'app-label',
+        'thumbnail-container',
+        'content-button',
+        'play-button-overlay',
+        'duration-label'
+    ],
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        if (this.thumbnail_data) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            try {
+                frame.set_content(this.thumbnail_data);
+            } catch (e) {
+                log('Couldn\'t load thumbnail data from file');
+            }
+            this.thumbnail_container.add(frame);
+        }
+
+        this.app_label.label = this.source_name;
+        this.title_label.label = this.title;
+        this.duration_label.label = this.duration;
+
+        this.play_button_overlay.set_from_pixbuf(PLAY_BUTTON_IMAGE);
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            this.emit('activate');
+        }));
+    }
+});
+
+const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeVideoCard',
+    Extends: Gtk.Box,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+        let card = new DiscoveryFeedVideoCard({
+            title: params.model.title,
+            duration: params.model.duration,
+            thumbnail_data: params.model.thumbnail,
+            source_name: this._app.get_display_name().toUpperCase(),
+        });
+        this.add(card);
+        this.get_style_context().add_class('artwork');
+
+        card.connect('activate', Lang.bind(this, function() {
+            loadKnowledgeAppContent(this._app,
+                                    this._knowledgeSearchProxy,
+                                    this.model.uri,
+                                    'knowledge_video');
+        }));
+        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
+                                                                     this.model.knowledge_search_object_path);
+    }
+});
+
 const DiscoveryFeedWordQuotePair = new Lang.Class({
     Name: 'DiscoveryFeedWordQuotePair',
     Extends: Gtk.Button,
@@ -807,6 +977,8 @@ function contentViewFromType(type, store) {
         return new DiscoveryFeedWordQuotePair(params);
     case CARD_STORE_TYPE_ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
+    case CARD_STORE_TYPE_VIDEO_CARD:
+        return new DiscoveryFeedKnowledgeVideoCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
     }
@@ -960,6 +1132,38 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetRelevantVideoRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Video query');
+            return;
+        }
+
+        let [shards, items] = [results[0], results.slice(1, results.length)];
+
+        items.forEach(function(response) {
+            try {
+                response.forEach(function(entry) {
+                    let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+                    appendToModel(model, () => new DiscoveryFeedKnowledgeAppVideoCardStore({
+                        title: entry.title,
+                        thumbnail: thumbnail,
+                        desktop_id: proxy.desktopId,
+                        bus_name: proxy.busName,
+                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                        knowledge_app_id: proxy.knowledgeAppId,
+                        uri: entry.ekn_id,
+                        duration: entry.duration
+                    }));
+                });
+            } catch (e) {
+                logError(e, 'Could not parse response');
+            }
+        });
+    });
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
@@ -1010,6 +1214,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             break;
         case 'com.endlessm.DiscoveryFeedNews':
             appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
+            break;
+        case 'com.endlessm.DiscoveryFeedVideo':
+            appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel);
             break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);

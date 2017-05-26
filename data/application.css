@@ -45,6 +45,54 @@
   min-height: 2px;
 }
 
+.lightbox .layout {
+  padding: 10px;
+}
+
+.lightbox .title {
+  font-size: 12pt;
+  font-family: 'Serif';
+  color: #fefefe;
+  text-shadow: none;
+  margin-bottom: 0;
+}
+
+.lightbox .small-header {
+  font-size: 9pt;
+  font-weight: bold;
+  color: #fefefe;
+  text-shadow: none;
+}
+
+.lightbox .background {
+  transition: 180ms linear;
+  background-color: #000000;
+  opacity: 0.2;
+}
+
+.play-button .background {
+  transition: 180ms linear;
+  background-color: white;
+  opacity: 0.0
+}
+
+.play-button .overlay {
+  transition: 180ms linear;
+  opacity: 0.6
+}
+
+.button:hover .play-button .overlay {
+  opacity: 0.9
+}
+
+.button:hover .lightbox .background {
+  opacity: 0.6;
+}
+
+.button:hover .play-button .background {
+  opacity: 0.4;
+}
+
 .subcard {
   padding: 20px;
   margin: 20px;
