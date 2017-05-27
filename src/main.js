@@ -715,99 +715,6 @@ const DiscoveryFeedInstallableAppStore = new Lang.Class({
     }
 });
 
-const DiscoveryFeedCard = new Lang.Class({
-    Name: 'DiscoveryFeedCard',
-    Extends: Gtk.Box,
-    Properties: {
-        'source-title': GObject.ParamSpec.string('source-title',
-                                                 '',
-                                                 '',
-                                                 GObject.ParamFlags.READWRITE |
-                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                 ''),
-        'title': GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
-        'synopsis': GObject.ParamSpec.string('synopsis',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             ''),
-        'thumbnail-data': GObject.ParamSpec.object('thumbnail-data',
-                                                   '',
-                                                   '',
-                                                   GObject.ParamFlags.READWRITE |
-                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                   Gio.InputStream),
-        'layout-direction': GObject.ParamSpec.int('layout-direction',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                  LAYOUT_DIRECTION_IMAGE_LAST,
-                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
-    },
-    Signals: {
-        'activate': [ ]
-    },
-    Template: 'resource:///com/endlessm/DiscoveryFeed/content-card.ui',
-    Children: [
-        'title-label',
-        'synopsis-label',
-        'thumbnail-container',
-        'app-icon',
-        'app-label',
-        'content-layout',
-        'content-button'
-    ],
-
-    _init: function(params) {
-        this.parent(params);
-        this.title_label.label = this.title;
-        this.synopsis_label.label = this.synopsis;
-
-        if (this.thumbnail_data) {
-            let frame = new ImageCoverFrame.ImageCoverFrame({
-                hexpand: true
-            });
-            try {
-                frame.set_content(this.thumbnail_data);
-            } catch (e) {
-                logError(e, 'Couldn\'t load thumbnail data from file');
-            }
-            this.thumbnail_container.add(frame);
-        }
-
-        this.app_label.label = this.source_title;
-
-        // If this is an odd card, adjust the packing order of all widgets
-        // in the box
-        if (this.layout_direction == LAYOUT_DIRECTION_IMAGE_FIRST) {
-            this.content_layout.get_children().forEach(Lang.bind(this, function(child) {
-                this.content_layout.child_set_property(child,
-                                                       'pack-type',
-                                                       Gtk.PackType.END);
-            }));
-        }
-
-        // Connect to the realize signal of the button and set
-        // the pointer cursor over its event window once the event
-        // window has been created.
-        this.content_button.connect('realize', Lang.bind(this, function(widget) {
-            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
-                                                                          'pointer'));
-        }));
-        this.content_button.connect('clicked', Lang.bind(this, function() {
-            this.emit('activate');
-        }));
-    }
-});
-
 // loadKnowledgeAppContent
 //
 // Try to load a specific EknURI in a knowledge app, opening the app
@@ -855,68 +762,201 @@ function createSearchProxyFromObjectPath(appId, objectPath) {
     return null;
 }
 
-const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeAppCard',
-    Extends: Gtk.Box,
+const DiscoveryFeedActivatableFrame = new Lang.Class({
+    Name: 'DiscoveryFeedActivatableFrame',
+    Extends: Gtk.Button,
     Properties: {
-        'model': GObject.ParamSpec.object('model',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          DiscoveryFeedKnowledgeAppCardStore.$gtype)
+        'content': GObject.ParamSpec.object('content',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            Gtk.Widget),
     },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/activatable-frame.ui',
 
     _init: function(params) {
-        params.visible = true;
         this.parent(params);
-
-        // Read the desktop file and then set the app icon and label
-        // appropriately
-        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
-        let card = new DiscoveryFeedCard({
-            title: params.model.title,
-            synopsis: params.model.synopsis,
-            thumbnail_data: params.model.thumbnail,
-            source_title: this._app.get_display_name().toUpperCase(),
-            layout_direction: params.model.layout_direction
-        });
-        this.add(card);
-        card.connect('activate', Lang.bind(this, function() {
-            loadKnowledgeAppContent(this._app,
-                                    this._knowledgeSearchProxy,
-                                    this.model.uri,
-                                    'knowledge_content');
+        this.add(params.content);
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
         }));
-        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
-                                                                     this.model.knowledge_search_object_path);
     }
 });
 
-const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeArtworkCard',
+const DiscoveryFeedAppContentDescription = new Lang.Class({
+    Name: 'DiscoveryFeedAppContentDescription',
     Extends: Gtk.Box,
     Properties: {
-        model: GObject.ParamSpec.object('model',
+        app_name: GObject.ParamSpec.string('app-name',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        title: GObject.ParamSpec.string('title',
                                         '',
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+                                        ''),
+        synopsis: GObject.ParamSpec.string('synopsis',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           '')
     },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/app-content-description.ui',
+    Children: [
+        'app-label',
+        'title-label',
+        'synopsis-label'
+    ],
 
     _init: function(params) {
-        params.visible = true;
         this.parent(params);
+        this.app_label.label = this.app_name;
+        this.title_label.label = this.title;
+        this.synopsis_label.label = this.synopsis;
+    }
+});
 
-        this.add(new DiscoveryFeedCard({
-            title: params.model.title,
-            synopsis: 'by ' + params.model.author,
-            thumbnail_data: params.model.thumbnail,
-            source_title: 'Masterpiece of the Day'.toUpperCase(),
-            layout_direction: params.model.layout_direction
-        }));
-        this.get_style_context().add_class('artwork');
+const DiscoveryFeedAppStoreDescription = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreDescription',
+    Extends: Gtk.Box,
+    Properties: {
+        app_name: GObject.ParamSpec.string('app-name',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        synopsis: GObject.ParamSpec.string('synopsis',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        icon: GObject.ParamSpec.object('icon',
+                                       '',
+                                       '',
+                                       GObject.ParamFlags.READWRITE |
+                                       GObject.ParamFlags.CONSTRUCT_ONLY,
+                                       Gio.Icon)
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/app-store-description.ui',
+    Children: [
+        'app-icon',
+        'app-label',
+        'synopsis-label'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+        this.app_label.label = this.app_name;
+        if (this.icon)
+            this.app_icon.set_from_gicon(this.icon, Gtk.IconSize.DND);
+        this.app_label.label = this.app_name;
+        this.synopsis_label.label = this.synopsis
+    }
+});
+
+const DiscoveryFeedContentPreview = new Lang.Class({
+    Name: 'DiscoveryFeedContentPreview',
+    Extends: Gtk.Box,
+    Properties: {
+        'image-stream': GObject.ParamSpec.object('image-stream',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 Gio.InputStream),
+        'min-width': GObject.ParamSpec.int('min-width',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           0,
+                                           GLib.MAXINT32,
+                                           200),
+        'min-height': GObject.ParamSpec.int('min-height',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            0,
+                                            GLib.MAXINT32,
+                                            200)
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/content-preview.ui',
+    Children: [
+        'thumbnail-container'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+        this.thumbnail_container.width_request = this.min_width;
+        this.thumbnail_container.height_request = this.min_height;
+
+        if (this.image_stream) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            try {
+                frame.set_content(this.image_stream);
+            } catch (e) {
+                log('Couldn\'t load thumbnail data from file');
+            }
+            this.thumbnail_container.add(frame);
+        }
+    }
+});
+
+const DiscoveryFeedContentCardLayout = new Lang.Class({
+    Name: 'DiscoveryFeedContentCardLayout',
+    Extends: Gtk.Box,
+    Properties: {
+        'content': GObject.ParamSpec.object('content',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            Gtk.Widget),
+        'description': GObject.ParamSpec.object('description',
+                                                '',
+                                                '',
+                                                GObject.ParamFlags.READWRITE |
+                                                GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                Gtk.Widget),
+        'layout-direction': GObject.ParamSpec.int('layout-direction',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                  LAYOUT_DIRECTION_IMAGE_LAST,
+                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/content-card-layout.ui',
+
+    _init: function(params) {
+        this.parent(params);
+        this.add(this.content);
+        this.add(this.description);
+        // If this is an odd card, adjust the packing order of all widgets
+        // in the box
+        if (this.layout_direction == LAYOUT_DIRECTION_IMAGE_FIRST) {
+            this.get_children().forEach(Lang.bind(this, function(child) {
+                this.child_set_property(child,
+                                        'pack-type',
+                                        Gtk.PackType.END);
+            }));
+        }
     }
 });
 
@@ -945,80 +985,54 @@ const PLAY_BUTTON_IMAGE = (function() {
     return pixbuf;
 })();
 
-const DiscoveryFeedVideoCard = new Lang.Class({
-    Name: 'DiscoveryFeedVideoCard',
-    Extends: Gtk.Box,
+const DiscoveryFeedVideoCardLayout = new Lang.Class({
+    Name: 'DiscoveryFeedVideoCardLayout',
+    Extends: Gtk.Overlay,
     Properties: {
+        content: GObject.ParamSpec.object('content',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          Gtk.Widget),
         title: GObject.ParamSpec.string('title',
                                         '',
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         ''),
-        source_name: GObject.ParamSpec.string('source_name',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              ''),
-        duration: GObject.ParamSpec.string('duration',
+        duration: GObject.ParamSpec.int('duration',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        0,
+                                        GLib.MAXINT32,
+                                        0),
+        app_name: GObject.ParamSpec.string('app-name',
                                            '',
                                            '',
                                            GObject.ParamFlags.READWRITE |
                                            GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
-        thumbnail_data: GObject.ParamSpec.object('thumbnail-data',
-                                                 '',
-                                                 '',
-                                                 GObject.ParamFlags.READWRITE |
-                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                 Gio.InputStream)
+                                           '')
     },
-    Signals: {
-        'activate': [ ]
-    },
-    Template: 'resource:///com/endlessm/DiscoveryFeed/video-card.ui',
+    Template: 'resource:///com/endlessm/DiscoveryFeed/video-card-layout.ui',
     Children: [
-        'title-label',
-        'app-label',
-        'thumbnail-container',
-        'content-button',
+        'background-content',
         'play-button-overlay',
-        'duration-label'
+        'title-label',
+        'duration-label',
+        'app-label'
     ],
 
     _init: function(params) {
-        params.visible = true;
         this.parent(params);
-
-        if (this.thumbnail_data) {
-            let frame = new ImageCoverFrame.ImageCoverFrame({
-                hexpand: true
-            });
-            try {
-                frame.set_content(this.thumbnail_data);
-            } catch (e) {
-                log('Couldn\'t load thumbnail data from file');
-            }
-            this.thumbnail_container.add(frame);
-        }
-
-        this.app_label.label = this.source_name;
-        this.title_label.label = this.title;
-        this.duration_label.label = this.duration;
+        this.background_content.add(this.content);
 
         this.play_button_overlay.set_from_pixbuf(PLAY_BUTTON_IMAGE);
-
-        // Connect to the realize signal of the button and set
-        // the pointer cursor over its event window once the event
-        // window has been created.
-        this.content_button.connect('realize', Lang.bind(this, function(widget) {
-            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
-                                                                          'pointer'));
-        }));
-        this.content_button.connect('clicked', Lang.bind(this, function() {
-            this.emit('activate');
-        }));
+        this.title_label.label = this.title;
+        this.app_label.label = this.app_name;
+        this.duration.label = parseDuration(this.duration);
     }
 });
 
@@ -1039,16 +1053,19 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
         this.parent(params);
 
         this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
-        let card = new DiscoveryFeedVideoCard({
-            title: params.model.title,
-            duration: params.model.duration,
-            thumbnail_data: params.model.thumbnail,
-            source_name: this._app.get_display_name().toUpperCase(),
+        let card = new DiscoveryFeedActivatableFrame({
+            content: new DiscoveryFeedVideoCardLayout({
+                title: params.model.title,
+                duration: params.model.duration,
+                app_name: this._app.get_display_name().toUpperCase(),
+                content: new DiscoveryFeedContentPreview({
+                    image_stream: params.model.thumbnail,
+                    min_height: 300
+                })
+            })
         });
         this.add(card);
-        this.get_style_context().add_class('artwork');
-
-        card.connect('activate', Lang.bind(this, function() {
+        card.connect('clicked', Lang.bind(this, function() {
             loadKnowledgeAppContent(this._app,
                                     this._knowledgeSearchProxy,
                                     this.model.uri,
@@ -1056,6 +1073,88 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
+    }
+});
+
+const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppCard',
+    Extends: Gtk.Box,
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedKnowledgeAppCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        // Read the desktop file and then set the app icon and label
+        // appropriately
+        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+        let card = new DiscoveryFeedActivatableFrame({
+            content: new DiscoveryFeedContentCardLayout({
+                content: new DiscoveryFeedContentPreview({
+                    image_stream: this.model.thumbnail,
+                    min_width: 200,
+                    min_height: 200
+                }),
+                description: new DiscoveryFeedAppContentDescription({
+                    title: params.model.title,
+                    synopsis: params.model.synopsis,
+                    app_name: this._app.get_display_name().toUpperCase()
+                }),
+                layout_direction: params.model.layout_direction
+            })
+        });
+        this.add(card);
+        card.connect('clicked', Lang.bind(this, function() {
+            loadKnowledgeAppContent(this._app,
+                                    this._knowledgeSearchProxy,
+                                    this.model.uri,
+                                    'knowledge_content');
+        }));
+        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
+                                                                     this.model.knowledge_search_object_path);
+    }
+});
+
+const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeArtworkCard',
+    Extends: Gtk.Box,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        let card = new DiscoveryFeedActivatableFrame({
+            content: new DiscoveryFeedContentCardLayout({
+                content: new DiscoveryFeedContentPreview({
+                    image_stream: this.model.thumbnail,
+                    min_width: 400,
+                    min_height: 400
+                }),
+                description: new DiscoveryFeedAppContentDescription({
+                    title: params.model.title,
+                    synopsis: 'by ' + params.model.author,
+                    app_name: 'Masterpiece of the Day'.toUpperCase()
+                }),
+                layout_direction: params.model.layout_direction
+            })
+        });
+        this.add(card);
+        this.get_style_context().add_class('artwork');
     }
 });
 
@@ -1106,32 +1205,25 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           DiscoveryFeedInstallableAppStore.$gtype)
     },
-    Children: [
-        'content-button',
-        'title-label',
-        'app-icon',
-        'synopsis-label',
-        'thumbnail-container'
-    ],
 
     _init: function(params) {
         this.parent(params);
 
-        this.title_label.label = this.model.title;
-        this.synopsis_label.label = this.model.synopsis;
-        this.app_icon.set_from_gicon(this.model.icon, Gtk.IconSize.DND);
-
-        if (this.model.thumbnail_data) {
-            let frame = new ImageCoverFrame.ImageCoverFrame({
-                hexpand: true
-            });
-            try {
-                frame.set_content(this.model.thumbnail_data);
-            } catch (e) {
-                logError(e, 'Couldn\'t load thumbnail data from file');
-            }
-            this.thumbnail_container.add(frame);
-        }
+        let card = new DiscoveryFeedActivatableFrame({
+            content: new DiscoveryFeedContentCardLayout({
+                content: new DiscoveryFeedContentPreview({
+                    image_stream: this.model.thumbnail_data,
+                    min_width: 200,
+                    min_height: 200
+                }),
+                description: new DiscoveryFeedAppStoreDescription({
+                    app_name: this.model.title,
+                    synopsis: this.model.synopsis,
+                    icon: this.model.icon
+                })
+            })
+        });
+        this.add(card);
 
         let onProxyReady = function(initable, error) {
             if (error) {
@@ -1151,11 +1243,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
         // Connect to the realize signal of the button and set
         // the pointer cursor over its event window once the event
         // window has been created.
-        this.content_button.connect('realize', Lang.bind(this, function(widget) {
-            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
-                                                                          'pointer'));
-        }));
-        this.content_button.connect('clicked', Lang.bind(this, function() {
+        card.connect('clicked', Lang.bind(this, function() {
             recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
                 app_id: this.model.app_id,
                 content_type: 'software_center_app'
@@ -1183,37 +1271,24 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           DiscoveryFeedAppStoreLinkStore.$gtype)
     },
-    Children: [
-        'content-button',
-        'title-label',
-        'thumbnail-container'
-    ],
 
     _init: function(params) {
         this.parent(params);
 
-        this.title_label.label = this.model.title;
-
-        if (this.model.thumbnail_data) {
-            let frame = new ImageCoverFrame.ImageCoverFrame({
-                hexpand: true
-            });
-            try {
-                frame.set_content(this.model.thumbnail_data);
-            } catch (e) {
-                logError(e, 'Couldn\'t load thumbnail data from file');
-            }
-            this.thumbnail_container.add(frame);
-        }
-
-        // Connect to the realize signal of the button and set
-        // the pointer cursor over its event window once the event
-        // window has been created.
-        this.content_button.connect('realize', Lang.bind(this, function(widget) {
-            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
-                                                                          'pointer'));
-        }));
-        this.content_button.connect('clicked', Lang.bind(this, function() {
+        let card = new DiscoveryFeedActivatableFrame({
+            content: new DiscoveryFeedContentCardLayout({
+                content: new DiscoveryFeedContentPreview({
+                    image_stream: this.model.thumbnail_data,
+                    min_width: 300,
+                    min_height: 200
+                }),
+                description: new DiscoveryFeedAppStoreDescription({
+                    app_name: this.model.title
+                })
+            })
+        });
+        this.add(card);
+        card.connect('clicked', Lang.bind(this, function() {
             log("Clicked on installable app card");
         }));
     }
