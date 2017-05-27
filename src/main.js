@@ -1253,7 +1253,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                 if (!excp)
                     return;
                 logError(excp, 'Could not load app center page for ' + this.model.app_name + ' fallback to just launch GS, trace');
-                (new Gio.DesktopAppInfo('org.gnome.Software.desktop')).launch([], null);
+                (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], null);
             }));
         }));
     }
@@ -1289,7 +1289,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
         });
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
-            log("Clicked on installable app card");
+            (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], null);
         }));
     }
 });
