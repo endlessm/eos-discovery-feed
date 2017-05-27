@@ -600,7 +600,7 @@ const DiscoveryFeedCard = new Lang.Class({
             try {
                 frame.set_content(this.thumbnail_data);
             } catch (e) {
-                log('Couldn\'t load thumbnail data from file');
+                logError(e, 'Couldn\'t load thumbnail data from file');
             }
             this.thumbnail_container.add(frame);
         }
