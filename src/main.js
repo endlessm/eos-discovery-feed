@@ -879,17 +879,25 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
 
 function promisifyGIO(obj, funcName, ...args) {
     return new Promise((resolve, reject) => {
-        obj[funcName](...args, function() {
-            let error = Array.prototype.slice.call(arguments, -1);
-            let parameters = Array.prototype.slice.call(arguments,
-                                                        0,
-                                                        arguments.length - 1);
-            if (error) {
-                reject(error);
-            } else {
-                resolve(parameters);
-            }
-        });
+        try {
+            obj[funcName](...args, function() {
+                try {
+                    let error = Array.prototype.slice.call(arguments, -1);
+                    let parameters = Array.prototype.slice.call(arguments,
+                                                                0,
+                                                                arguments.length - 1);
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(parameters);
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        } catch (e) {
+            reject(e);
+        }
     });
 }
 
