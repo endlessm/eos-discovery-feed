@@ -1418,26 +1418,26 @@ function promisifyGIO(obj, funcName, ...args) {
 
 function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel) {
     quoteWordProxies.forEach((proxyBundle) => {
-	    Promise.all([
-	        promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
-	        promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
-	    ])
-	    .then(([quote, word]) => {
-	        appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
-	            quote: new DiscoveryFeedQuoteStore({
-	                quote: TextSanitization.synopsis(quote.synopsis),
-	                author: quote.title
-	            }),
-	            word: new DiscoveryFeedWordStore({
-	                word: word.title,
-	                definition: TextSanitization.synopsis(word.synopsis),
-	                word_type: word.license
-	            })
-	        }));
-	    })
-	    .catch(e => {
-	        logError(e, 'Failed to retrieve quote/word content');
-	    });
+        Promise.all([
+            promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
+            promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
+        ])
+        .then(([quote, word]) => {
+            appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
+                quote: new DiscoveryFeedQuoteStore({
+                    quote: TextSanitization.synopsis(quote.synopsis),
+                    author: quote.title
+                }),
+                word: new DiscoveryFeedWordStore({
+                    word: word.title,
+                    definition: TextSanitization.synopsis(word.synopsis),
+                    word_type: word.license
+                })
+            }));
+        })
+        .catch(e => {
+            logError(e, 'Failed to retrieve quote/word content');
+        });
     });
 }
 
