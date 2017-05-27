@@ -616,12 +616,6 @@ const DiscoveryFeedInstallableAppStore = new Lang.Class({
     Name: 'DiscoveryFeedInstallableAppStore',
     Extends: DiscoveryFeedAppStore,
     Properties: {
-        'title': GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.CONSTRUCT_ONLY |
-                                          GObject.ParamFlags.READWRITE,
-                                          ''),
         'synopsis': GObject.ParamSpec.string('synopsis',
                                              '',
                                              '',
