@@ -960,6 +960,44 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+// zipArraysInObject
+//
+// Given an object described as:
+//
+// {
+//     a: [...]
+//     b: [...]
+// }
+//
+// Return a sequence of arrays described as
+//
+// [
+//     {
+//         a: a[n]
+//         b: b[n]
+//     }
+// ]
+function zipArraysInObject(object) {
+    let minLength = Object.keys(object).reduce((v, k) =>
+        v < object[k].length ? v : object[k].length ,
+        Number.MAX_INT
+    );
+    let arr = [];
+
+    for (let i = 0; i < minLength; ++i) {
+        let ret = {};
+        Object.keys(object).forEach((k) => {
+            if (i < object[k].length) {
+                ret[k] = object[k][i];
+            }
+        });
+
+        arr.push(ret);
+    }
+
+    return arr;
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
