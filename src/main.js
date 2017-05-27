@@ -891,21 +891,6 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
             this.thumbnail_container.add(frame);
         }
 
-        let onProxyReady = function(initable, error) {
-            if (error) {
-                logError(error, 'Could not shell search provider proxy for GS');
-                return;
-            }
-            log('Created shell search provider proxy for GS');
-        };
-
-        let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(ShellSearchProviderIface);
-        this._shellGSSearchProvider = interfaceWrapper(Gio.DBus.session,
-                                                       'org.gnome.Software',
-                                                       '/org/gnome/Software/SearchProvider',
-                                                       Lang.bind(this,
-                                                                 onProxyReady));
-
         // Connect to the realize signal of the button and set
         // the pointer cursor over its event window once the event
         // window has been created.
