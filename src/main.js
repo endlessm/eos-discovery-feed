@@ -83,7 +83,7 @@ const DiscoveryFeedNewsIface = '\
 const DiscoveryFeedInstallableAppsIface = '\
 <node> \
   <interface name="com.endlessm.DiscoveryFeedInstallableApps"> \
-    <method name="GetRelevantInstallableApps"> \
+    <method name="GetInstallableApps"> \
       <arg type="aa{sv}" name="Results" direction="out" /> \
     </method> \
   </interface> \
@@ -1232,7 +1232,7 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
 }
 
 function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetRelevantInstallableAppsRemote(function(results, error) {
+    proxy.iface.GetInstallableAppsRemote(function(results, error) {
         if (error) {
             logError(error, 'Failed to execute Discovery Feed Installable Apps query');
             return;
