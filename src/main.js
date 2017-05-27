@@ -14,6 +14,7 @@ pkg.require({
     GLib: '2.0',
 });
 
+const Cairo = imports.cairo;
 const EosShard = imports.gi.EosShard;
 const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
@@ -103,6 +104,16 @@ const DiscoveryFeedInstallableAppsIface = '\
   <interface name="com.endlessm.DiscoveryFeedInstallableApps"> \
     <method name="GetRelevantInstallableApps"> \
       <arg type="aa{sv}" name="Results" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
+const DiscoveryFeedVideoIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedVideo"> \
+    <method name="GetRelevantVideo"> \
+      <arg type="as" name="Shards" direction="out" /> \
+      <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
   </interface> \
 </node>';
@@ -314,7 +325,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
         'com.endlessm.DiscoveryFeedQuote': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedQuoteIface),
         'com.endlessm.DiscoveryFeedWord': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedWordIface),
         'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface),
-        'com.endlessm.DiscoveryFeedInstallableApps': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedInstallableAppsIface)
+        'com.endlessm.DiscoveryFeedInstallableApps': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedInstallableAppsIface),
+        'com.endlessm.DiscoveryFeedVideo': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedVideoIface)
     };
 
     let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
@@ -388,7 +400,8 @@ const CARD_STORE_TYPE_ARTICLE_CARD = 0;
 const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
 const CARD_STORE_TYPE_ARTWORK_CARD = 2;
 const CARD_STORE_TYPE_AVAILABLE_APPS = 3;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_AVAILABLE_APPS;
+const CARD_STORE_TYPE_VIDEO_CARD = 4;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_VIDEO_CARD;
 
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
@@ -585,7 +598,25 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     },
 
     _init: function(params) {
-        params.type = CARD_STORE_TYPE_ARTICLE_CARD;
+        params.type = params.type || CARD_STORE_TYPE_ARTICLE_CARD;
+        this.parent(params);
+    }
+});
+
+const DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeAppVideoCardStore',
+    Extends: DiscoveryFeedKnowledgeAppCardStore,
+    Properties: {
+        'duration': GObject.ParamSpec.string('duration',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             '')
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_VIDEO_CARD;
         this.parent(params);
     }
 });
@@ -734,7 +765,6 @@ const DiscoveryFeedCard = new Lang.Class({
         this.parent(params);
         this.title_label.label = this.title;
         this.synopsis_label.label = this.synopsis;
-        this._knowledgeSearchProxy = null;
 
         if (this.thumbnail_data) {
             let frame = new ImageCoverFrame.ImageCoverFrame({
@@ -773,6 +803,53 @@ const DiscoveryFeedCard = new Lang.Class({
     }
 });
 
+// loadKnowledgeAppContent
+//
+// Try to load a specific EknURI in a knowledge app, opening the app
+// itself if that fails.
+function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType) {
+    recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
+        app_id: app.get_id(),
+        content_type: contentType
+    }));
+
+    if (!knowledgeSearchProxy) {
+        app.launch([], null);
+        return;
+    }
+
+    knowledgeSearchProxy.LoadItemRemote(uri, '', Gdk.CURRENT_TIME, function(result, excp) {
+        if (!excp)
+            return;
+        logError(excp, 'Could not load app with article ' + uri + ' fallback to just launch the app, trace');
+        app.launch([], null);
+    });
+}
+
+// createSearchProxyFromObjectPath
+//
+// Using the given object path, create a KnowledgeSearchProxy from it
+// asynchronously
+function createSearchProxyFromObjectPath(appId, objectPath) {
+    if (objectPath) {
+        let onProxyReady = function(initable, error) {
+            if (error) {
+                logError(error, 'Could not create proxy for ' + objectPath);
+                return;
+            }
+            log('Created proxy for ' + objectPath);
+        };
+
+        let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
+        return interfaceWrapper(Gio.DBus.session,
+                                appId,
+                                objectPath,
+                                onProxyReady);
+    }
+
+    return null;
+}
+
 const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCard',
     Extends: Gtk.Box,
@@ -801,40 +878,13 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         });
         this.add(card);
         card.connect('activate', Lang.bind(this, function() {
-            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
-                app_id: this._app.get_id(),
-                content_type: 'knowledge_article'
-            }));
-
-            if (!this._knowledgeSearchProxy) {
-                this._app.launch([], null);
-                return;
-            }
-
-            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', Gdk.CURRENT_TIME, Lang.bind(this, function(result, excp) {
-                if (!excp)
-                    return;
-                logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
-                this._app.launch([], null);
-            }));
+            loadKnowledgeAppContent(this._app,
+                                    this._knowledgeSearchProxy,
+                                    this.model.uri,
+                                    'knowledge_content');
         }));
-
-        if (this.model.knowledge_search_object_path) {
-            let onProxyReady = function(initable, error) {
-                if (error) {
-                    logError(error, 'Could not create proxy for ' + this.model.knowledge_search_object_path);
-                    return;
-                }
-                log('Created proxy for ' + this.model.knowledge_search_object_path);
-            };
-
-            let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
-            this._knowledgeSearchProxy = interfaceWrapper(Gio.DBus.session,
-                                                          this.model.knowledge_app_id,
-                                                          this.model.knowledge_search_object_path,
-                                                          Lang.bind(this,
-                                                                    onProxyReady));
-        }
+        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
+                                                                     this.model.knowledge_search_object_path);
     }
 });
 
@@ -862,6 +912,145 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
             layout_direction: params.model.layout_direction
         }));
         this.get_style_context().add_class('artwork');
+    }
+});
+
+const PLAY_BUTTON_IMAGE = (function() {
+    let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 200, 200);
+    let cr = new Cairo.Context(surface);
+
+    // Circle
+    cr.setSourceRGBA(0, 0, 0, 1.0);
+    cr.arc(100, 100, 50, 0, 2 * Math.PI);
+    cr.fill();
+
+    // Play icon itself
+    cr.setSourceRGBA(1, 1, 1, 1.0);
+
+    // Simple equilateral triangle
+    cr.moveTo(130, 100);
+    cr.lineTo(80, 130);
+    cr.lineTo(80, 70);
+    cr.closePath();
+    cr.fill();
+
+    let pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0, 200, 200);
+    cr.$dispose();
+
+    return pixbuf;
+})();
+
+const DiscoveryFeedVideoCard = new Lang.Class({
+    Name: 'DiscoveryFeedVideoCard',
+    Extends: Gtk.Box,
+    Properties: {
+        title: GObject.ParamSpec.string('title',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        ''),
+        source_name: GObject.ParamSpec.string('source_name',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ''),
+        duration: GObject.ParamSpec.string('duration',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
+        thumbnail_data: GObject.ParamSpec.object('thumbnail-data',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 Gio.InputStream)
+    },
+    Signals: {
+        'activate': [ ]
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/video-card.ui',
+    Children: [
+        'title-label',
+        'app-label',
+        'thumbnail-container',
+        'content-button',
+        'play-button-overlay',
+        'duration-label'
+    ],
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        if (this.thumbnail_data) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            try {
+                frame.set_content(this.thumbnail_data);
+            } catch (e) {
+                log('Couldn\'t load thumbnail data from file');
+            }
+            this.thumbnail_container.add(frame);
+        }
+
+        this.app_label.label = this.source_name;
+        this.title_label.label = this.title;
+        this.duration_label.label = this.duration;
+
+        this.play_button_overlay.set_from_pixbuf(PLAY_BUTTON_IMAGE);
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            this.emit('activate');
+        }));
+    }
+});
+
+const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeVideoCard',
+    Extends: Gtk.Box,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
+    },
+
+    _init: function(params) {
+        params.visible = true;
+        this.parent(params);
+
+        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+        let card = new DiscoveryFeedVideoCard({
+            title: params.model.title,
+            duration: params.model.duration,
+            thumbnail_data: params.model.thumbnail,
+            source_name: this._app.get_display_name().toUpperCase(),
+        });
+        this.add(card);
+        this.get_style_context().add_class('artwork');
+
+        card.connect('activate', Lang.bind(this, function() {
+            loadKnowledgeAppContent(this._app,
+                                    this._knowledgeSearchProxy,
+                                    this.model.uri,
+                                    'knowledge_video');
+        }));
+        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
+                                                                     this.model.knowledge_search_object_path);
     }
 });
 
@@ -1083,8 +1272,9 @@ function contentViewFromType(type, store) {
     case CARD_STORE_TYPE_ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
     case CARD_STORE_TYPE_AVAILABLE_APPS:
-        log("Create available apps card")
         return new DiscoveryFeedAvailableAppsCard(params);
+    case CARD_STORE_TYPE_VIDEO_CARD:
+        return new DiscoveryFeedKnowledgeVideoCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
     }
@@ -1340,6 +1530,57 @@ function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, append
     });
 }
 
+function withLeadingZero(value) {
+    if (value < 10)
+        return '0' + value;
+
+    return String(value);
+}
+
+function parseDuration(duration) {
+    let durationTotalSeconds = Number.parseInt(duration);
+    let durationHours = Math.floor(durationTotalSeconds / 3600);
+    let durationMinutes = Math.floor(durationTotalSeconds / 60) % 60;
+    let durationSeconds = durationTotalSeconds % 60;
+
+    if (durationHours > 0)
+        return durationHours + ':' + withLeadingZero(durationMinutes);
+
+    return durationMinutes + ':' + withLeadingZero(durationSeconds);
+}
+
+function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetRelevantVideoRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Video query');
+            return;
+        }
+
+        let [shards, items] = [results[0], results.slice(1, results.length)];
+
+        items.forEach(function(response) {
+            try {
+                response.forEach(function(entry) {
+                    let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+                    appendToModel(model, () => new DiscoveryFeedKnowledgeAppVideoCardStore({
+                        title: entry.title,
+                        thumbnail: thumbnail,
+                        desktop_id: proxy.desktopId,
+                        bus_name: proxy.busName,
+                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                        knowledge_app_id: proxy.knowledgeAppId,
+                        uri: entry.ekn_id,
+                        duration: parseDuration(entry.duration)
+                    }));
+                });
+            } catch (e) {
+                logError(e, 'Could not parse response');
+            }
+        });
+    });
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
@@ -1390,6 +1631,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             break;
         case 'com.endlessm.DiscoveryFeedInstallableApps':
             appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel);
+            break;
+        case 'com.endlessm.DiscoveryFeedVideo':
+            appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel);
             break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
