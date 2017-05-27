@@ -1231,13 +1231,15 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+const N_APPS_TO_DISPLAY = 5;
+
 function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel) {
     proxy.iface.GetInstallableAppsRemote(function(results, error) {
         if (error) {
             logError(error, 'Failed to execute Discovery Feed Installable Apps query');
             return;
         }
-        results.forEach(function(response) {
+        results.slice(N_APPS_TO_DISPLAY).forEach(function(response) {
             try {
                 appendToModel(model, () => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
                     new DiscoveryFeedInstallableAppStore({
