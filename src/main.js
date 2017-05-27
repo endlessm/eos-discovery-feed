@@ -1407,7 +1407,7 @@ function parseDuration(duration) {
 }
 
 function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetRelevantVideoRemote(function(results, error) {
+    proxy.iface.GetVideosRemote(function(results, error) {
         if (error) {
             logError(error, 'Failed to execute Discovery Feed Video query');
             return;
