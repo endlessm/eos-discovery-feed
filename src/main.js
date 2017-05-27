@@ -697,11 +697,7 @@ const DiscoveryFeedCard = new Lang.Class({
             let frame = new ImageCoverFrame.ImageCoverFrame({
                 hexpand: true
             });
-            try {
-                frame.set_content(this.thumbnail_data);
-            } catch (e) {
-                logError(e, 'Couldn\'t load thumbnail data from file');
-            }
+            frame.set_content(this.thumbnail_data);
             this.thumbnail_container.add(frame);
         }
 
@@ -891,11 +887,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
             let frame = new ImageCoverFrame.ImageCoverFrame({
                 hexpand: true
             });
-            try {
-                frame.set_content(this.model.thumbnail_data);
-            } catch (e) {
-                logError(e, 'Couldn\'t load thumbnail data from file');
-            }
+            frame.set_content(this.model.thumbnail_data);
             this.thumbnail_container.add(frame);
         }
 
@@ -963,11 +955,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             let frame = new ImageCoverFrame.ImageCoverFrame({
                 hexpand: true
             });
-            try {
-                frame.set_content(this.model.thumbnail_data);
-            } catch (e) {
-                logError(e, 'Couldn\'t load thumbnail data from file');
-            }
+            frame.set_content(this.model.thumbnail_data);
             this.thumbnail_container.add(frame);
         }
 
