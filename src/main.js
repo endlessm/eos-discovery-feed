@@ -1428,7 +1428,7 @@ function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToMo
             promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
         ])
         .then(([quote, word]) => {
-            appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
+            appendToModel(model, () => new DiscoveryFeedWordQuotePairStore({
                 quote: new DiscoveryFeedQuoteStore({
                     quote: TextSanitization.synopsis(quote.synopsis),
                     author: quote.title
