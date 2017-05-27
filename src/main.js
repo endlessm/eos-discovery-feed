@@ -569,32 +569,32 @@ const DiscoveryFeedAppStore = new Lang.Class({
     Name: 'DiscoveryFeedAppStore',
     Extends: GObject.Object,
     Properties: {
-        'app_id': GObject.ParamSpec.string('app_id',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.CONSTRUCT_ONLY |
-                                           GObject.ParamFlags.READWRITE,
-                                           ''),
-        'title': GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.CONSTRUCT_ONLY |
-                                          GObject.ParamFlags.READWRITE,
-                                          ''),
-        'thumbnail-data': GObject.ParamSpec.object('thumbnail-data',
-                                                   '',
-                                                   '',
-                                                   GObject.ParamFlags.READWRITE |
-                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                   Gio.InputStream),
-        'type': GObject.ParamSpec.int('type',
-                                      '',
-                                      '',
-                                      GObject.ParamFlags.READWRITE |
-                                      GObject.ParamFlags.CONSTRUCT_ONLY,
-                                      DISCOVERY_FEED_APP_TYPE_BASIC,
-                                      DISCOVERY_FEED_APP_TYPE_MAX,
-                                      DISCOVERY_FEED_APP_TYPE_BASIC)
+        app_id: GObject.ParamSpec.string('app_id',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.CONSTRUCT_ONLY |
+                                         GObject.ParamFlags.READWRITE,
+                                         ''),
+        title: GObject.ParamSpec.string('title',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.CONSTRUCT_ONLY |
+                                        GObject.ParamFlags.READWRITE,
+                                        ''),
+        thumbnail_data: GObject.ParamSpec.object('thumbnail-data',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 Gio.InputStream),
+        type: GObject.ParamSpec.int('type',
+                                    '',
+                                    '',
+                                    GObject.ParamFlags.READWRITE |
+                                    GObject.ParamFlags.CONSTRUCT_ONLY,
+                                    DISCOVERY_FEED_APP_TYPE_BASIC,
+                                    DISCOVERY_FEED_APP_TYPE_MAX,
+                                    DISCOVERY_FEED_APP_TYPE_BASIC)
     }
 });
 
