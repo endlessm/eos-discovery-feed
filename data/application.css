@@ -66,6 +66,20 @@
   color: #2a383e;
 }
 
+.app-card .title {
+  font-size: 14pt;
+  font-family: 'Lato'
+}
+
+.app-card .synopsis {
+  font-size: 11pt;
+  font-family: 'Lato';
+}
+
+.app-store-link .title {
+  color: #e16d37;
+}
+
 .bolded-word {
   font-size: 14pt;
   font-weight: bold;

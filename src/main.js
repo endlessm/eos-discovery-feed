@@ -80,6 +80,44 @@ const DiscoveryFeedNewsIface = '\
   </interface> \
 </node>';
 
+const DiscoveryFeedInstallableAppsIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedInstallableApps"> \
+    <method name="GetRelevantInstallableApps"> \
+      <arg type="aa{sv}" name="Results" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
+const ShellSearchProviderIface = '\
+<node> \
+  <interface name="org.gnome.Shell.SearchProvider2"> \
+    <method name="GetInitialResultSet"> \
+      <arg type="as" name="Terms" direction="in"/> \
+      <arg type="as" name="Results" direction="out"/> \
+    </method> \
+    <method name="GetSubsearchResultSet"> \
+      <arg type="as" name="PreviousResults" direction="in"/> \
+      <arg type="as" name="Terms" direction="in"/> \
+      <arg type="as" name="Results" direction="out"/> \
+    </method> \
+    <method name="GetResultMetas"> \
+      <arg type="as" name="Results" direction="in"/> \
+      <arg type="aa{sv}" name="Metas" direction="out"/> \
+    </method> \
+    <method name="ActivateResult"> \
+      <arg type="s" name="Result" direction="in"/> \
+      <arg type="as" name="Terms" direction="in"/> \
+      <arg type="u" name="Timestamp" direction="in"/> \
+    </method> \
+    <method name="LaunchSearch"> \
+      <arg type="as" name="Terms" direction="in"/> \
+      <arg type="u" name="Timestamp" direction="in"/> \
+    </method> \
+  </interface> \
+</node>';
+
+
 //
 // maybeGetKeyfileString
 //
@@ -255,7 +293,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       done) {
     let interfaceWrappers = {
         'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
+        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface),
+        'com.endlessm.DiscoveryFeedInstallableApps': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedInstallableAppsIface)
     };
 
     let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
@@ -328,7 +367,8 @@ function recordMetricsEvent(eventId, payload) {
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
 const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
 const CARD_STORE_TYPE_ARTWORK_CARD = 2;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTWORK_CARD;
+const CARD_STORE_TYPE_AVAILABLE_APPS = 3;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_AVAILABLE_APPS;
 
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
@@ -533,6 +573,95 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     _init: function(params) {
         params.type = CARD_STORE_TYPE_ARTICLE_CARD;
         this.parent(params);
+    }
+});
+
+const DiscoveryFeedAvailableAppsStore = new Lang.Class({
+    Name: 'DiscoveryFeedAvailableAppsStore',
+    Extends: DiscoveryFeedCardStore,
+
+    _init: function(params, apps) {
+        params.type = CARD_STORE_TYPE_AVAILABLE_APPS;
+        this.parent(params);
+        this.apps = apps;
+    }
+});
+
+const DISCOVERY_FEED_APP_TYPE_BASIC = 0;
+const DISCOVERY_FEED_APP_TYPE_DETAILED = 1;
+const DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK = 2;
+const DISCOVERY_FEED_APP_TYPE_MAX = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
+
+
+const DiscoveryFeedAppStore = new Lang.Class({
+    Name: 'DiscoveryFeedAppStore',
+    Extends: GObject.Object,
+    Properties: {
+        'app_id': GObject.ParamSpec.string('app_id',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.CONSTRUCT_ONLY |
+                                           GObject.ParamFlags.READWRITE,
+                                           ''),
+        'title': GObject.ParamSpec.string('title',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.CONSTRUCT_ONLY |
+                                          GObject.ParamFlags.READWRITE,
+                                          ''),
+        'thumbnail-data': GObject.ParamSpec.object('thumbnail-data',
+                                                   '',
+                                                   '',
+                                                   GObject.ParamFlags.READWRITE |
+                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                   Gio.InputStream),
+        'type': GObject.ParamSpec.int('type',
+                                      '',
+                                      '',
+                                      GObject.ParamFlags.READWRITE |
+                                      GObject.ParamFlags.CONSTRUCT_ONLY,
+                                      DISCOVERY_FEED_APP_TYPE_BASIC,
+                                      DISCOVERY_FEED_APP_TYPE_MAX,
+                                      DISCOVERY_FEED_APP_TYPE_BASIC)
+    }
+});
+
+const DiscoveryFeedAppStoreLinkStore = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreLinkStore',
+    Extends: DiscoveryFeedAppStore,
+
+    _init: function(params) {
+        let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/explore.png';
+        params.title = 'Explore the App Center',
+        params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null),
+        params.app_id = 'org.gnome.Software',
+        params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
+        this.parent(params);
+    }
+});
+
+const DiscoveryFeedInstallableAppStore = new Lang.Class({
+    Name: 'DiscoveryFeedInstallableAppStore',
+    Extends: DiscoveryFeedAppStore,
+    Properties: {
+        'title': GObject.ParamSpec.string('title',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.CONSTRUCT_ONLY |
+                                          GObject.ParamFlags.READWRITE,
+                                          ''),
+        'synopsis': GObject.ParamSpec.string('synopsis',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.CONSTRUCT_ONLY |
+                                             GObject.ParamFlags.READWRITE,
+                                             ''),
+        'icon': GObject.ParamSpec.object('icon',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          Gio.Icon)
     }
 });
 
@@ -760,6 +889,157 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
     }
 });
 
+const DiscoveryFeedInstallableAppCard = new Lang.Class({
+    Name: 'DiscoveryFeedInstallableAppCard',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/installable-app-card.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedInstallableAppStore.$gtype)
+    },
+    Children: [
+        'content-button',
+        'title-label',
+        'app-icon',
+        'synopsis-label',
+        'thumbnail-container'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.title_label.label = this.model.title;
+        this.synopsis_label.label = this.model.synopsis;
+        this.app_icon.set_from_gicon(this.model.icon, Gtk.IconSize.DND);
+
+        if (this.model.thumbnail_data) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            try {
+                frame.set_content(this.model.thumbnail_data);
+            } catch (e) {
+                logError(e, 'Couldn\'t load thumbnail data from file');
+            }
+            this.thumbnail_container.add(frame);
+        }
+
+        let onProxyReady = function(initable, error) {
+            if (error) {
+                logError(error, 'Could not shell search provider proxy for GS');
+                return;
+            }
+            log('Created shell search provider proxy for GS');
+        };
+
+        let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(ShellSearchProviderIface);
+        this._shellGSSearchProvider = interfaceWrapper(Gio.DBus.session,
+                                                       'org.gnome.Software',
+                                                       '/org/gnome/Software/SearchProvider',
+                                                       Lang.bind(this,
+                                                                 onProxyReady));
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
+                app_id: this.model.app_id,
+                content_type: 'software_center_app'
+            }));
+
+            this._shellGSSearchProvider.ActivateResultRemote(this.model.app_id, [''], Gdk.CURRENT_TIME, Lang.bind(this, function(result, excp) {
+                if (!excp)
+                    return;
+                logError(excp, 'Could not load app center page for ' + this.model.app_name + ' fallback to just launch GS, trace');
+                (new Gio.DesktopAppInfo('org.gnome.Software.desktop')).launch([], null);
+            }));
+        }));
+    }
+});
+
+const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreLinkCard',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/app-store-link-card.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedAppStoreLinkStore.$gtype)
+    },
+    Children: [
+        'content-button',
+        'title-label',
+        'thumbnail-container'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.title_label.label = this.model.title;
+
+        if (this.model.thumbnail_data) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            try {
+                frame.set_content(this.model.thumbnail_data);
+            } catch (e) {
+                logError(e, 'Couldn\'t load thumbnail data from file');
+            }
+            this.thumbnail_container.add(frame);
+        }
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            log("Clicked on installable app card");
+        }));
+    }
+});
+
+const DiscoveryFeedAvailableAppsCard = new Lang.Class({
+    Name: 'DiscoveryFeedAvailableAppsCard',
+    Extends: Gtk.FlowBox,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/available-apps.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedAvailableAppsStore.$gtype)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this.model.apps.forEach(Lang.bind(this, function(model) {
+            this.add(new DiscoveryFeedInstallableAppCard({
+                model: model
+            }));
+        }));
+        this.add(new DiscoveryFeedAppStoreLinkCard({
+            model: new DiscoveryFeedAppStoreLinkStore({})
+        }));
+    }
+});
+
 const DiscoveryFeedListItem = new Lang.Class({
     Name: 'DiscoveryFeedListItem',
     Extends: Gtk.ListBoxRow,
@@ -788,6 +1068,9 @@ function contentViewFromType(type, store) {
         return new DiscoveryFeedWordQuotePair(params);
     case CARD_STORE_TYPE_ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
+    case CARD_STORE_TYPE_AVAILABLE_APPS:
+        log("Create available apps card")
+        return new DiscoveryFeedAvailableAppsCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
     }
@@ -941,6 +1224,29 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetRelevantInstallableAppsRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Installable Apps query');
+            return;
+        }
+		results.forEach(function(response) {
+		    try {
+		        appendToModel(model, modelIndex => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
+		            new DiscoveryFeedInstallableAppStore({
+		            app_id: entry.id.get_string()[0],
+		            title: entry.name.get_string()[0],
+		            thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
+		            icon: Gio.Icon.deserialize(entry.icon),
+		            synopsis: entry.synopsis.get_string()[0]
+		        }))));
+		    } catch (e) {
+		        logError(e, 'Could not parse response');
+		    }
+		});
+    });
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
@@ -991,6 +1297,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             break;
         case 'com.endlessm.DiscoveryFeedNews':
             appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
+            break;
+        case 'com.endlessm.DiscoveryFeedInstallableApps':
+            appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel);
             break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
