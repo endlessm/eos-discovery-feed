@@ -1520,14 +1520,15 @@ function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, append
         }
         results.forEach(function(response) {
             try {
-                appendToModel(model, modelIndex => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
+                appendToModel(model, () => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
                     new DiscoveryFeedInstallableAppStore({
-                    app_id: entry.id.get_string()[0],
-                    title: entry.name.get_string()[0],
-                    thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
-                    icon: Gio.Icon.deserialize(entry.icon),
-                    synopsis: entry.synopsis.get_string()[0]
-                }))));
+                        app_id: entry.id.get_string()[0],
+                        title: entry.name.get_string()[0],
+                        thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
+                        icon: Gio.Icon.deserialize(entry.icon),
+                        synopsis: entry.synopsis.get_string()[0]
+                    })))
+                );
             } catch (e) {
                 logError(e, 'Could not parse response');
             }
