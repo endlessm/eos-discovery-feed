@@ -5,7 +5,11 @@
     <file preprocess="xml-stripblanks">content-card.ui</file>
     <file preprocess="xml-stripblanks">content-list-item.ui</file>
     <file preprocess="xml-stripblanks">word-quote-pair.ui</file>
+    <file preprocess="xml-stripblanks">available-apps.ui</file>
+    <file preprocess="xml-stripblanks">installable-app-card.ui</file>
+    <file preprocess="xml-stripblanks">app-store-link-card.ui</file>
     <file>application.css</file>
     <file>img/summertime-1894.jpg</file>
+    <file>img/explore.png</file>
   </gresource>
 </gresources>
