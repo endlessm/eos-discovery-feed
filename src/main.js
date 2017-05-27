@@ -1016,8 +1016,11 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
 
 const DiscoveryFeedAvailableAppsCard = new Lang.Class({
     Name: 'DiscoveryFeedAvailableAppsCard',
-    Extends: Gtk.FlowBox,
+    Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/DiscoveryFeed/available-apps.ui',
+    Children: [
+        'flow-box'
+    ],
     Properties: {
         'model': GObject.ParamSpec.object('model',
                                           '',
@@ -1030,11 +1033,11 @@ const DiscoveryFeedAvailableAppsCard = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.model.apps.forEach(Lang.bind(this, function(model) {
-            this.add(new DiscoveryFeedInstallableAppCard({
+            this.flow_box.add(new DiscoveryFeedInstallableAppCard({
                 model: model
             }));
         }));
-        this.add(new DiscoveryFeedAppStoreLinkCard({
+        this.flow_box.add(new DiscoveryFeedAppStoreLinkCard({
             model: new DiscoveryFeedAppStoreLinkStore({})
         }));
     }
@@ -1230,20 +1233,20 @@ function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, append
             logError(error, 'Failed to execute Discovery Feed Installable Apps query');
             return;
         }
-		results.forEach(function(response) {
-		    try {
-		        appendToModel(model, modelIndex => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
-		            new DiscoveryFeedInstallableAppStore({
-		            app_id: entry.id.get_string()[0],
-		            title: entry.name.get_string()[0],
-		            thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
-		            icon: Gio.Icon.deserialize(entry.icon),
-		            synopsis: entry.synopsis.get_string()[0]
-		        }))));
-		    } catch (e) {
-		        logError(e, 'Could not parse response');
-		    }
-		});
+        results.forEach(function(response) {
+            try {
+                appendToModel(model, modelIndex => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
+                    new DiscoveryFeedInstallableAppStore({
+                    app_id: entry.id.get_string()[0],
+                    title: entry.name.get_string()[0],
+                    thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
+                    icon: Gio.Icon.deserialize(entry.icon),
+                    synopsis: entry.synopsis.get_string()[0]
+                }))));
+            } catch (e) {
+                logError(e, 'Could not parse response');
+            }
+        });
     });
 }
 
