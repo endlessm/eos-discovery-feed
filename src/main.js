@@ -89,34 +89,6 @@ const DiscoveryFeedInstallableAppsIface = '\
   </interface> \
 </node>';
 
-const ShellSearchProviderIface = '\
-<node> \
-  <interface name="org.gnome.Shell.SearchProvider2"> \
-    <method name="GetInitialResultSet"> \
-      <arg type="as" name="Terms" direction="in"/> \
-      <arg type="as" name="Results" direction="out"/> \
-    </method> \
-    <method name="GetSubsearchResultSet"> \
-      <arg type="as" name="PreviousResults" direction="in"/> \
-      <arg type="as" name="Terms" direction="in"/> \
-      <arg type="as" name="Results" direction="out"/> \
-    </method> \
-    <method name="GetResultMetas"> \
-      <arg type="as" name="Results" direction="in"/> \
-      <arg type="aa{sv}" name="Metas" direction="out"/> \
-    </method> \
-    <method name="ActivateResult"> \
-      <arg type="s" name="Result" direction="in"/> \
-      <arg type="as" name="Terms" direction="in"/> \
-      <arg type="u" name="Timestamp" direction="in"/> \
-    </method> \
-    <method name="LaunchSearch"> \
-      <arg type="as" name="Terms" direction="in"/> \
-      <arg type="u" name="Timestamp" direction="in"/> \
-    </method> \
-  </interface> \
-</node>';
-
 
 //
 // maybeGetKeyfileString
@@ -961,12 +933,11 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                 content_type: 'software_center_app'
             }));
 
-            this._shellGSSearchProvider.ActivateResultRemote(this.model.app_id, [''], Gdk.CURRENT_TIME, Lang.bind(this, function(result, excp) {
-                if (!excp)
-                    return;
-                logError(excp, 'Could not load app center page for ' + this.model.app_name + ' fallback to just launch GS, trace');
-                (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], null);
-            }));
+            Gio.DBusActionGroup.get(Gio.Application.get_default().get_dbus_connection(),
+                                    'org.gnome.Software',
+                                    '/org/gnome/Software')
+                               .activate_action('details',
+                                                new GLib.Variant('(ss)', [this.model.app_id, '']));
         }));
     }
 });
