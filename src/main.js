@@ -604,7 +604,7 @@ const DiscoveryFeedAppStoreLinkStore = new Lang.Class({
 
     _init: function(params) {
         let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/explore.png';
-        params.title = 'Explore the App Center',
+        params.title = _('Explore the App Center'),
         params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null),
         params.app_id = 'org.gnome.Software',
         params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
