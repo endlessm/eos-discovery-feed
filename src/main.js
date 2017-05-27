@@ -882,7 +882,7 @@ function promisifyGIO(obj, funcName, ...args) {
         try {
             obj[funcName](...args, function() {
                 try {
-                    let error = Array.prototype.slice.call(arguments, -1);
+                    let error = Array.prototype.slice.call(arguments, -1)[0];
                     let parameters = Array.prototype.slice.call(arguments,
                                                                 0,
                                                                 arguments.length - 1);
