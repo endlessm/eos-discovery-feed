@@ -1037,6 +1037,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         }
     });
 
+    // Note that zipArraysInObject here will zip to the shortest length
+    // which means that we may not execute all proxies if there was a
+    // mismatch in cardinality.
     appendDiscoveryFeedQuoteWordToModel(zipArraysInObject(wordQuoteProxies),
                                         model,
                                         appendToModel);
