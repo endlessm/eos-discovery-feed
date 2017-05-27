@@ -1077,7 +1077,6 @@ function contentViewFromType(type, store) {
     case CARD_STORE_TYPE_ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
     case CARD_STORE_TYPE_AVAILABLE_APPS:
-        log("Create available apps card")
         return new DiscoveryFeedAvailableAppsCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
