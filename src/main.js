@@ -15,6 +15,7 @@ pkg.require({
 });
 
 const EosShard = imports.gi.EosShard;
+const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -325,6 +326,23 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
     // since the asynchronous functions don't start running until we've
     // left this function
     let remaining = proxies.length;
+}
+
+
+const EVENT_DISCOVERY_FEED_OPEN = 'd54cbd8c-c977-4dac-ae72-535ad5633877';
+const EVENT_DISCOVERY_FEED_CLOSE = 'e7932cbd-7c20-49eb-94e9-4bf075e0c0c0';
+const EVENT_DISCOVERY_FEED_CLICK = 'f2f31a64-2193-42b5-ae39-ca0b4d1f0691';
+
+// recordMetricsEvent
+//
+// Called whenever we want to record a metrics event for the discovery feed.
+// This will only ever be called if metrics are turned on, which they are off
+// by default.
+//
+// The caller is responsible for passing the correct payload (serialized as
+// a GVariant for the given event ID).
+function recordMetricsEvent(eventId, payload) {
+    EosMetrics.EventRecorder.get_default().record_event(eventId, payload);
 }
 
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
@@ -651,15 +669,20 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             thumbnail_data: params.model.thumbnail,
             source_title: this._app.get_display_name().toUpperCase(),
             layout_direction: params.model.layout_direction
-        })
+        });
         this.add(card);
         card.connect('activate', Lang.bind(this, function() {
+            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
+                app_id: this._app.get_id(),
+                content_type: 'knowledge_article'
+            }));
+
             if (!this._knowledgeSearchProxy) {
                 this._app.launch([], null);
                 return;
             }
 
-            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', timestamp, Lang.bind(this, function(result, excp) {
+            this._knowledgeSearchProxy.LoadItemRemote(this.model.uri, '', Gdk.CURRENT_TIME, Lang.bind(this, function(result, excp) {
                 if (!excp)
                     return;
                 logError(excp, 'Could not load app with article ' + this.model.uri + ' fallback to just launch the app, trace');
@@ -715,7 +738,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
 
 const DiscoveryFeedWordQuotePair = new Lang.Class({
     Name: 'DiscoveryFeedWordQuotePair',
-    Extends: Gtk.Box,
+    Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/DiscoveryFeed/word-quote-pair.ui',
     Properties: {
         'model': GObject.ParamSpec.object('model',
@@ -739,6 +762,12 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
         this.word_description.label = '(' + this.model.word.word_type + ') ' + this.model.word.definition;
         this.quote.label = '"' + this.model.quote.quote + '"';
         this.quote_author.label = this.model.quote.author.toUpperCase();
+
+        this.connect('clicked', function() {
+            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
+                app_id: 'com.endlessm.WordOfTheDay'
+            }));
+        });
     }
 });
 
@@ -800,6 +829,14 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         'close-button'
     ],
 
+    close: function(method) {
+        recordMetricsEvent(EVENT_DISCOVERY_FEED_CLOSE, new GLib.Variant('a{ss}', {
+            closed_by: method,
+            time: String(GLib.get_real_time() - this._openedAtTime)
+        }));
+        this.visible = false;
+    },
+
     _init: function(params) {
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
@@ -807,14 +844,24 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button
-        let escAction = new Gio.SimpleAction({ name: 'close' });
-        escAction.connect('activate', Lang.bind(this, function() {
-            this.visible = false;
+        this.connect('notify::visible', Lang.bind(this, function() {
+            if (this.visible) {
+                this._openedAtTime = GLib.get_real_time();
+            }
         }));
 
+        let closeCallback = function(action, payload, method) {
+            this.close(method);
+        };
+        let buttonAction = new Gio.SimpleAction({ name: 'buttonclose' });
+        let escAction = new Gio.SimpleAction({ name: 'escclose' });
+        escAction.connect('activate', Lang.bind(this, closeCallback, 'escape'));
+        buttonAction.connect('activate', Lang.bind(this, closeCallback, 'button'));
+
         this.add_action(escAction);
-        this.application.set_accels_for_action('win.close', ['Escape']);
-        this.close_button.set_action_name('win.close');
+        this.add_action(buttonAction);
+        this.application.set_accels_for_action('win.escclose', ['Escape']);
+        this.close_button.set_action_name('win.buttonclose');
     },
 });
 
@@ -1132,12 +1179,16 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window.show();
         this._window.present_with_time(timestamp);
 
+        recordMetricsEvent(EVENT_DISCOVERY_FEED_OPEN, new GLib.Variant('a{ss}', {
+            opened_by: 'shell_button',
+            language: GLib.get_language_names()[0]
+        }));
         populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
                                               this._discoveryFeedProxies);
     },
 
     hide: function() {
-        this._window.hide();
+        this._window.close('lost_focus');
     },
 
     _on_visibility_changed: function() {
