@@ -1204,7 +1204,7 @@ function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, append
             logError(error, 'Failed to execute Discovery Feed Installable Apps query');
             return;
         }
-        results.slice(N_APPS_TO_DISPLAY).forEach(function(response) {
+        results.slice(0, N_APPS_TO_DISPLAY).forEach(function(response) {
             try {
                 appendToModel(model, () => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
                     new DiscoveryFeedInstallableAppStore({
