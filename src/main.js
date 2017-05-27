@@ -910,7 +910,7 @@ const DiscoveryFeedContentPreview = new Lang.Class({
             try {
                 frame.set_content(this.image_stream);
             } catch (e) {
-                log('Couldn\'t load thumbnail data from file');
+                logError(e, 'Couldn\'t load thumbnail data from file');
             }
             this.thumbnail_container.add(frame);
         }
