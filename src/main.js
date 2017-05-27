@@ -877,59 +877,45 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
     });
 }
 
-function getFromQuoteWordProxy(proxy) {
+function promisifyGIO(obj, funcName, ...args) {
     return new Promise((resolve, reject) => {
-        if (proxy.interfaceName === 'com.endlessm.DiscoveryFeedQuote')
-        {
-            proxy.iface.GetQuoteOfTheDayRemote(function(results, error) {
-                if (error) {
-                    reject(error);
-                }
-                try {
-                    resolve(results[0]);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }
-        else if (proxy.interfaceName === 'com.endlessm.DiscoveryFeedWord')
-        {
-            proxy.iface.GetWordOfTheDayRemote(function(results, error) {
-                if (error) {
-                    reject(error);
-                }
-                try {
-                    resolve(results[0]);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }
-  });
+        obj[funcName](...args, function() {
+            let error = Array.prototype.slice.call(arguments, -1);
+            let parameters = Array.prototype.slice.call(arguments,
+                                                        0,
+                                                        arguments.length - 1);
+            if (error) {
+                reject(error);
+            } else {
+                resolve(parameters);
+            }
+        });
+    });
 }
 
 function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel) {
-    let contents = quoteWordProxies.map((proxy) => {
-        return getFromQuoteWordProxy(proxy);
+    quoteWordProxies.forEach((proxyBundle) => {
+	    Promise.all([
+	        promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
+	        promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
+	    ])
+	    .then(([quote, word]) => {
+	        appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
+	            quote: new DiscoveryFeedQuoteStore({
+	                quote: TextSanitization.synopsis(quote.synopsis),
+	                author: quote.title
+	            }),
+	            word: new DiscoveryFeedWordStore({
+	                word: word.title,
+	                definition: TextSanitization.synopsis(word.synopsis),
+	                word_type: word.license
+	            })
+	        }));
+	    })
+	    .catch(e => {
+	        logError(e, 'Failed to retrieve quote/word content');
+	    });
     });
-
-    Promise.all(contents)
-    .then(([quote, word]) => {
-        appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
-            quote: new DiscoveryFeedQuoteStore({
-                quote: TextSanitization.synopsis(quote.synopsis),
-                author: quote.title
-            }),
-            word: new DiscoveryFeedWordStore({
-                word: word.title,
-                definition: TextSanitization.synopsis(word.synopsis),
-                word_type: word.license
-            })
-        }));
-    })
-    .catch(e => {
-        logError(e, 'Failed to retrieve quote/word content');
-    })
 }
 
 function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
@@ -1027,22 +1013,22 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         modelIndex++;
     };
 
-    let quoteWordProxies = [];
+    let wordQuoteProxies = {
+        word: [],
+        quote: []
+    };
+
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
         case 'com.endlessm.DiscoveryFeedContent':
             appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
             break;
         case 'com.endlessm.DiscoveryFeedQuote':
-        {
-            quoteWordProxies.push(proxy);
+            wordQuoteProxies.quote.push(proxy);
             break;
-        }
         case 'com.endlessm.DiscoveryFeedWord':
-        {
-            quoteWordProxies.push(proxy);
+            wordQuoteProxies.word.push(proxy);
             break;
-        }
         case 'com.endlessm.DiscoveryFeedNews':
             appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
             break;
@@ -1051,7 +1037,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         }
     });
 
-    appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel);
+    appendDiscoveryFeedQuoteWordToModel(zipArraysInObject(wordQuoteProxies),
+                                        model,
+                                        appendToModel);
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
