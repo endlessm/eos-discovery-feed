@@ -707,6 +707,11 @@ const DiscoveryFeedInstallableAppStore = new Lang.Class({
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           Gio.Icon)
+    },
+
+    _init: function(params) {
+        params.type = DISCOVERY_FEED_APP_TYPE_DETAILED;
+        this.parent(params);
     }
 });
 
