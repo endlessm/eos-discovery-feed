@@ -1,16 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="3.10"/>
-  <template class="Gjs_DiscoveryFeedAvailableAppsCard" parent="GtkFlowBox">
+  <template class="Gjs_DiscoveryFeedAvailableAppsCard" parent="GtkBox">
     <property name="visible">True</property>
     <property name="hexpand">True</property>
     <property name="halign">fill</property>
-    <property name="min-children-per-line">2</property>
-    <property name="max-children-per-line">2</property>
-    <property name="homogeneous">True</property>
-    <property name="selection-mode">none</property>
+    <property name="orientation">vertical</property>
     <style>
-      <class name="available-apps"/>
+      <class name="available-apps" />
     </style>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="label">Install some apps to discover great content!</property>
+        <style>
+          <class name="title"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkFlowBox" id="flow-box">
+        <property name="visible">True</property>
+		<property name="min-children-per-line">2</property>
+		<property name="max-children-per-line">2</property>
+		<property name="homogeneous">True</property>
+		<property name="selection-mode">none</property>
+		<style>
+		  <class name="available-apps"/>
+		</style>
+      </object>
+    </child>
   </template>
 </interface>

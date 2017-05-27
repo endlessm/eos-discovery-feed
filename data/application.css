@@ -66,6 +66,12 @@
   color: #2a383e;
 }
 
+.available-apps .title {
+  font-size: 14pt;
+  font-family: 'Lato';
+  color: #243239;
+}
+
 .app-card .title {
   font-size: 14pt;
   font-family: 'Lato'
