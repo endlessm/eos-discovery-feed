@@ -942,11 +942,7 @@ const DiscoveryFeedVideoCard = new Lang.Class({
             let frame = new ImageCoverFrame.ImageCoverFrame({
                 hexpand: true
             });
-            try {
-                frame.set_content(this.thumbnail_data);
-            } catch (e) {
-                log('Couldn\'t load thumbnail data from file');
-            }
+            frame.set_content(this.thumbnail_data);
             this.thumbnail_container.add(frame);
         }
 
