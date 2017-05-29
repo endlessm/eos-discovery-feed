@@ -877,41 +877,59 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
     });
 }
 
-function appendDiscoveryFeedQuoteToModelFromProxy(quoteProxy, wordProxy, model, appendToModel) {
-    let quote, word;
-    quoteProxy.iface.GetQuoteOfTheDayRemote(function(results, error) {
-        if (error) {
-            logError(error, 'Failed to execute Discovery Feed Quote query');
-            return;
-        }
-        try {
-            quote = results[0];
-            wordProxy.iface.GetWordOfTheDayRemote(function(results, error) {
+function getFromQuoteWordProxy(proxy) {
+    return new Promise((resolve, reject) => {
+        if (proxy.interfaceName === 'com.endlessm.DiscoveryFeedQuote')
+        {
+            proxy.iface.GetQuoteOfTheDayRemote(function(results, error) {
                 if (error) {
-                    logError(error, 'Failed to execute Discovery Feed Word query');
-                    return;
+                    reject(error);
                 }
                 try {
-                    word = results[0];
-                    appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
-                        quote: new DiscoveryFeedQuoteStore({
-                            quote: TextSanitization.synopsis(quote.synopsis),
-                            author: quote.title
-                        }),
-                        word: new DiscoveryFeedWordStore({
-                            word: word.title,
-                            definition: TextSanitization.synopsis(word.synopsis),
-                            word_type: word.license
-                        })
-                    }));
+                    resolve(results[0]);
                 } catch (e) {
-                    logError(e, 'Could not parse response');
+                    reject(e);
                 }
             });
-        } catch (e) {
-            logError(e, 'Could not parse response');
         }
+        else if (proxy.interfaceName === 'com.endlessm.DiscoveryFeedWord')
+        {
+            proxy.iface.GetWordOfTheDayRemote(function(results, error) {
+                if (error) {
+                    reject(error);
+                }
+                try {
+                    resolve(results[0]);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+  });
+}
+
+function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel) {
+    let contents = quoteWordProxies.map((proxy) => {
+        return getFromQuoteWordProxy(proxy);
     });
+
+    Promise.all(contents)
+    .then(([quote, word]) => {
+        appendToModel(model, modelIndex => new DiscoveryFeedWordQuotePairStore({
+            quote: new DiscoveryFeedQuoteStore({
+                quote: TextSanitization.synopsis(quote.synopsis),
+                author: quote.title
+            }),
+            word: new DiscoveryFeedWordStore({
+                word: word.title,
+                definition: TextSanitization.synopsis(word.synopsis),
+                word_type: word.license
+            })
+        }));
+    })
+    .catch(e => {
+        logError(e, 'Failed to retrieve quote/word content');
+    })
 }
 
 function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
@@ -971,7 +989,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         modelIndex++;
     };
 
-    let quoteProxy, wordProxy;
+    let quoteWordProxies = [];
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
         case 'com.endlessm.DiscoveryFeedContent':
@@ -979,12 +997,12 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             break;
         case 'com.endlessm.DiscoveryFeedQuote':
         {
-            quoteProxy = proxy;
+            quoteWordProxies.push(proxy);
             break;
         }
         case 'com.endlessm.DiscoveryFeedWord':
         {
-            wordProxy = proxy;
+            quoteWordProxies.push(proxy);
             break;
         }
         case 'com.endlessm.DiscoveryFeedNews':
@@ -994,7 +1012,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
         }
     });
-    appendDiscoveryFeedQuoteToModelFromProxy(quoteProxy, wordProxy, model, appendToModel);
+
+    appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel);
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
