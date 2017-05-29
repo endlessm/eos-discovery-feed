@@ -831,6 +831,10 @@ const DiscoveryFeedAppStoreDescription = new Lang.Class({
     }
 });
 
+const CONTENT_PREVIEW_SMALL = 200;
+const CONTENT_PREVIEW_MID = 300;
+const CONTENT_PREVIEW_LARGE = 400;
+
 const DiscoveryFeedContentPreview = new Lang.Class({
     Name: 'DiscoveryFeedContentPreview',
     Extends: Gtk.Box,
@@ -848,7 +852,7 @@ const DiscoveryFeedContentPreview = new Lang.Class({
                                          GObject.ParamFlags.CONSTRUCT_ONLY,
                                          0,
                                          GLib.MAXINT32,
-                                         200),
+                                         CONTENT_PREVIEW_SMALL),
         min_height: GObject.ParamSpec.int('min-height',
                                           '',
                                           '',
@@ -856,7 +860,7 @@ const DiscoveryFeedContentPreview = new Lang.Class({
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           0,
                                           GLib.MAXINT32,
-                                          200)
+                                          CONTENT_PREVIEW_SMALL)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-preview.ui',
     Children: [
@@ -1021,7 +1025,7 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
                 app_name: this._app.get_display_name().toUpperCase(),
                 content: new DiscoveryFeedContentPreview({
                     image_stream: params.model.thumbnail,
-                    min_height: 300
+                    min_height: CONTENT_PREVIEW_MID
                 })
             })
         });
@@ -1059,9 +1063,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail,
-                    min_width: 200,
-                    min_height: 200
+                    image_stream: this.model.thumbnail
                 }),
                 description: new DiscoveryFeedAppContentDescription({
                     title: params.model.title,
@@ -1103,8 +1105,8 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail,
-                    min_width: 400,
-                    min_height: 400
+                    min_width: CONTENT_PREVIEW_LARGE,
+                    min_height: CONTENT_PREVIEW_LARGE
                 }),
                 description: new DiscoveryFeedAppContentDescription({
                     title: params.model.title,
@@ -1173,9 +1175,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail_data,
-                    min_width: 200,
-                    min_height: 200
+                    image_stream: this.model.thumbnail_data
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title,
@@ -1224,8 +1224,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: 300,
-                    min_height: 200
+                    min_width: CONTENT_PREVIEW_MID,
+                    min_height: CONTENT_PREVIEW_SMALL
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title
