@@ -910,13 +910,13 @@ function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToMo
         .then(([quote, word]) => {
             appendToModel(model, () => new DiscoveryFeedWordQuotePairStore({
                 quote: new DiscoveryFeedQuoteStore({
-                    quote: TextSanitization.synopsis(quote.synopsis),
-                    author: quote.title
+                    quote: TextSanitization.synopsis(quote.quote),
+                    author: quote.author
                 }),
                 word: new DiscoveryFeedWordStore({
-                    word: word.title,
-                    definition: TextSanitization.synopsis(word.synopsis),
-                    word_type: word.license
+                    word: word.word,
+                    definition: TextSanitization.synopsis(word.definition),
+                    word_type: word.type
                 })
             }));
         })
