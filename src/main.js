@@ -80,6 +80,16 @@ const DiscoveryFeedNewsIface = '\
   </interface> \
 </node>';
 
+const DiscoveryFeedInstallableAppsIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedInstallableApps"> \
+    <method name="GetInstallableApps"> \
+      <arg type="aa{sv}" name="Results" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
+
 //
 // maybeGetKeyfileString
 //
@@ -255,7 +265,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       done) {
     let interfaceWrappers = {
         'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface)
+        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface),
+        'com.endlessm.DiscoveryFeedInstallableApps': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedInstallableAppsIface)
     };
 
     let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
@@ -328,7 +339,8 @@ function recordMetricsEvent(eventId, payload) {
 const CARD_STORE_TYPE_ARTICLE_CARD = 0;
 const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
 const CARD_STORE_TYPE_ARTWORK_CARD = 2;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_ARTWORK_CARD;
+const CARD_STORE_TYPE_AVAILABLE_APPS = 3;
+const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_AVAILABLE_APPS;
 
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
@@ -536,6 +548,94 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     }
 });
 
+const DiscoveryFeedAvailableAppsStore = new Lang.Class({
+    Name: 'DiscoveryFeedAvailableAppsStore',
+    Extends: DiscoveryFeedCardStore,
+
+    _init: function(params, apps) {
+        params.type = CARD_STORE_TYPE_AVAILABLE_APPS;
+        this.parent(params);
+        this.apps = apps;
+    }
+});
+
+const DISCOVERY_FEED_APP_TYPE_BASIC = 0;
+const DISCOVERY_FEED_APP_TYPE_DETAILED = 1;
+const DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK = 2;
+const DISCOVERY_FEED_APP_TYPE_MAX = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
+
+
+const DiscoveryFeedAppStore = new Lang.Class({
+    Name: 'DiscoveryFeedAppStore',
+    Extends: GObject.Object,
+    Properties: {
+        app_id: GObject.ParamSpec.string('app_id',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.CONSTRUCT_ONLY |
+                                         GObject.ParamFlags.READWRITE,
+                                         ''),
+        title: GObject.ParamSpec.string('title',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.CONSTRUCT_ONLY |
+                                        GObject.ParamFlags.READWRITE,
+                                        ''),
+        thumbnail_data: GObject.ParamSpec.object('thumbnail-data',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 Gio.InputStream),
+        type: GObject.ParamSpec.int('type',
+                                    '',
+                                    '',
+                                    GObject.ParamFlags.READWRITE |
+                                    GObject.ParamFlags.CONSTRUCT_ONLY,
+                                    DISCOVERY_FEED_APP_TYPE_BASIC,
+                                    DISCOVERY_FEED_APP_TYPE_MAX,
+                                    DISCOVERY_FEED_APP_TYPE_BASIC)
+    }
+});
+
+const DiscoveryFeedAppStoreLinkStore = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreLinkStore',
+    Extends: DiscoveryFeedAppStore,
+
+    _init: function(params) {
+        let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/explore.png';
+        params.title = _('Explore the App Center'),
+        params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null),
+        params.app_id = 'org.gnome.Software',
+        params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
+        this.parent(params);
+    }
+});
+
+const DiscoveryFeedInstallableAppStore = new Lang.Class({
+    Name: 'DiscoveryFeedInstallableAppStore',
+    Extends: DiscoveryFeedAppStore,
+    Properties: {
+        'synopsis': GObject.ParamSpec.string('synopsis',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.CONSTRUCT_ONLY |
+                                             GObject.ParamFlags.READWRITE,
+                                             ''),
+        'icon': GObject.ParamSpec.object('icon',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          Gio.Icon)
+    },
+
+    _init: function(params) {
+        params.type = DISCOVERY_FEED_APP_TYPE_DETAILED;
+        this.parent(params);
+    }
+});
+
 const DiscoveryFeedCard = new Lang.Class({
     Name: 'DiscoveryFeedCard',
     Extends: Gtk.Box,
@@ -597,11 +697,7 @@ const DiscoveryFeedCard = new Lang.Class({
             let frame = new ImageCoverFrame.ImageCoverFrame({
                 hexpand: true
             });
-            try {
-                frame.set_content(this.thumbnail_data);
-            } catch (e) {
-                log('Couldn\'t load thumbnail data from file');
-            }
+            frame.set_content(this.thumbnail_data);
             this.thumbnail_container.add(frame);
         }
 
@@ -760,6 +856,136 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
     }
 });
 
+const DiscoveryFeedInstallableAppCard = new Lang.Class({
+    Name: 'DiscoveryFeedInstallableAppCard',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/installable-app-card.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedInstallableAppStore.$gtype)
+    },
+    Children: [
+        'content-button',
+        'title-label',
+        'app-icon',
+        'synopsis-label',
+        'thumbnail-container'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.title_label.label = this.model.title;
+        this.synopsis_label.label = this.model.synopsis;
+        this.app_icon.set_from_gicon(this.model.icon, Gtk.IconSize.DND);
+
+        if (this.model.thumbnail_data) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            frame.set_content(this.model.thumbnail_data);
+            this.thumbnail_container.add(frame);
+        }
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
+                app_id: this.model.app_id,
+                content_type: 'software_center_app'
+            }));
+
+            Gio.DBusActionGroup.get(Gio.Application.get_default().get_dbus_connection(),
+                                    'org.gnome.Software',
+                                    '/org/gnome/Software')
+                               .activate_action('details',
+                                                new GLib.Variant('(ss)', [this.model.app_id, '']));
+        }));
+    }
+});
+
+const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreLinkCard',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/app-store-link-card.ui',
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedAppStoreLinkStore.$gtype)
+    },
+    Children: [
+        'content-button',
+        'title-label',
+        'thumbnail-container'
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.title_label.label = this.model.title;
+
+        if (this.model.thumbnail_data) {
+            let frame = new ImageCoverFrame.ImageCoverFrame({
+                hexpand: true
+            });
+            frame.set_content(this.model.thumbnail_data);
+            this.thumbnail_container.add(frame);
+        }
+
+        // Connect to the realize signal of the button and set
+        // the pointer cursor over its event window once the event
+        // window has been created.
+        this.content_button.connect('realize', Lang.bind(this, function(widget) {
+            widget.get_event_window().set_cursor(Gdk.Cursor.new_from_name(Gdk.Display.get_default(),
+                                                                          'pointer'));
+        }));
+        this.content_button.connect('clicked', Lang.bind(this, function() {
+            (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], null);
+        }));
+    }
+});
+
+const DiscoveryFeedAvailableAppsCard = new Lang.Class({
+    Name: 'DiscoveryFeedAvailableAppsCard',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/DiscoveryFeed/available-apps.ui',
+    Children: [
+        'flow-box'
+    ],
+    Properties: {
+        'model': GObject.ParamSpec.object('model',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          DiscoveryFeedAvailableAppsStore.$gtype)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this.model.apps.forEach(Lang.bind(this, function(model) {
+            this.flow_box.add(new DiscoveryFeedInstallableAppCard({
+                model: model
+            }));
+        }));
+        this.flow_box.add(new DiscoveryFeedAppStoreLinkCard({
+            model: new DiscoveryFeedAppStoreLinkStore({})
+        }));
+    }
+});
+
 const DiscoveryFeedListItem = new Lang.Class({
     Name: 'DiscoveryFeedListItem',
     Extends: Gtk.ListBoxRow,
@@ -788,6 +1014,8 @@ function contentViewFromType(type, store) {
         return new DiscoveryFeedWordQuotePair(params);
     case CARD_STORE_TYPE_ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
+    case CARD_STORE_TYPE_AVAILABLE_APPS:
+        return new DiscoveryFeedAvailableAppsCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
     }
@@ -941,6 +1169,32 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+const N_APPS_TO_DISPLAY = 5;
+
+function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel) {
+    proxy.iface.GetInstallableAppsRemote(function(results, error) {
+        if (error) {
+            logError(error, 'Failed to execute Discovery Feed Installable Apps query');
+            return;
+        }
+        results.slice(0, N_APPS_TO_DISPLAY).forEach(function(response) {
+            try {
+                appendToModel(model, () => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
+                    new DiscoveryFeedInstallableAppStore({
+                        app_id: entry.id.get_string()[0],
+                        title: entry.name.get_string()[0],
+                        thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
+                        icon: Gio.Icon.deserialize(entry.icon),
+                        synopsis: entry.synopsis.get_string()[0]
+                    })))
+                );
+            } catch (e) {
+                logError(e, 'Could not parse response');
+            }
+        });
+    });
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
@@ -991,6 +1245,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             break;
         case 'com.endlessm.DiscoveryFeedNews':
             appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
+            break;
+        case 'com.endlessm.DiscoveryFeedInstallableApps':
+            appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel);
             break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
