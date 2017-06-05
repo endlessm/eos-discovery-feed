@@ -100,6 +100,23 @@ const DiscoveryFeedVideoIface = '\
   </interface> \
 </node>';
 
+const DiscoveryFeedWordIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedWord"> \
+    <method name="GetWordOfTheDay"> \
+      <arg type="a{ss}" name="Results" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
+const DiscoveryFeedQuoteIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedQuote"> \
+    <method name="GetQuoteOfTheDay"> \
+      <arg type="a{ss}" name="Results" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
 
 //
 // maybeGetKeyfileString
@@ -278,7 +295,9 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
         'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
         'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface),
         'com.endlessm.DiscoveryFeedInstallableApps': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedInstallableAppsIface),
-        'com.endlessm.DiscoveryFeedVideo': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedVideoIface)
+        'com.endlessm.DiscoveryFeedVideo': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedVideoIface),
+        'com.endlessm.DiscoveryFeedQuote': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedQuoteIface),
+        'com.endlessm.DiscoveryFeedWord': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedWordIface)
     };
 
     let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
@@ -399,12 +418,6 @@ const DiscoveryFeedWordStore = new Lang.Class({
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
                                               ''),
-        'pronunciation': GObject.ParamSpec.string('pronunciation',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  ''),
         'definition': GObject.ParamSpec.string('definition',
                                                '',
                                                '',
@@ -1017,7 +1030,6 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
     Children: [
         'word',
         'quote',
-        'word-detail',
         'word-description',
         'quote-author'
     ],
@@ -1026,9 +1038,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
         this.parent(params);
 
         this.word.label = this.model.word.word;
-        this.word_detail.label = this.model.word.word_type + ' | ' +
-                                 this.model.word.pronunciation;
-        this.word_description.label = this.model.word.definition;
+        this.word_description.label = '(' + this.model.word.word_type + ') ' + this.model.word.definition;
         this.quote.label = '"' + this.model.quote.quote + '"';
         this.quote_author.label = this.model.quote.author.toUpperCase();
 
@@ -1355,6 +1365,55 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+function promisifyGIO(obj, funcName, ...args) {
+    return new Promise((resolve, reject) => {
+        try {
+            obj[funcName](...args, function() {
+                try {
+                    let error = Array.prototype.slice.call(arguments, -1)[0];
+                    let parameters = Array.prototype.slice.call(arguments,
+                                                                0,
+                                                                arguments.length - 1);
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(parameters);
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+
+function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel) {
+    quoteWordProxies.forEach((proxyBundle) => {
+        Promise.all([
+            promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
+            promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
+        ])
+        .then(([quote, word]) => {
+            appendToModel(model, () => new DiscoveryFeedWordQuotePairStore({
+                quote: new DiscoveryFeedQuoteStore({
+                    quote: TextSanitization.synopsis(quote.quote),
+                    author: quote.author
+                }),
+                word: new DiscoveryFeedWordStore({
+                    word: word.word,
+                    definition: TextSanitization.synopsis(word.definition),
+                    word_type: word.type
+                })
+            }));
+        })
+        .catch(e => {
+            logError(e, 'Failed to retrieve quote/word content');
+        });
+    });
+}
+
 
 const N_APPS_TO_DISPLAY = 5;
 
@@ -1434,25 +1493,49 @@ function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
     });
 }
 
+// zipArraysInObject
+//
+// Given an object described as:
+//
+// {
+//     a: [...]
+//     b: [...]
+// }
+//
+// Return a sequence of arrays described as
+//
+// [
+//     {
+//         a: a[n]
+//         b: b[n]
+//     }
+// ]
+function zipArraysInObject(object) {
+    let minLength = Object.keys(object).reduce((v, k) =>
+        v < object[k].length ? v : object[k].length ,
+        Number.MAX_INT
+    );
+    let arr = [];
+
+    for (let i = 0; i < minLength; ++i) {
+        let ret = {};
+        Object.keys(object).forEach((k) => {
+            if (i < object[k].length) {
+                ret[k] = object[k][i];
+            }
+        });
+
+        arr.push(ret);
+    }
+
+    return arr;
+}
+
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let modelIndex = 0;
     model.remove_all();
 
     let indexInsertFuncs = {
-        '2': () => {
-            model.append(new DiscoveryFeedWordQuotePairStore({
-                quote: new DiscoveryFeedQuoteStore({
-                    quote: 'You\'re the one running',
-                    author: 'Auron'
-                }),
-                word: new DiscoveryFeedWordStore({
-                    word: 'Tenentenba',
-                    pronunciation: 'Ten-ET-en-BA',
-                    definition: 'That\'s a nice Tenetenba you\'ve got there',
-                    word_type: 'noun'
-                })
-            }));
-        },
         '4': (modelIndex) => {
             let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
             model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
@@ -1477,6 +1560,11 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         modelIndex++;
     };
 
+    let wordQuoteProxies = {
+        word: [],
+        quote: []
+    };
+
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
         case 'com.endlessm.DiscoveryFeedContent':
@@ -1491,10 +1579,23 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         case 'com.endlessm.DiscoveryFeedVideo':
             appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel);
             break;
+        case 'com.endlessm.DiscoveryFeedQuote':
+            wordQuoteProxies.quote.push(proxy);
+            break;
+        case 'com.endlessm.DiscoveryFeedWord':
+            wordQuoteProxies.word.push(proxy);
+            break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
         }
     });
+
+    // Note that zipArraysInObject here will zip to the shortest length
+    // which means that we may not execute all proxies if there was a
+    // mismatch in cardinality.
+    appendDiscoveryFeedQuoteWordToModel(zipArraysInObject(wordQuoteProxies),
+                                        model,
+                                        appendToModel);
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
