@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/endlessm/DiscoveryFeed">
-    <file preprocess="xml-stripblanks">main.ui</file>
-    <file preprocess="xml-stripblanks">content-card.ui</file>
-    <file preprocess="xml-stripblanks">content-list-item.ui</file>
-    <file preprocess="xml-stripblanks">video-card.ui</file>
-    <file preprocess="xml-stripblanks">word-quote-pair.ui</file>
-    <file preprocess="xml-stripblanks">available-apps.ui</file>
-    <file preprocess="xml-stripblanks">installable-app-card.ui</file>
+    <file preprocess="xml-stripblanks">activatable-frame.ui</file>
+    <file preprocess="xml-stripblanks">app-content-description.ui</file>
+    <file preprocess="xml-stripblanks">app-store-description.ui</file>
     <file preprocess="xml-stripblanks">app-store-link-card.ui</file>
+    <file preprocess="xml-stripblanks">available-apps.ui</file>
+    <file preprocess="xml-stripblanks">content-card-layout.ui</file>
+    <file preprocess="xml-stripblanks">content-list-item.ui</file>
+    <file preprocess="xml-stripblanks">content-preview.ui</file>
+    <file preprocess="xml-stripblanks">installable-app-card.ui</file>
+    <file preprocess="xml-stripblanks">main.ui</file>
+    <file preprocess="xml-stripblanks">video-card-layout.ui</file>
+    <file preprocess="xml-stripblanks">word-quote-pair.ui</file>
     <file>application.css</file>
     <file>img/summertime-1894.jpg</file>
     <file>img/explore.png</file>
