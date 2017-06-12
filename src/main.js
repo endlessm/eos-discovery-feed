@@ -1836,7 +1836,7 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         // We'll take up 7/8ths of the screen height, leaving
         // some below
-        this._window.resize(geometry.width, geometry.height * (7 / 8));
+        this._window.resize(geometry.width, geometry.height);
     }
 });
 
