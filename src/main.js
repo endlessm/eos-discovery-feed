@@ -1710,9 +1710,14 @@ const DiscoveryFeedApplication = new Lang.Class({
             application: this,
             type_hint: Gdk.WindowTypeHint.DOCK,
             role: SIDE_COMPONENT_ROLE,
-            card_model: this._discoveryFeedCardModel,
-            opacity: 0.9
+            card_model: this._discoveryFeedCardModel
         });
+
+        // to be able to set the opacity from css
+        let visual = Gdk.Screen.get_default().get_rgba_visual();
+        if (visual) {
+            this._window.set_visual(visual);
+        }
 
         this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
         // There seems to be a race condition with the WM that can

@@ -206,6 +206,6 @@ list.stories row:hover {
 }
 
 window {
-  background-color: #f0efee;
+  background-color: alpha(white, 0.9);
 }
 
