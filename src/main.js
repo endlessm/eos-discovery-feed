@@ -1752,10 +1752,8 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._updateGeometry();
     },
 
-    vfunc_dbus_register: function(connection, path) {
-        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
-        this._dbusImpl.export(Gio.DBus.session, path);
-
+    // Using connection, refresh discovery feed proxies
+    _refreshDiscoveryFeedProxies: function(connection) {
         let providers = readDiscoveryFeedProvidersInDataDirectories();
         let onProxiesInstantiated = Lang.bind(this, function(proxies) {
             Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
@@ -1765,6 +1763,19 @@ const DiscoveryFeedApplication = new Lang.Class({
         instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                      providers,
                                                      onProxiesInstantiated);
+    },
+
+    vfunc_dbus_register: function(connection, path) {
+        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
+        this._dbusImpl.export(Gio.DBus.session, path);
+
+        this._refreshDiscoveryFeedProxies(connection);
+
+        // Make sure to update the available proxies when the
+        // app info state changes
+        Gio.AppInfoMonitor.get().connect('changed', Lang.bind(this, function() {
+            this._refreshDiscoveryFeedProxies(connection);
+        }));
 
         return this.parent(connection, path);
     },
