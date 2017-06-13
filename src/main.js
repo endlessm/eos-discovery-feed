@@ -14,7 +14,6 @@ pkg.require({
     GLib: '2.0',
 });
 
-const Cairo = imports.cairo;
 const EosShard = imports.gi.EosShard;
 const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
@@ -925,31 +924,6 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
     }
 });
 
-const PLAY_BUTTON_IMAGE = (function() {
-    let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 200, 200);
-    let cr = new Cairo.Context(surface);
-
-    // Circle
-    cr.setSourceRGBA(0, 0, 0, 1.0);
-    cr.arc(100, 100, 50, 0, 2 * Math.PI);
-    cr.fill();
-
-    // Play icon itself
-    cr.setSourceRGBA(1, 1, 1, 1.0);
-
-    // Simple equilateral triangle
-    cr.moveTo(130, 100);
-    cr.lineTo(80, 130);
-    cr.lineTo(80, 70);
-    cr.closePath();
-    cr.fill();
-
-    let pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0, 200, 200);
-    cr.$dispose();
-
-    return pixbuf;
-})();
-
 const DiscoveryFeedVideoCardLayout = new Lang.Class({
     Name: 'DiscoveryFeedVideoCardLayout',
     Extends: Gtk.Overlay,
@@ -984,7 +958,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
     Template: 'resource:///com/endlessm/DiscoveryFeed/video-card-layout.ui',
     Children: [
         'background-content',
-        'play-button-overlay',
         'title-label',
         'duration-label',
         'app-label'
@@ -994,7 +967,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
         this.parent(params);
         this.background_content.add(this.content);
 
-        this.play_button_overlay.set_from_pixbuf(PLAY_BUTTON_IMAGE);
         this.title_label.label = this.title;
         this.app_label.label = this.app_name;
         this.duration.label = parseDuration(this.duration);

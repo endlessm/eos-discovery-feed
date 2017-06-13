@@ -80,11 +80,15 @@
 
 .play-button .overlay {
   transition: 180ms linear;
-  opacity: 0.6
+  opacity: 0.9;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url('resource:///com/endlessm/DiscoveryFeed/img/play_button-normal.png')
 }
 
 .button:hover .play-button .overlay {
-  opacity: 0.9
+  opacity: 1.0;
+  background-image: url('resource:///com/endlessm/DiscoveryFeed/img/play_button-hover.png')
 }
 
 .button:hover .lightbox .background {
@@ -212,4 +216,3 @@ list.stories row:hover {
 window {
   background-color: alpha(white, 0.9);
 }
-

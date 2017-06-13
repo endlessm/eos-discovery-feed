@@ -39,7 +39,7 @@
               </object>
             </child>
             <child type="overlay">
-              <object class="GtkImage" id="play-button-overlay">
+              <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="hexpand">True</property>
                 <property name="halign">fill</property>
