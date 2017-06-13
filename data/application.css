@@ -159,7 +159,7 @@ list.stories .button {
   padding: 0px;
   background-image: none;
   border-radius: 0px;
-  box-shadow: 1px 1px 4px 1px rgba(0,0,0,0.3);
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
   margin: 12.5px 10px 12.5px 10px;
 }
 
@@ -175,7 +175,7 @@ list.stories .button {
 
 list.stories .button:hover {
   background-color: white;
-  box-shadow: 1px 1px 6px 3px rgba(0,0,0,0.6);
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
 }
 
 list.stories {
@@ -196,7 +196,8 @@ list.stories row:hover {
 
 .header .date {
   font-size: 64px;
-  font-family: 'Lato';
+  font-family: 'Alegreya Sans SC', sans-serif;
+  letter-spacing: 30px;
   color: #5b8291;
 }
 
@@ -206,6 +207,6 @@ list.stories row:hover {
 }
 
 window {
-  background-color: #f0efee;
+  background-color: alpha(white, 0.9);
 }
 
