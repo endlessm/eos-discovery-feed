@@ -1,13 +1,13 @@
 .content .title {
   font-size: 18pt;
-  font-family: 'Serif';
+  font-family: 'Merriweather', regular;
   color: #243239;
   margin-bottom: 10px;
 }
 
 .content .synopsis {
   font-size: 12pt;
-  font-family: 'Serif';
+  font-family: 'Merriweather', regular;
 }
 
 .content .article {
@@ -26,10 +26,12 @@
 
 .artwork .title {
   font-size: 22pt;
+  font-family: 'Merriweather', regular;
 }
 
 .artwork .synopsis {
   font-size: 16pt;
+  font-family: 'Merriweather', regular;
   color: black;
 }
 
@@ -122,7 +124,7 @@
 
 .app-card .title {
   font-size: 14pt;
-  font-family: 'Lato'
+  font-family: 'Lato';
 }
 
 .app-card .synopsis {
@@ -137,7 +139,7 @@
 .bolded-word {
   font-size: 14pt;
   font-weight: bold;
-  font-family: 'Serif';
+  font-family: 'Lato';
   margin-top: 20px;
 }
 
@@ -203,7 +205,8 @@ list.stories row:hover {
 
 .header .recommended-stories {
   font-size: 18px;
-  font-family: 'Lato';
+  font-family: 'Merriweather', regular;
+  color: #5b8291;
 }
 
 window {
