@@ -33,9 +33,14 @@ const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
 const DISCOVERY_FEED_IFACE = 'com.endlessm.DiscoveryFeed';
 const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
+const KNOWLEDGE_SEARCH_INTERFACE_NAME = 'com.endlessm.KnowledgeSearch';
+
+const SHELL_BUS_NAME = 'org.gnome.Shell';
+const SHELL_OBJECT_PATH = '/org/gnome/Shell';
+
 const KnowledgeSearchIface = '\
 <node> \
-  <interface name="com.endlessm.KnowledgeSearch"> \
+  <interface name="' + KNOWLEDGE_SEARCH_INTERFACE_NAME + '"> \
     <method name="LoadItem"> \
       <arg type="s" name="EknID" direction="in" /> \
       <arg type="s" name="Query" direction="in" /> \
@@ -46,6 +51,24 @@ const KnowledgeSearchIface = '\
       <arg type="u" name="Timestamp" direction="in" /> \
     </method> \
   </interface> \
+</node>';
+
+const AppLauncherIface = '\
+<node> \
+<interface name="org.gnome.Shell.AppLauncher"> \
+<method name="Launch"> \
+    <arg type="s" direction="in" name="name" /> \
+    <arg type="u" direction="in" name="timestamp" /> \
+</method> \
+<method name="LaunchViaDBusCall"> \
+    <arg type="s" direction="in" name="name" /> \
+    <arg type="s" direction="in" name="busName" /> \
+    <arg type="s" direction="in" name="objectPath" /> \
+    <arg type="s" direction="in" name="interfaceName" /> \
+    <arg type="s" direction="in" name="methodName" /> \
+    <arg type="v" direction="in" name="args" /> \
+</method> \
+</interface> \
 </node>';
 
 const DiscoveryFeedIface = '\
@@ -703,25 +726,100 @@ function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType) {
     });
 }
 
+// createMetaCallProxy
+//
+// Create a proxy for a DBus object with an abstracted away call mechanism
+// that passes down the information required to make DBus call to a function
+function createMetaCallProxy(interfaceMetadata, callFunc, callFuncSync) {
+    let interfaceInfo = Gio.DBusInterfaceInfo.new_for_xml(interfaceMetadata);
+    let obj = {};
+
+    interfaceInfo.methods.forEach(function(method) {
+        let signature = method.in_args.reduce(function(sig, arg) {
+            return sig + arg.signature;
+        }, '');
+        obj[method.name + 'Remote'] = function() {
+            let args = Array.prototype.slice.call(arguments);
+
+            let [callback, rest] = [
+                args[args.length - 1],
+                Array.prototype.slice.call(args, 0, args.length - 1)
+            ];
+            callFunc(method.name, rest, signature, callback);
+        };
+        obj[method.name + 'Sync'] = function() {
+            let args = Array.prototype.slice.call(arguments);
+
+            callFuncSync(method.name, args, signature);
+        };
+    });
+
+    return obj;
+}
+
+// createShellAppLauncherMetaCallProxy
+//
+// Create a proxy for a DBus object which calls methods through the shell's
+// AppLauncher interface.
+function createShellAppLauncherMetaCallProxy(interfaceMetadata,
+                                             appId,
+                                             busName,
+                                             objectPath,
+                                             interfaceName) {
+    let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(AppLauncherIface);
+    let onProxyReady = function(initable, error) {
+        if (error) {
+            logError(error,
+                     'Could not create proxy for ' + objectPath);
+            return;
+        }
+    };
+    let shellProxy = interfaceWrapper(Gio.DBus.session,
+                                      SHELL_BUS_NAME,
+                                      SHELL_OBJECT_PATH,
+                                      onProxyReady);
+
+    // Now that we have a shell proxy, create our proxy using the shell
+    // proxy to call our own proxy's app
+    let asyncCallFunc = function(method, args, signature, callback) {
+        let wrapped = new GLib.Variant('(' + signature + ')', args);
+        return shellProxy.LaunchViaDBusCallRemote(appId,
+                                                  busName,
+                                                  objectPath,
+                                                  interfaceName,
+                                                  method,
+                                                  wrapped,
+                                                  callback);
+    };
+    let syncCallFunc = function(method, args, signature) {
+        let wrapped = new GLib.Variant('(' + signature + ')', args);
+        return shellProxy.LaunchViaDBusCallSync(appId,
+                                                busName,
+                                                objectPath,
+                                                interfaceName,
+                                                method,
+                                                wrapped,
+                                                args);
+    };
+    return createMetaCallProxy(interfaceMetadata, asyncCallFunc, syncCallFunc);
+}
+
 // createSearchProxyFromObjectPath
 //
-// Using the given object path, create a KnowledgeSearchProxy from it
-// asynchronously
+// Using the given object path, create a proxy object for it asynchronously.
+//
+// Note that the created proxy object is not just a direct proxy to the app -
+// it is actually a 'meta-proxy' which makes a method call through the shell
+// so that launching the app will show a splash-screen. However, it should
+// have similar semantics to a proxy created using makeProxyWrapper - you
+// should be able to use it transparently.
 function createSearchProxyFromObjectPath(appId, objectPath) {
     if (objectPath) {
-        let onProxyReady = function(initable, error) {
-            if (error) {
-                logError(error, 'Could not create proxy for ' + objectPath);
-                return;
-            }
-            log('Created proxy for ' + objectPath);
-        };
-
-        let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(KnowledgeSearchIface);
-        return interfaceWrapper(Gio.DBus.session,
-                                appId,
-                                objectPath,
-                                onProxyReady);
+        return createShellAppLauncherMetaCallProxy(KnowledgeSearchIface,
+                                                   appId,
+                                                   appId,
+                                                   objectPath,
+                                                   KNOWLEDGE_SEARCH_INTERFACE_NAME);
     }
 
     return null;
