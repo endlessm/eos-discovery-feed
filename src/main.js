@@ -1341,7 +1341,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
-        this.today_date.label = (new Date()).toLocaleFormat('%B %e').toUpperCase();
+        this.today_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button
