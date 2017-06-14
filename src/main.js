@@ -1848,8 +1848,12 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._refreshDiscoveryFeedProxies(connection);
 
         // Make sure to update the available proxies when the
-        // app info state changes
-        this._installedAppsChangedId = Gio.AppInfoMonitor.get().connect('changed', Lang.bind(this, function() {
+        // app info state changes. Note that we need to hold
+        // on to the reference here: https://phabricator.endlessm.com/T17598
+        // otherwise the signal will be automatically disconnected, even though
+        // the Gio documentation says that this is a singleton.
+        this._appInfoMonitor = Gio.AppInfoMonitor.get();
+        this._installedAppsChangedId = this._appInfoMonitor.connect('changed', Lang.bind(this, function() {
             this._refreshDiscoveryFeedProxies(connection);
         }));
 
@@ -1858,7 +1862,7 @@ const DiscoveryFeedApplication = new Lang.Class({
 
     vfunc_dbus_unregister: function(connection, path) {
         if (this._installedAppsChangedId !== -1) {
-            Gio.AppInfoMonitor.get().disconnect(this._installedAppsChangedId);
+            this._appInfoMonitor.disconnect(this._installedAppsChangedId);
             this._installedAppsChangedId = -1;
         }
 
