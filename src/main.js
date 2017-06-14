@@ -1693,7 +1693,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
-        this._changedSignalId = 0;
+        this._changedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._discoveryFeedCardModel = new Gio.ListStore({
@@ -1727,16 +1727,16 @@ const DiscoveryFeedApplication = new Lang.Class({
         // the tray button and the sidebar has been made visible,
         // which can lead to the sidebar never been displayed.
         this._window.connect('map-event', Lang.bind(this, function() {
-            if (!this._changedSignalId) {
+            if (this._changedSignalId == -1) {
                 this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed',
                                                                           Lang.bind(this, this._onActiveWindowChanged));
             }
             return false;
         }));
         this._window.connect('unmap', Lang.bind(this, function() {
-            if (this._changedSignalId) {
+            if (this._changedSignalId != -1) {
                 Wnck.Screen.get_default().disconnect(this._changedSignalId);
-                this._changedSignalId = 0;
+                this._changedSignalId = -1;
             }
         }));
 
