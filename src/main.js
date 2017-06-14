@@ -1767,7 +1767,7 @@ const DiscoveryFeedApplication = new Lang.Class({
 
     vfunc_dbus_register: function(connection, path) {
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
-        this._dbusImpl.export(Gio.DBus.session, path);
+        this._dbusImpl.export(connection, path);
 
         this._refreshDiscoveryFeedProxies(connection);
 
