@@ -1693,6 +1693,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
+        this._installedAppsChangedId = -1;
         this._changedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
@@ -1773,11 +1774,18 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         // Make sure to update the available proxies when the
         // app info state changes
-        Gio.AppInfoMonitor.get().connect('changed', Lang.bind(this, function() {
+        this._installedAppsChangedId = Gio.AppInfoMonitor.get().connect('changed', Lang.bind(this, function() {
             this._refreshDiscoveryFeedProxies(connection);
         }));
 
         return this.parent(connection, path);
+    },
+
+    vfunc_dbus_unregister: function() {
+        if (this._installedAppsChangedId !== -1) {
+            Gio.AppInfoMonitor.get().disconnect(this._installedAppsChangedId);
+            this._installedAppsChangedId = -1;
+        }
     },
 
     vfunc_activate: function() {
