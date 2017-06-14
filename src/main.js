@@ -402,20 +402,7 @@ const DiscoveryFeedCardModel = new Lang.Class({
 
     _init: function() {
         this.parent({ item_type: DiscoveryFeedCardStore.$gtype });
-    },
-
-    insertSorted: function(elem) {
-        if (elem.type === CARD_STORE_TYPE_AVAILABLE_APPS)
-            this.append(elem)
-        else
-            this.insert(0, elem);
-    },
-
-    sort: function(callback) {
-	    for (let idx = 0; idx < this.get_n_items(); idx++) {
-            callback(this.get_item(idx), this.get_item(idx+1));
-	    }
-    },
+    }
 });
 
 const DiscoveryFeedCardStore = new Lang.Class({
@@ -554,7 +541,6 @@ const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
         this.parent(params);
     }
 });
-
 
 const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCardStore',
@@ -1498,13 +1484,13 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appendFunc) {
-    items.forEach(function(response) {
-        try {
-            response.forEach(function(entry) {
-                let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
+    return items.map(function(response) {
+        return Array.prototype.slice.call(response).map(function(entry) {
+            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
 
-                appendFunc(model, modelIndex => new DiscoveryFeedKnowledgeAppCardStore({
+            return function(modelIndex) {
+                return new DiscoveryFeedKnowledgeAppCardStore({
                     title: entry.title,
                     synopsis: TextSanitization.synopsis(entry.synopsis),
                     thumbnail: thumbnail,
@@ -1514,40 +1500,11 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, model, appen
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
                     layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
-                }));
-            });
-        } catch (e) {
-            logError(e, 'Could not parse response');
-        }
-    });
-}
-
-function appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.ArticleCardDescriptionsRemote(function(results, error) {
-        if (error) {
-            logError(error, 'Failed to execute Discovery Feed Content query');
-            return;
-        }
-        appendArticleCardsFromShardsAndItems(results[0],
-                                             results.slice(1, results.length),
-                                             proxy,
-                                             model,
-                                             appendToModel);
-    });
-}
-
-function appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetRecentNewsRemote(function(results, error) {
-        if (error) {
-            logError(error, 'Failed to execute Discovery Feed News query');
-            return;
-        }
-        appendArticleCardsFromShardsAndItems(results[0],
-                                             results.slice(1, results.length),
-                                             proxy,
-                                             model,
-                                             appendToModel);
-    });
+                });
+            };
+        });
+    })
+    .reduce((list, incoming) => list.concat(incoming), []);
 }
 
 function promisifyGIO(obj, funcName, ...args) {
@@ -1574,54 +1531,81 @@ function promisifyGIO(obj, funcName, ...args) {
     });
 }
 
-function appendDiscoveryFeedQuoteWordToModel(quoteWordProxies, model, appendToModel) {
-    quoteWordProxies.forEach((proxyBundle) => {
-        Promise.all([
-            promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
-            promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
-        ])
-        .then(([quote, word]) => {
-            appendToModel(model, () => new DiscoveryFeedWordQuotePairStore({
-                quote: new DiscoveryFeedQuoteStore({
-                    quote: TextSanitization.synopsis(quote.quote),
-                    author: quote.author
-                }),
-                word: new DiscoveryFeedWordStore({
-                    word: word.word,
-                    definition: TextSanitization.synopsis(word.definition),
-                    word_type: word.type
-                })
-            }));
+function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
+    return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
+    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
+                                                              results.slice(1, results.length),
+                                                              proxy))
+    .catch((e) => {
+        throw new Error('Getting content failed: ' + e + '\n' + e.stack);
+    });
+}
+
+function appendDiscoveryFeedNewsToModelFromProxy(proxy, model) {
+    return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
+    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
+                                                              results.slice(1, results.length),
+                                                              proxy))
+    .catch((e) => {
+        throw new Error('Getting news failed: ' + e + '\n' + e.stack);
+    });
+}
+
+function allSettledPromises(promises) {
+    // Return a Promise.all of promises that always resolve, however they
+    // resolve with tuples of error and result pairs. It is up to the
+    // consumer to deal with the errors as they come in.
+    return Promise.all(promises.map((promise) => {
+        return new Promise(function(resolve) {
+            try {
+                promise.then(result => resolve([null, result]))
+                .catch(e => resolve([e, null]));
+            } catch (e) {
+                logError(e, 'Something went wrong in allSettledPromises resolution');
+                resolve([e, null]);
+            }
         })
-        .catch(e => {
-            logError(e, 'Failed to retrieve quote/word content');
-        });
+    }));
+}
+
+function appendDiscoveryFeedQuoteWordToModel(proxyBundle) {
+    return Promise.all([
+        promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
+        promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
+    ])
+    .then(([quote, word]) =>
+        () => new DiscoveryFeedWordQuotePairStore({
+            quote: new DiscoveryFeedQuoteStore({
+                quote: TextSanitization.synopsis(quote.quote),
+                author: quote.author
+            }),
+            word: new DiscoveryFeedWordStore({
+                word: word.word,
+                definition: TextSanitization.synopsis(word.definition)
+            })
+        })
+    ).catch((e) => {
+        throw new Error('Getting word/quote models failed: ' + e + '\n' + e.stack);
     });
 }
 
 const N_APPS_TO_DISPLAY = 5;
 
-function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetInstallableAppsRemote(function(results, error) {
-        if (error) {
-            logError(error, 'Failed to execute Discovery Feed Installable Apps query');
-            return;
-        }
-        results.slice(0, N_APPS_TO_DISPLAY).forEach(function(response) {
-            try {
-                appendToModel(model, () => new DiscoveryFeedAvailableAppsStore({}, response.map(entry =>
-                    new DiscoveryFeedInstallableAppStore({
-                        app_id: entry.id.get_string()[0],
-                        title: entry.name.get_string()[0],
-                        thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
-                        icon: Gio.Icon.deserialize(entry.icon),
-                        synopsis: entry.synopsis.get_string()[0]
-                    })))
-                );
-            } catch (e) {
-                logError(e, 'Could not parse response');
-            }
-        });
+function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy) {
+    return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
+        results.map(response =>
+            () => new DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
+                new DiscoveryFeedInstallableAppStore({
+                    app_id: entry.id.get_string()[0],
+                    title: entry.name.get_string()[0],
+                    thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
+                    icon: Gio.Icon.deserialize(entry.icon),
+                    synopsis: entry.synopsis.get_string()[0]
+                })
+            ))
+        )
+    ).catch((e) => {
+        throw new Error('Getting installable apps failed: ' + e + '\n' + e.stack);
     });
 }
 
@@ -1645,35 +1629,26 @@ function parseDuration(duration) {
     return durationMinutes + ':' + withLeadingZero(durationSeconds);
 }
 
-function appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel) {
-    proxy.iface.GetVideosRemote(function(results, error) {
-        if (error) {
-            logError(error, 'Failed to execute Discovery Feed Video query');
-            return;
-        }
-
+function appendDiscoveryFeedVideoToModelFromProxy(proxy, model) {
+    return promisfyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
         let [shards, items] = [results[0], results.slice(1, results.length)];
 
-        items.forEach(function(response) {
-            try {
-                response.forEach(function(entry) {
-                    let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+        return items.map(function(response) {
+            return response.map(function(entry) {
+                let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
 
-                    appendToModel(model, () => new DiscoveryFeedKnowledgeAppVideoCardStore({
-                        title: entry.title,
-                        thumbnail: thumbnail,
-                        desktop_id: proxy.desktopId,
-                        bus_name: proxy.busName,
-                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                        knowledge_app_id: proxy.knowledgeAppId,
-                        uri: entry.ekn_id,
-                        duration: parseDuration(entry.duration)
-                    }));
+                return () => new DiscoveryFeedKnowledgeAppVideoCardStore({
+                    title: entry.title,
+                    thumbnail: thumbnail,
+                    desktop_id: proxy.desktopId,
+                    bus_name: proxy.busName,
+                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                    knowledge_app_id: proxy.knowledgeAppId,
+                    uri: entry.ekn_id,
+                    duration: parseDuration(entry.duration)
                 });
-            } catch (e) {
-                logError(e, 'Could not parse response');
-            }
-        });
+            });
+        }).reduce((a, b) => a.concat(b));
     });
 }
 
@@ -1716,52 +1691,28 @@ function zipArraysInObject(object) {
 }
 
 function populateDiscoveryFeedModelFromQueries(model, proxies) {
-    let modelIndex = 0;
     model.remove_all();
-
-    let indexInsertFuncs = {
-        '4': (modelIndex) => {
-            let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
-            model.insertSorted(new DiscoveryFeedKnowlegeArtworkCardStore({
-                title: 'Summertime',
-                author: 'Mary Cassat',
-                thumbnail: Gio.File.new_for_uri(thumbnail_uri).read(null),
-                layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
-            }));
-            modelIndex++;
-        }
-    };
-
-    let appendToModel = function(model, modelBuildForIndexFunc) {
-        // We don't necessarily want to increment modelIndex
-        // here - only if we are displaying a card where the
-        // image and content should be flipped
-        if (indexInsertFuncs[modelIndex]) {
-            indexInsertFuncs[modelIndex](modelIndex);
-        }
-
-        model.insertSorted(modelBuildForIndexFunc(modelIndex));
-        modelIndex++;
-    };
 
     let wordQuoteProxies = {
         word: [],
         quote: []
     };
 
+    let pendingPromises = [];
+
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
         case 'com.endlessm.DiscoveryFeedContent':
-            appendDiscoveryFeedContentToModelFromProxy(proxy, model, appendToModel);
+            pendingPromises.push(appendDiscoveryFeedContentToModelFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedNews':
-            appendDiscoveryFeedNewsToModelFromProxy(proxy, model, appendToModel);
+            pendingPromises.push(appendDiscoveryFeedNewsToModelFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedInstallableApps':
-            appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy, model, appendToModel);
+            pendingPromises.push(appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedVideo':
-            appendDiscoveryFeedVideoToModelFromProxy(proxy, model, appendToModel);
+            pendingPromises.push(appendDiscoveryFeedVideoToModelFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedQuote':
             wordQuoteProxies.quote.push(proxy);
@@ -1777,9 +1728,41 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     // Note that zipArraysInObject here will zip to the shortest length
     // which means that we may not execute all proxies if there was a
     // mismatch in cardinality.
-    appendDiscoveryFeedQuoteWordToModel(zipArraysInObject(wordQuoteProxies),
-                                        model,
-                                        appendToModel);
+    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWordToModel));
+
+    // Okay, now wait for all proxies to execute. allSettledPromises will
+    // return tuples of errors and "model builders" depending on whether
+    // or not an D-Bus call failed or succeeded. From there we can add
+    // the results to a model as we build it up (since we will now have
+    // the index) of the model.
+    allSettledPromises(pendingPromises)
+    .then(states => {
+        let models = states.map(([error, builders]) => {
+            if (error) {
+                logError(error, 'Query failed');
+                return null;
+            }
+
+            return builders;
+        })
+        // Remove null entries (errors)
+        .filter(r => !!r)
+        // Flat map, since we get a list list from promise
+        .reduce((a, b) => a.concat(b), [])
+        .map((builder, index) => builder(index));
+
+        // Append some hardcoded models ...
+        let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
+        models.push(new DiscoveryFeedKnowlegeArtworkCardStore({
+            title: 'Summertime',
+            author: 'Mary Cassat',
+            thumbnail: Gio.File.new_for_uri(thumbnail_uri).read(null),
+            layout_direction: models.length % 2 === 0 ?
+                              LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+        }));
+
+        models.forEach(m => model.append(m));
+    }).catch(e => logError(e, 'Query failed'));
 }
 
 const DiscoveryFeedApplication = new Lang.Class({
