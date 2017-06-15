@@ -26,6 +26,7 @@ const Wnck = imports.gi.Wnck;
 const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
+const ModelOrdering = imports.modelOrdering;
 const Stores = imports.stores;
 const TextSanitization = imports.textSanitization;
 
@@ -1185,19 +1186,23 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type) {
         return Array.prototype.slice.call(response).map(function(entry) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
 
-            return function(modelIndex) {
-                return new Stores.DiscoveryFeedKnowledgeAppCardStore({
-                    title: entry.title,
-                    synopsis: TextSanitization.synopsis(entry.synopsis),
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST,
-                    type: type
-                });
+            return {
+                type: type,
+                source: proxy.desktopId,
+                builder: function(modelIndex) {
+                    return new Stores.DiscoveryFeedKnowledgeAppCardStore({
+                        title: entry.title,
+                        synopsis: TextSanitization.synopsis(entry.synopsis),
+                        thumbnail: thumbnail,
+                        desktop_id: proxy.desktopId,
+                        bus_name: proxy.busName,
+                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                        knowledge_app_id: proxy.knowledgeAppId,
+                        uri: entry.ekn_id,
+                        layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST,
+                        type: type
+                    });
+                }
             };
         });
     })
@@ -1255,8 +1260,10 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
         promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
         promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
     ])
-    .then(([quote, word]) =>
-        () => new Stores.DiscoveryFeedWordQuotePairStore({
+    .then(([quote, word]) => ({
+        type: Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD,
+        source: 'word-quote',
+        builder: () => new Stores.DiscoveryFeedWordQuotePairStore({
             quote: new Stores.DiscoveryFeedQuoteStore({
                 quote: TextSanitization.synopsis(quote.quote),
                 author: quote.author
@@ -1266,7 +1273,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
                 definition: TextSanitization.synopsis(word.definition)
             })
         })
-    ).catch((e) => {
+    })).catch((e) => {
         throw new Error('Getting word/quote models failed: ' + e + '\n' + e.stack);
     });
 }
@@ -1275,8 +1282,10 @@ const N_APPS_TO_DISPLAY = 5;
 
 function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
-        results.map(response =>
-            () => new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
+        results.map(response => ({
+            type: Stores.CARD_STORE_TYPE_AVAILABLE_APPS,
+            source: proxy.desktopId,
+            builder: () => new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
                     app_id: entry.id.get_string()[0],
                     title: entry.name.get_string()[0],
@@ -1285,7 +1294,7 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
                     synopsis: entry.synopsis.get_string()[0]
                 })
             ))
-        )
+        }))
     ).catch((e) => {
         throw new Error('Getting installable apps failed: ' + e + '\n' + e.stack);
     });
@@ -1319,15 +1328,19 @@ function appendDiscoveryFeedVideoFromProxy(proxy) {
             return response.map(function(entry) {
                 let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
 
-                return () => new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
-                    title: entry.title,
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    duration: parseDuration(entry.duration)
+                return ({
+                    type: Stores.CARD_STORE_TYPE_VIDEO_CARD,
+                    source: proxy.desktopId,
+                    builder: () => new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
+                        title: entry.title,
+                        thumbnail: thumbnail,
+                        desktop_id: proxy.desktopId,
+                        bus_name: proxy.busName,
+                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                        knowledge_app_id: proxy.knowledgeAppId,
+                        uri: entry.ekn_id,
+                        duration: parseDuration(entry.duration)
+                    })
                 });
             });
         }).reduce((a, b) => a.concat(b));
@@ -1431,12 +1444,21 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
         // Remove null entries (errors)
         .filter(r => !!r)
         // Flat map, since we get a list list from promise
-        .reduce((a, b) => a.concat(b), [])
-        .map((builder, index) => builder(index));
+        .reduce((a, b) => a.concat(b), []);
 
-        models.forEach((m) => {
-            model.append(m);
-            if (m.type !== CARD_STORE_TYPE_AVAILABLE_APPS) {
+        let layoutIndex = 0;
+        ModelOrdering.arrange(models).forEach(descriptor => {
+            model.append(descriptor.builder(layoutIndex));
+
+            // Only increment layout determinant index where we should
+            // do so. For instance on the word quote card we want to keep
+            // it as is so that we still get left-right layout.
+            if (descriptor.type !== Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD)
+                ++layoutIndex;
+
+            // If we show a card that is not the available apps card,
+            // we'll want to show the 'recommended content' text now.
+            if (descriptor.type !== Stores.CARD_STORE_TYPE_AVAILABLE_APPS) {
                 recommended.show();
             }
         });
