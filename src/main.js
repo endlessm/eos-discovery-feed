@@ -26,6 +26,7 @@ const Wnck = imports.gi.Wnck;
 const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
+const Stores = imports.stores;
 const TextSanitization = imports.textSanitization;
 
 const DISCOVERY_FEED_PATH = '/com/endlessm/DiscoveryFeed';
@@ -389,317 +390,6 @@ function recordMetricsEvent(eventId, payload) {
     EosMetrics.EventRecorder.get_default().record_event(eventId, payload);
 }
 
-const CARD_STORE_TYPE_ARTICLE_CARD = 0;
-const CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
-const CARD_STORE_TYPE_ARTWORK_CARD = 2;
-const CARD_STORE_TYPE_AVAILABLE_APPS = 3;
-const CARD_STORE_TYPE_VIDEO_CARD = 4;
-const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_VIDEO_CARD;
-
-const DiscoveryFeedCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedCardStore',
-    Extends: GObject.Object,
-    Properties: {
-        'type': GObject.ParamSpec.int('type',
-                                      '',
-                                      '',
-                                      GObject.ParamFlags.READWRITE |
-                                      GObject.ParamFlags.CONSTRUCT_ONLY,
-                                      CARD_STORE_TYPE_ARTICLE_CARD,
-                                      CARD_STORE_TYPE_MAX,
-                                      CARD_STORE_TYPE_ARTICLE_CARD)
-    }
-});
-
-const DiscoveryFeedAppCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedAppCardStore',
-    Extends: DiscoveryFeedCardStore,
-    Properties: {
-        'desktop-id': GObject.ParamSpec.string('desktop-id',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               '')
-    }
-});
-
-const DiscoveryFeedWordStore = new Lang.Class({
-    Name: 'DiscoveryFeedWordStore',
-    Extends: GObject.Object,
-    Properties: {
-        'word': GObject.ParamSpec.string('word',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         ''),
-        'word-type': GObject.ParamSpec.string('word-type',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              ''),
-        'definition': GObject.ParamSpec.string('definition',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               '')
-    }
-});
-
-const DiscoveryFeedQuoteStore = new Lang.Class({
-    Name: 'DiscoveryFeedQuoteStore',
-    Extends: GObject.Object,
-    Properties: {
-        'quote': GObject.ParamSpec.string('quote',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
-        'author': GObject.ParamSpec.string('author',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           '')
-    }
-});
-
-const DiscoveryFeedWordQuotePairStore = new Lang.Class({
-    Name: 'DiscoveryFeedQuotePairStore',
-    Extends: DiscoveryFeedCardStore,
-    Properties: {
-        'quote': GObject.ParamSpec.object('quote',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          DiscoveryFeedQuoteStore.$gtype),
-        'word': GObject.ParamSpec.object('word',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         DiscoveryFeedWordStore.$gtype)
-    },
-
-    _init: function(params) {
-        params.type = CARD_STORE_TYPE_WORD_QUOTE_CARD;
-        this.parent(params);
-    }
-});
-
-const LAYOUT_DIRECTION_IMAGE_FIRST = 0;
-const LAYOUT_DIRECTION_IMAGE_LAST = 1;
-
-const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowlegeArtworkCardStore',
-    Extends: DiscoveryFeedCardStore,
-    Properties: {
-        'title': GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
-        'author': GObject.ParamSpec.string('author',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
-        'thumbnail': GObject.ParamSpec.object('thumbnail',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Gio.InputStream),
-        'layout-direction': GObject.ParamSpec.int('layout-direction',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                  LAYOUT_DIRECTION_IMAGE_LAST,
-                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
-    },
-
-    _init: function(params) {
-        params.type = CARD_STORE_TYPE_ARTWORK_CARD;
-        this.parent(params);
-    }
-});
-
-const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeAppCardStore',
-    Extends: DiscoveryFeedAppCardStore,
-    Properties: {
-        'title': GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
-        'uri': GObject.ParamSpec.string('uri',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        ''),
-        'synopsis': GObject.ParamSpec.string('synopsis',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             ''),
-        'thumbnail': GObject.ParamSpec.object('thumbnail',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Gio.InputStream),
-        'bus-name': GObject.ParamSpec.string('bus-name',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             ''),
-        'knowledge-search-object-path': GObject.ParamSpec.string('knowledge-search-object-path',
-                                                                 '',
-                                                                 '',
-                                                                 GObject.ParamFlags.READWRITE |
-                                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                                 ''),
-        'knowledge-app-id': GObject.ParamSpec.string('knowledge-app-id',
-                                                     '',
-                                                     '',
-                                                     GObject.ParamFlags.READWRITE |
-                                                     GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                     ''),
-        'layout-direction': GObject.ParamSpec.int('layout-direction',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                  LAYOUT_DIRECTION_IMAGE_LAST,
-                                                  LAYOUT_DIRECTION_IMAGE_FIRST)
-    },
-
-    _init: function(params) {
-        params.type = params.type || CARD_STORE_TYPE_ARTICLE_CARD;
-        this.parent(params);
-    }
-});
-
-const DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeAppVideoCardStore',
-    Extends: DiscoveryFeedKnowledgeAppCardStore,
-    Properties: {
-        'duration': GObject.ParamSpec.string('duration',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             '')
-    },
-
-    _init: function(params) {
-        params.type = CARD_STORE_TYPE_VIDEO_CARD;
-        this.parent(params);
-    }
-});
-
-const DiscoveryFeedAvailableAppsStore = new Lang.Class({
-    Name: 'DiscoveryFeedAvailableAppsStore',
-    Extends: DiscoveryFeedCardStore,
-
-    _init: function(params, apps) {
-        params.type = CARD_STORE_TYPE_AVAILABLE_APPS;
-        this.parent(params);
-        this.apps = apps;
-    }
-});
-
-const DISCOVERY_FEED_APP_TYPE_BASIC = 0;
-const DISCOVERY_FEED_APP_TYPE_DETAILED = 1;
-const DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK = 2;
-const DISCOVERY_FEED_APP_TYPE_MAX = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
-
-
-const DiscoveryFeedAppStore = new Lang.Class({
-    Name: 'DiscoveryFeedAppStore',
-    Extends: GObject.Object,
-    Properties: {
-        app_id: GObject.ParamSpec.string('app_id',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.CONSTRUCT_ONLY |
-                                         GObject.ParamFlags.READWRITE,
-                                         ''),
-        title: GObject.ParamSpec.string('title',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.CONSTRUCT_ONLY |
-                                        GObject.ParamFlags.READWRITE,
-                                        ''),
-        thumbnail_data: GObject.ParamSpec.object('thumbnail-data',
-                                                 '',
-                                                 '',
-                                                 GObject.ParamFlags.READWRITE |
-                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                 Gio.InputStream),
-        type: GObject.ParamSpec.int('type',
-                                    '',
-                                    '',
-                                    GObject.ParamFlags.READWRITE |
-                                    GObject.ParamFlags.CONSTRUCT_ONLY,
-                                    DISCOVERY_FEED_APP_TYPE_BASIC,
-                                    DISCOVERY_FEED_APP_TYPE_MAX,
-                                    DISCOVERY_FEED_APP_TYPE_BASIC)
-    }
-});
-
-const DiscoveryFeedAppStoreLinkStore = new Lang.Class({
-    Name: 'DiscoveryFeedAppStoreLinkStore',
-    Extends: DiscoveryFeedAppStore,
-
-    _init: function(params) {
-        let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/explore.png';
-        params.title = _('Explore the App Center'),
-        params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null),
-        params.app_id = 'org.gnome.Software',
-        params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
-        this.parent(params);
-    }
-});
-
-const DiscoveryFeedInstallableAppStore = new Lang.Class({
-    Name: 'DiscoveryFeedInstallableAppStore',
-    Extends: DiscoveryFeedAppStore,
-    Properties: {
-        'synopsis': GObject.ParamSpec.string('synopsis',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.CONSTRUCT_ONLY |
-                                             GObject.ParamFlags.READWRITE,
-                                             ''),
-        'icon': GObject.ParamSpec.object('icon',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          Gio.Icon)
-    },
-
-    _init: function(params) {
-        params.type = DISCOVERY_FEED_APP_TYPE_DETAILED;
-        this.parent(params);
-    }
-});
 
 // loadKnowledgeAppContent
 //
@@ -999,9 +689,9 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                LAYOUT_DIRECTION_IMAGE_LAST,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST)
+                                                Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                Stores.LAYOUT_DIRECTION_IMAGE_LAST,
+                                                Stores.LAYOUT_DIRECTION_IMAGE_FIRST)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card-layout.ui',
 
@@ -1011,7 +701,7 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
         this.add(this.description);
         // If this is an odd card, adjust the packing order of all widgets
         // in the box
-        if (this.layout_direction == LAYOUT_DIRECTION_IMAGE_FIRST) {
+        if (this.layout_direction == Stores.LAYOUT_DIRECTION_IMAGE_FIRST) {
             this.get_children().forEach(Lang.bind(this, function(child) {
                 this.child_set_property(child,
                                         'pack-type',
@@ -1079,7 +769,7 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
+                                        Stores.DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -1119,7 +809,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedKnowledgeAppCardStore.$gtype)
+                                        Stores.DiscoveryFeedKnowledgeAppCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -1163,7 +853,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+                                        Stores.DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -1200,7 +890,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedWordQuotePairStore.$gtype)
+                                        Stores.DiscoveryFeedWordQuotePairStore.$gtype)
     },
     Children: [
         'word',
@@ -1235,7 +925,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedInstallableAppStore.$gtype)
+                                        Stores.DiscoveryFeedInstallableAppStore.$gtype)
     },
 
     _init: function(params) {
@@ -1283,7 +973,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedAppStoreLinkStore.$gtype)
+                                        Stores.DiscoveryFeedAppStoreLinkStore.$gtype)
     },
 
     _init: function(params) {
@@ -1321,7 +1011,7 @@ const DiscoveryFeedAvailableAppsCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        DiscoveryFeedAvailableAppsStore.$gtype)
+                                        Stores.DiscoveryFeedAvailableAppsStore.$gtype)
     },
 
     _init: function(params) {
@@ -1332,7 +1022,7 @@ const DiscoveryFeedAvailableAppsCard = new Lang.Class({
             }));
         }));
         this.flow_box.add(new DiscoveryFeedAppStoreLinkCard({
-            model: new DiscoveryFeedAppStoreLinkStore({})
+            model: new Stores.DiscoveryFeedAppStoreLinkStore({})
         }));
     }
 });
@@ -1359,15 +1049,17 @@ const DiscoveryFeedListItem = new Lang.Class({
 function contentViewFromType(type, store) {
     let params = { model: store };
     switch (type) {
-    case CARD_STORE_TYPE_ARTICLE_CARD:
+    case Stores.CARD_STORE_TYPE_ARTICLE_CARD:
         return new DiscoveryFeedKnowledgeAppCard(params);
-    case CARD_STORE_TYPE_WORD_QUOTE_CARD:
+    case Stores.CARD_STORE_TYPE_NEWS_CARD:
+        return new DiscoveryFeedKnowledgeAppCard(params);
+    case Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD:
         return new DiscoveryFeedWordQuotePair(params);
-    case CARD_STORE_TYPE_ARTWORK_CARD:
+    case Stores.CARD_STORE_TYPE_ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
-    case CARD_STORE_TYPE_AVAILABLE_APPS:
+    case Stores.CARD_STORE_TYPE_AVAILABLE_APPS:
         return new DiscoveryFeedAvailableAppsCard(params);
-    case CARD_STORE_TYPE_VIDEO_CARD:
+    case Stores.CARD_STORE_TYPE_VIDEO_CARD:
         return new DiscoveryFeedKnowledgeVideoCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
@@ -1476,7 +1168,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
 
             return function(modelIndex) {
-                return new DiscoveryFeedKnowledgeAppCardStore({
+                return new Stores.DiscoveryFeedKnowledgeAppCardStore({
                     title: entry.title,
                     synopsis: TextSanitization.synopsis(entry.synopsis),
                     thumbnail: thumbnail,
@@ -1485,7 +1177,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
                     knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
-                    layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                    layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST
                 });
             };
         });
@@ -1560,12 +1252,12 @@ function appendDiscoveryFeedQuoteWordToModel(proxyBundle) {
         promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
     ])
     .then(([quote, word]) =>
-        () => new DiscoveryFeedWordQuotePairStore({
-            quote: new DiscoveryFeedQuoteStore({
+        () => new Stores.DiscoveryFeedWordQuotePairStore({
+            quote: new Stores.DiscoveryFeedQuoteStore({
                 quote: TextSanitization.synopsis(quote.quote),
                 author: quote.author
             }),
-            word: new DiscoveryFeedWordStore({
+            word: new Stores.DiscoveryFeedWordStore({
                 word: word.word,
                 definition: TextSanitization.synopsis(word.definition)
             })
@@ -1580,8 +1272,8 @@ const N_APPS_TO_DISPLAY = 5;
 function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
         results.map(response =>
-            () => new DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
-                new DiscoveryFeedInstallableAppStore({
+            () => new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
+                new Stores.DiscoveryFeedInstallableAppStore({
                     app_id: entry.id.get_string()[0],
                     title: entry.name.get_string()[0],
                     thumbnail_data: Gio.File.new_for_path(entry.thumbnail_uri.get_string()[0]).read(null),
@@ -1623,7 +1315,7 @@ function appendDiscoveryFeedVideoToModelFromProxy(proxy, model) {
             return response.map(function(entry) {
                 let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
 
-                return () => new DiscoveryFeedKnowledgeAppVideoCardStore({
+                return () => new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
                     title: entry.title,
                     thumbnail: thumbnail,
                     desktop_id: proxy.desktopId,
@@ -1754,7 +1446,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._discoveryFeedCardModel = new Gio.ListStore({
-            item_type: DiscoveryFeedCardStore.$gtype
+            item_type: Stores.DiscoveryFeedCardStore.$gtype
         });
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
     },
