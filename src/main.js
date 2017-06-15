@@ -1821,9 +1821,9 @@ const DiscoveryFeedApplication = new Lang.Class({
     // Using connection, refresh discovery feed proxies
     _refreshDiscoveryFeedProxies: function(connection) {
         // Remove all proxies and start over
-        this._discoveryFeedProxies = [];
         let providers = readDiscoveryFeedProvidersInDataDirectories();
         let onProxiesInstantiated = Lang.bind(this, function(proxies) {
+            this._discoveryFeedProxies = [];
             Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
             populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
                                                   this._discoveryFeedProxies);
