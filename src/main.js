@@ -405,6 +405,12 @@ const DiscoveryFeedCardModel = new Lang.Class({
     }
 });
 
+const DEFAULT_WEIGHT = 10;
+const DISCOVERY_FEED_CONTENT_WEIGHT = 5;
+const DISCOVERY_FEED_NEWS_WEIGHT = 1;
+const DISCOVERY_FEED_WORD_QUOTE_PAIR_WEIGHT = 2;
+const DISCOVERY_FEED_INSTALLABLE_APPS_WEIGHT = 10;
+
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
     Extends: GObject.Object,
@@ -416,7 +422,15 @@ const DiscoveryFeedCardStore = new Lang.Class({
                                       GObject.ParamFlags.CONSTRUCT_ONLY,
                                       CARD_STORE_TYPE_ARTICLE_CARD,
                                       CARD_STORE_TYPE_MAX,
-                                      CARD_STORE_TYPE_ARTICLE_CARD)
+                                      CARD_STORE_TYPE_ARTICLE_CARD),
+        'weight': GObject.ParamSpec.int('weight',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        0,
+                                        GLib.MAXINT32,
+                                        DEFAULT_WEIGHT)
     }
 });
 
@@ -497,6 +511,7 @@ const DiscoveryFeedWordQuotePairStore = new Lang.Class({
 
     _init: function(params) {
         params.type = CARD_STORE_TYPE_WORD_QUOTE_CARD;
+        params.weight = DISCOVERY_FEED_WORD_QUOTE_PAIR_WEIGHT;
         this.parent(params);
     }
 });
@@ -538,6 +553,7 @@ const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
 
     _init: function(params) {
         params.type = CARD_STORE_TYPE_ARTWORK_CARD;
+        params.weight = DISCOVERY_FEED_CONTENT_WEIGHT;
         this.parent(params);
     }
 });
@@ -600,6 +616,7 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
 
     _init: function(params) {
         params.type = params.type || CARD_STORE_TYPE_ARTICLE_CARD;
+        params.weight = params.weight || DISCOVERY_FEED_CONTENT_WEIGHT;
         this.parent(params);
     }
 });
@@ -628,6 +645,7 @@ const DiscoveryFeedAvailableAppsStore = new Lang.Class({
 
     _init: function(params, apps) {
         params.type = CARD_STORE_TYPE_AVAILABLE_APPS;
+        params.weight = DISCOVERY_FEED_INSTALLABLE_APPS_WEIGHT;
         this.parent(params);
         this.apps = apps;
     }
@@ -1484,7 +1502,7 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
+function appendArticleCardsFromShardsAndItems(shards, items, proxy, weight) {
     return items.map(function(response) {
         return Array.prototype.slice.call(response).map(function(entry) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
@@ -1499,7 +1517,8 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
                     knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
-                    layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
+                    layout_direction: modelIndex % 2 === 0 ? LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST,
+                    weight: weight || DISCOVERY_FEED_CONTENT_WEIGHT
                 });
             };
         });
@@ -1535,7 +1554,8 @@ function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
     return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
-                                                              proxy))
+                                                              proxy,
+                                                              DISCOVERY_FEED_CONTENT_WEIGHT))
     .catch((e) => {
         throw new Error('Getting content failed: ' + e + '\n' + e.stack);
     });
@@ -1545,7 +1565,8 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model) {
     return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
-                                                              proxy))
+                                                              proxy,
+                                                              DISCOVERY_FEED_NEWS_WEIGHT))
     .catch((e) => {
         throw new Error('Getting news failed: ' + e + '\n' + e.stack);
     });
@@ -1582,7 +1603,8 @@ function appendDiscoveryFeedQuoteWordToModel(proxyBundle) {
             word: new DiscoveryFeedWordStore({
                 word: word.word,
                 definition: TextSanitization.synopsis(word.definition)
-            })
+            }),
+            weight: DISCOVERY_FEED_WORD_QUOTE_PAIR_WEIGHT
         })
     ).catch((e) => {
         throw new Error('Getting word/quote models failed: ' + e + '\n' + e.stack);
@@ -1761,7 +1783,10 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
                               LAYOUT_DIRECTION_IMAGE_FIRST : LAYOUT_DIRECTION_IMAGE_LAST
         }));
 
-        models.forEach(m => model.append(m));
+        // Finally have our models! Now we can sort them
+        models.sort((a, b) => a.weight > b.weight).forEach((m) => {
+            model.append(m);
+        });
     }).catch(e => logError(e, 'Query failed'));
 }
 
