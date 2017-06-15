@@ -1571,7 +1571,7 @@ function allSettledPromises(promises) {
                 logError(e, 'Something went wrong in allSettledPromises resolution');
                 resolve([e, null]);
             }
-        })
+        });
     }));
 }
 
