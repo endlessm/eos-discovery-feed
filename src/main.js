@@ -1162,7 +1162,7 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
+function appendArticleCardsFromShardsAndItems(shards, items, proxy, type) {
     return items.map(function(response) {
         return Array.prototype.slice.call(response).map(function(entry) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
@@ -1177,7 +1177,8 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy) {
                     knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
-                    layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST
+                    layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST,
+                    type: type
                 });
             };
         });
@@ -1213,7 +1214,8 @@ function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
     return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
-                                                              proxy))
+                                                              proxy,
+                                                              Stores.CARD_STORE_TYPE_ARTICLE_CARD))
     .catch((e) => {
         throw new Error('Getting content failed: ' + e + '\n' + e.stack);
     });
@@ -1223,7 +1225,8 @@ function appendDiscoveryFeedNewsToModelFromProxy(proxy, model) {
     return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
-                                                              proxy))
+                                                              proxy,
+                                                              Stores.CARD_STORE_TYPE_NEWS_CARD))
     .catch((e) => {
         throw new Error('Getting news failed: ' + e + '\n' + e.stack);
     });
