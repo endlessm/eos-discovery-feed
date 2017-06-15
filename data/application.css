@@ -212,6 +212,35 @@ list.stories row:hover {
   color: #12272D;
 }
 
+scrollbar {
+  background-color: transparent;
+  border-width: 0px;
+  min-width: 8px;
+}
+
+scrollbar contents trough slider {
+  min-width: 8px;
+  margin-right: 8px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  padding: 7px 8px 0 0;
+
+  color: #444444;
+  box-shadow: none;
+}
+
+.close-button:hover {
+  color: #888888;
+}
+
+.close-button:active,
+.close-button:hover:active {
+  color: #444444;
+}
+
 window {
   background-color: alpha(#F6F6F6, 0.9);
 }
