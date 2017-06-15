@@ -1843,8 +1843,7 @@ const DiscoveryFeedApplication = new Lang.Class({
     vfunc_dbus_register: function(connection, path) {
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
         this._dbusImpl.export(connection, path);
-
-        this._refreshDiscoveryFeedProxies(connection);
+        this._providersRequireRefresh = true;
 
         // Make sure to update the available proxies when the
         // app info state changes. Note that we need to hold
@@ -1853,7 +1852,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         // the Gio documentation says that this is a singleton.
         this._appInfoMonitor = Gio.AppInfoMonitor.get();
         this._installedAppsChangedId = this._appInfoMonitor.connect('changed', Lang.bind(this, function() {
-            this._refreshDiscoveryFeedProxies(connection);
+            this._providersRequireRefresh = true;
         }));
 
         return this.parent(connection, path);
@@ -1881,8 +1880,17 @@ const DiscoveryFeedApplication = new Lang.Class({
             opened_by: 'shell_button',
             language: GLib.get_language_names()[0]
         }));
-        populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
-                                              this._discoveryFeedProxies);
+
+        let chain = Promise.resolve(this._discoveryFeedProxies);
+        if (this._providersRequireRefresh) {
+            chain = this._refreshDiscoveryFeedProxies(this.get_dbus_connection());
+            this._providersRequireRefresh = false;
+        }
+
+        chain.then(Lang.bind(this, function(proxies) {
+            populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
+                                                  proxies);
+        }));
     },
 
     hide: function() {
