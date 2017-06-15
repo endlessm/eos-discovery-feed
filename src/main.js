@@ -26,6 +26,7 @@ const Wnck = imports.gi.Wnck;
 const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
+const ModelOrdering = imports.modelOrdering;
 const Stores = imports.stores;
 const TextSanitization = imports.textSanitization;
 
@@ -1432,7 +1433,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         .reduce((a, b) => a.concat(b), [])
         .map((builder, index) => builder(index));
 
-        models.forEach(m => model.append(m));
+        ModelOrdering.arrange(models).forEach(m => model.append(m));
     }).catch(e => logError(e, 'Query failed'));
 }
 
