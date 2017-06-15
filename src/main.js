@@ -1210,7 +1210,7 @@ function promisifyGIO(obj, funcName, ...args) {
     });
 }
 
-function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
+function appendDiscoveryFeedContentToModelFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
@@ -1221,7 +1221,7 @@ function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
     });
 }
 
-function appendDiscoveryFeedNewsToModelFromProxy(proxy, model) {
+function appendDiscoveryFeedNewsToModelFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
@@ -1245,7 +1245,7 @@ function allSettledPromises(promises) {
                 logError(e, 'Something went wrong in allSettledPromises resolution');
                 resolve([e, null]);
             }
-        })
+        });
     }));
 }
 
@@ -1310,8 +1310,8 @@ function parseDuration(duration) {
     return durationMinutes + ':' + withLeadingZero(durationSeconds);
 }
 
-function appendDiscoveryFeedVideoToModelFromProxy(proxy, model) {
-    return promisfyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
+function appendDiscoveryFeedVideoToModelFromProxy(proxy) {
+    return promisifyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
         let [shards, items] = [results[0], results.slice(1, results.length)];
 
         return items.map(function(response) {
