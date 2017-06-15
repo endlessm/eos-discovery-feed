@@ -1638,7 +1638,7 @@ function parseDuration(duration) {
 }
 
 function appendDiscoveryFeedVideoFromProxy(proxy) {
-    return promisfyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
+    return promisifyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
         let [shards, items] = [results[0], results.slice(1, results.length)];
 
         return items.map(function(response) {
