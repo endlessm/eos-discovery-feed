@@ -310,36 +310,50 @@ function readDiscoveryFeedProvidersInDataDirectories() {
     }, []);
 }
 
+function allSettledPromises(promises) {
+    // Return a Promise.all of promises that always resolve, however they
+    // resolve with tuples of error and result pairs. It is up to the
+    // consumer to deal with the errors as they come in.
+    return Promise.all(promises.map((promise) => {
+        return new Promise(function(resolve) {
+            try {
+                promise.then(result => resolve([null, result]))
+                .catch(e => resolve([e, null]));
+            } catch (e) {
+                logError(e, 'Something went wrong in allSettledPromises resolution');
+                resolve([e, null]);
+            }
+        });
+    }));
+}
+
+
+// Gio.js does things the wrong way around which trips up promisifyGIO,
+// so re-curry the arguments so that they make sense.
+function makeCorrectlyOrderedProxyWrapper(iface) {
+    let wrapper = Gio.DBusProxy.makeProxyWrapper(iface);
+    return function(bus, name, object, cancellable, asyncCallback) {
+        return wrapper(bus,
+                       name,
+                       object,
+                       asyncCallback,
+                       cancellable);
+    };
+}
+
 function instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                      providers,
-                                                      done) {
+                                                      providers) {
     let interfaceWrappers = {
-        'com.endlessm.DiscoveryFeedContent': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedNews': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedNewsIface),
-        'com.endlessm.DiscoveryFeedInstallableApps': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedInstallableAppsIface),
-        'com.endlessm.DiscoveryFeedVideo': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedVideoIface),
-        'com.endlessm.DiscoveryFeedQuote': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedQuoteIface),
-        'com.endlessm.DiscoveryFeedWord': Gio.DBusProxy.makeProxyWrapper(DiscoveryFeedWordIface)
+        'com.endlessm.DiscoveryFeedContent': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedContentIface),
+        'com.endlessm.DiscoveryFeedNews': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedNewsIface),
+        'com.endlessm.DiscoveryFeedInstallableApps': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedInstallableAppsIface),
+        'com.endlessm.DiscoveryFeedVideo': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedVideoIface),
+        'com.endlessm.DiscoveryFeedQuote': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedQuoteIface),
+        'com.endlessm.DiscoveryFeedWord': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedWordIface)
     };
 
-    let onProxyReady = function(initable, error, objectPath, name, interfaceName) {
-        remaining--;
-
-        if (error) {
-            logError(error, 'Could not create proxy for ' + interfaceName +
-                            ' at ' + objectPath + ' on bus name ' + name);
-            return;
-        }
-
-        log('Created Discovery Feed proxy for ' + objectPath);
-
-        if (remaining < 1) {
-            done(proxies);
-        }
-    };
-
-    // Map to proxies and then flat map
-    let proxies = providers.map(provider =>
+    // Map to promises and then flat map promises
+    return allSettledPromises(providers.map(provider =>
         provider.interfaces.filter(interfaceName => {
             if (Object.keys(interfaceWrappers).indexOf(interfaceName) === -1) {
                 log('Filtering out unrecognised interface ' + interfaceName);
@@ -348,28 +362,28 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
 
             return true;
         })
-        .map(interfaceName => ({
-            iface: interfaceWrappers[interfaceName](connection,
-                                                    provider.name,
-                                                    provider.path,
-                                                    Lang.bind(this,
-                                                              onProxyReady,
-                                                              provider.path,
-                                                              provider.name,
-                                                              interfaceName),
-                                                    null),
-            interfaceName: interfaceName,
-            desktopId: provider.desktopFileId,
-            busName: provider.name,
-            knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
-            knowledgeAppId: provider.knowledgeAppId
-        }))
-    ).reduce((list, incoming) => list.concat(incoming), []);
-
-    // Update remaining based on flatMap. We're fine to do this here
-    // since the asynchronous functions don't start running until we've
-    // left this function
-    let remaining = proxies.length;
+        .map((interfaceName) =>
+            promisifyGIO(interfaceWrappers,
+                         interfaceName,
+                         connection,
+                         provider.name,
+                         provider.path,
+                         null)
+            .then(([proxy]) => ({
+                iface: proxy,
+                interfaceName: interfaceName,
+                desktopId: provider.desktopFileId,
+                busName: provider.name,
+                knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
+                knowledgeAppId: provider.knowledgeAppId
+            }))
+            .catch((e) => {
+                throw new Error('Initializing proxy for ' + interfaceName +
+                                ' at ' + provider.path + ' on bus name ' + provider.name +
+                                ' failed: ' + String(e) + ', stack:\n' + String(e.stack));
+            })
+        )
+    ).reduce((list, incoming) => list.concat(incoming), []));
 }
 
 
@@ -1561,23 +1575,6 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
     });
 }
 
-function allSettledPromises(promises) {
-    // Return a Promise.all of promises that always resolve, however they
-    // resolve with tuples of error and result pairs. It is up to the
-    // consumer to deal with the errors as they come in.
-    return Promise.all(promises.map((promise) => {
-        return new Promise(function(resolve) {
-            try {
-                promise.then(result => resolve([null, result]))
-                .catch(e => resolve([e, null]));
-            } catch (e) {
-                logError(e, 'Something went wrong in allSettledPromises resolution');
-                resolve([e, null]);
-            }
-        });
-    }));
-}
-
 function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
     return Promise.all([
         promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
@@ -1821,19 +1818,26 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._updateGeometry();
     },
 
-    // Using connection, refresh discovery feed proxies
+    // Using connection, refresh discovery feed proxies. Returns a promise
+    // that resolves when refresh operation is complete. Note that this
+    // does not re-query the proxies. That is the responsibility of the
+    // caller. For convenience, the promise resolves with proxies.
     _refreshDiscoveryFeedProxies: function(connection) {
         // Remove all proxies and start over
         let providers = readDiscoveryFeedProvidersInDataDirectories();
-        let onProxiesInstantiated = Lang.bind(this, function(proxies) {
-            this._discoveryFeedProxies = [];
-            Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
-            populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
-                                                  this._discoveryFeedProxies);
-        });
-        instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                     providers,
-                                                     onProxiesInstantiated);
+        return instantiateObjectsFromDiscoveryFeedProviders(connection,
+                                                            providers)
+        .then(Lang.bind(this, function(promises) {
+            this._discoveryFeedProxies = promises.map(([error, proxy]) => {
+                if (error) {
+                    logError(error, 'Could not create proxy');
+                    return null;
+                }
+
+                return proxy;
+            }).filter(proxy => proxy);
+            return this._discoveryFeedProxies;
+        }));
     },
 
     vfunc_dbus_register: function(connection, path) {
