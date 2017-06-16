@@ -16,5 +16,7 @@
     <file>application.css</file>
     <file>img/summertime-1894.jpg</file>
     <file>img/explore.png</file>
+    <file>img/play_button-normal.png</file>
+    <file>img/play_button-hover.png</file>
   </gresource>
 </gresources>
