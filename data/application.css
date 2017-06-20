@@ -38,7 +38,8 @@
 .small-header {
   font-size: 9pt;
   font-weight: bold;
-  color: #5b8291;
+  letter-spacing: 1px;
+  color: #2E6C7F;
 }
 
 .underline {
@@ -164,7 +165,8 @@ list.stories .content {
 list.stories .button {
   padding: 0px;
   background-image: none;
-  border-radius: 0px;
+  border-width: 0px;
+  background-color: alpha(white, 0.6);
   box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
   margin: 12.5px 10px 12.5px 10px;
 }
@@ -204,15 +206,45 @@ list.stories row:hover {
   font-size: 64px;
   font-family: 'Alegreya Sans SC', sans-serif;
   letter-spacing: 6px;
-  color: #5b8291;
+  color: #2E6C7F;
 }
 
 .header .recommended-stories {
-  font-size: 18px;
-  font-family: 'Merriweather', regular;
-  color: #5b8291;
+  font-size: 16px;
+  font-family: 'Lato';
+  letter-spacing: 3px;
+  color: #12272D;
+}
+
+scrollbar {
+  background-color: transparent;
+  border-width: 0px;
+  min-width: 8px;
+}
+
+scrollbar contents trough slider {
+  min-width: 8px;
+  margin-right: 8px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  padding: 7px 8px 0 0;
+
+  color: #444444;
+  box-shadow: none;
+}
+
+.close-button:hover {
+  color: #888888;
+}
+
+.close-button:active,
+.close-button:hover:active {
+  color: #444444;
 }
 
 window {
-  background-color: alpha(white, 0.9);
+  background-color: alpha(#F6F6F6, 0.9);
 }

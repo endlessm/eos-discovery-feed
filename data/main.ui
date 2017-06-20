@@ -22,7 +22,7 @@
                 <property name="halign">end</property>
                 <property name="hexpand">True</property>
                 <style>
-                  <class name="flat"/>
+                  <class name="close-button"/>
                 </style>
                 <child>
                   <object class="GtkImage">
