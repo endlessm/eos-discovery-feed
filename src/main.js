@@ -1781,11 +1781,13 @@ const DiscoveryFeedApplication = new Lang.Class({
         return this.parent(connection, path);
     },
 
-    vfunc_dbus_unregister: function() {
+    vfunc_dbus_unregister: function(connection, path) {
         if (this._installedAppsChangedId !== -1) {
             Gio.AppInfoMonitor.get().disconnect(this._installedAppsChangedId);
             this._installedAppsChangedId = -1;
         }
+
+        this.parent(connection, path);
     },
 
     vfunc_activate: function() {
