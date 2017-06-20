@@ -1763,7 +1763,8 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
-        this._changedSignalId = 0;
+        this._installedAppsChangedId = -1;
+        this._changedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._discoveryFeedCardModel = new Gio.ListStore({
@@ -1789,43 +1790,41 @@ const DiscoveryFeedApplication = new Lang.Class({
             this._window.set_visual(visual);
         }
 
-        this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
+        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
         // There seems to be a race condition with the WM that can
         // lead the sidebar into an inconsistent state if the
-        // _on_active_window_changed callback gets executed in such a
+        // _onActiveWindowChanged callback gets executed in such a
         // way that ends up calling to hide() between the user pressed
         // the tray button and the sidebar has been made visible,
         // which can lead to the sidebar never been displayed.
         this._window.connect('map-event', Lang.bind(this, function() {
-            if (!this._changedSignalId) {
+            if (this._changedSignalId == -1) {
                 this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed',
-                                                                          Lang.bind(this, this._on_active_window_changed));
+                                                                          Lang.bind(this, this._onActiveWindowChanged));
             }
             return false;
         }));
         this._window.connect('unmap', Lang.bind(this, function() {
-            if (this._changedSignalId) {
+            if (this._changedSignalId != -1) {
                 Wnck.Screen.get_default().disconnect(this._changedSignalId);
-                this._changedSignalId = 0;
+                this._changedSignalId = -1;
             }
         }));
 
         // update position when workarea changes
         let display = Gdk.Display.get_default();
         display.connect('monitor-added', Lang.bind(this,
-                                                   this._update_geometry));
+                                                   this._updateGeometry));
         display.connect('monitor-removed', Lang.bind(this,
-                                                     this._update_geometry));
+                                                     this._updateGeometry));
         let monitor = display.get_primary_monitor();
         monitor.connect('notify::workarea', Lang.bind(this,
-                                                      this._update_geometry));
-        this._update_geometry();
+                                                      this._updateGeometry));
+        this._updateGeometry();
     },
 
-    vfunc_dbus_register: function(connection, path) {
-        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
-        this._dbusImpl.export(Gio.DBus.session, path);
-
+    // Using connection, refresh discovery feed proxies
+    _refreshDiscoveryFeedProxies: function(connection) {
         let providers = readDiscoveryFeedProvidersInDataDirectories();
         let onProxiesInstantiated = Lang.bind(this, function(proxies) {
             Array.prototype.push.apply(this._discoveryFeedProxies, proxies);
@@ -1835,8 +1834,30 @@ const DiscoveryFeedApplication = new Lang.Class({
         instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                      providers,
                                                      onProxiesInstantiated);
+    },
+
+    vfunc_dbus_register: function(connection, path) {
+        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DiscoveryFeedIface, this);
+        this._dbusImpl.export(connection, path);
+
+        this._refreshDiscoveryFeedProxies(connection);
+
+        // Make sure to update the available proxies when the
+        // app info state changes
+        this._installedAppsChangedId = Gio.AppInfoMonitor.get().connect('changed', Lang.bind(this, function() {
+            this._refreshDiscoveryFeedProxies(connection);
+        }));
 
         return this.parent(connection, path);
+    },
+
+    vfunc_dbus_unregister: function(connection, path) {
+        if (this._installedAppsChangedId !== -1) {
+            Gio.AppInfoMonitor.get().disconnect(this._installedAppsChangedId);
+            this._installedAppsChangedId = -1;
+        }
+
+        this.parent(connection, path);
     },
 
     vfunc_activate: function() {
@@ -1859,7 +1880,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window.close('lost_focus');
     },
 
-    _on_visibility_changed: function() {
+    _onVisibilityChanged: function() {
         this.Visible = this._window.is_visible();
         let propChangedVariant = new GLib.Variant('(sa{sv}as)', [
             DISCOVERY_FEED_IFACE, {
@@ -1875,7 +1896,7 @@ const DiscoveryFeedApplication = new Lang.Class({
                                      propChangedVariant);
     },
 
-    _on_active_window_changed: function() {
+    _onActiveWindowChanged: function() {
         let active_window = Wnck.Screen.get_default().get_active_window();
         let current_window = this._window.get_window();
         let active_window_xid = active_window ? active_window.get_xid() : 0;
@@ -1896,7 +1917,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         }
     },
 
-    _update_geometry: function() {
+    _updateGeometry: function() {
         let monitor = Gdk.Display.get_default().get_primary_monitor();
         let workarea = monitor.get_workarea();
 
