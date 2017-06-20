@@ -1938,8 +1938,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         geometry.x = workarea.x + ((workarea.width - geometry.width) * 0.5);
         this._window.move(geometry.x, geometry.y);
 
-        // We'll take up 7/8ths of the screen height, leaving
-        // some below
         this._window.resize(geometry.width, geometry.height);
     }
 });
