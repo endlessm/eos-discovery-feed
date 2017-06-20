@@ -396,6 +396,28 @@ const CARD_STORE_TYPE_AVAILABLE_APPS = 3;
 const CARD_STORE_TYPE_VIDEO_CARD = 4;
 const CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_VIDEO_CARD;
 
+const DiscoveryFeedCardModel = new Lang.Class({
+    Name: 'DiscoveryFeedCardModel',
+    Extends: Gio.ListStore,
+
+    _init: function() {
+        this.parent({ item_type: DiscoveryFeedCardStore.$gtype });
+    },
+
+    insertSorted: function(elem) {
+        if (elem.type === CARD_STORE_TYPE_AVAILABLE_APPS)
+            this.append(elem)
+        else
+            this.insert(0, elem);
+    },
+
+    sort: function(callback) {
+	    for (let idx = 0; idx < this.get_n_items(); idx++) {
+            callback(this.get_item(idx), this.get_item(idx+1));
+	    }
+    },
+});
+
 const DiscoveryFeedCardStore = new Lang.Class({
     Name: 'DiscoveryFeedCardStore',
     Extends: GObject.Object,
@@ -1700,7 +1722,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     let indexInsertFuncs = {
         '4': (modelIndex) => {
             let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/summertime-1894.jpg';
-            model.append(new DiscoveryFeedKnowlegeArtworkCardStore({
+            model.insertSorted(new DiscoveryFeedKnowlegeArtworkCardStore({
                 title: 'Summertime',
                 author: 'Mary Cassat',
                 thumbnail: Gio.File.new_for_uri(thumbnail_uri).read(null),
@@ -1718,7 +1740,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
             indexInsertFuncs[modelIndex](modelIndex);
         }
 
-        model.append(modelBuildForIndexFunc(modelIndex));
+        model.insertSorted(modelBuildForIndexFunc(modelIndex));
         modelIndex++;
     };
 
@@ -1772,9 +1794,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._changedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
-        this._discoveryFeedCardModel = new Gio.ListStore({
-            item_type: DiscoveryFeedCardStore.$gtype
-        });
+        this._discoveryFeedCardModel = new DiscoveryFeedCardModel();
     },
 
     vfunc_startup: function() {
