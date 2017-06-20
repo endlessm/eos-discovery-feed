@@ -1409,6 +1409,11 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     },
 
     _init: function(params) {
+        if (!!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW')) {
+            params.role = null;
+            params.type_hint = Gdk.WindowTypeHint.NORMAL;
+        }
+
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
         this.today_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
@@ -1861,7 +1866,10 @@ const DiscoveryFeedApplication = new Lang.Class({
     },
 
     vfunc_activate: function() {
-        // This does nothing -we should only show when the shell asks us
+        if (!!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW')) {
+            this.show(Gdk.CURRENT_TIME);
+        }
+
     },
 
     show: function(timestamp) {
