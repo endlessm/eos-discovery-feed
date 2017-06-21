@@ -245,6 +245,10 @@ scrollbar contents trough slider {
   color: #444444;
 }
 
+.available-apps {
+  margin: 0 32px 0 32px;
+}
+
 window {
   background-color: alpha(#F6F6F6, 0.9);
 }

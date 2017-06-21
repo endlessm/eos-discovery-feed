@@ -1297,7 +1297,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: CONTENT_PREVIEW_MID,
+                    min_width: THUMBNAIL_SIZE_APP_STORE,
                     min_height: THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
