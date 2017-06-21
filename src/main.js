@@ -1409,11 +1409,6 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     },
 
     _init: function(params) {
-        if (!!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW')) {
-            params.role = null;
-            params.type_hint = Gdk.WindowTypeHint.NORMAL;
-        }
-
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
         this.today_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
@@ -1775,6 +1770,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._discoveryFeedCardModel = new Gio.ListStore({
             item_type: DiscoveryFeedCardStore.$gtype
         });
+        this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
     },
 
     vfunc_startup: function() {
@@ -1784,8 +1780,8 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         this._window = new DiscoveryFeedMainWindow({
             application: this,
-            type_hint: Gdk.WindowTypeHint.DOCK,
-            role: SIDE_COMPONENT_ROLE,
+            type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
+            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
             card_model: this._discoveryFeedCardModel
         });
 
@@ -1796,25 +1792,8 @@ const DiscoveryFeedApplication = new Lang.Class({
         }
 
         this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
-        // There seems to be a race condition with the WM that can
-        // lead the sidebar into an inconsistent state if the
-        // _onActiveWindowChanged callback gets executed in such a
-        // way that ends up calling to hide() between the user pressed
-        // the tray button and the sidebar has been made visible,
-        // which can lead to the sidebar never been displayed.
-        this._window.connect('map-event', Lang.bind(this, function() {
-            if (this._changedSignalId == -1) {
-                this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed',
-                                                                          Lang.bind(this, this._onActiveWindowChanged));
-            }
-            return false;
-        }));
-        this._window.connect('unmap', Lang.bind(this, function() {
-            if (this._changedSignalId != -1) {
-                Wnck.Screen.get_default().disconnect(this._changedSignalId);
-                this._changedSignalId = -1;
-            }
-        }));
+
+        this._setupWindowInteraction();
 
         // update position when workarea changes
         let display = Gdk.Display.get_default();
@@ -1866,10 +1845,8 @@ const DiscoveryFeedApplication = new Lang.Class({
     },
 
     vfunc_activate: function() {
-        if (!!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW')) {
+        if (this._debugWindow)
             this.show(Gdk.CURRENT_TIME);
-        }
-
     },
 
     show: function(timestamp) {
@@ -1902,6 +1879,33 @@ const DiscoveryFeedApplication = new Lang.Class({
                                      'org.freedesktop.DBus.Properties',
                                      'PropertiesChanged',
                                      propChangedVariant);
+    },
+
+    _setupWindowInteraction: function() {
+        // we do not want this behavior when in debug mode to
+        // not interfere with the inspector window
+        if (this._debugWindow)
+            return;
+
+        // There seems to be a race condition with the WM that can
+        // lead the sidebar into an inconsistent state if the
+        // _onActiveWindowChanged callback gets executed in such a
+        // way that ends up calling to hide() between the user pressed
+        // the tray button and the sidebar has been made visible,
+        // which can lead to the sidebar never been displayed.
+        this._window.connect('map-event', Lang.bind(this, function() {
+            if (this._changedSignalId == -1) {
+                this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed',
+                                                                          Lang.bind(this, this._onActiveWindowChanged));
+            }
+            return false;
+        }));
+        this._window.connect('unmap', Lang.bind(this, function() {
+            if (this._changedSignalId != -1) {
+                Wnck.Screen.get_default().disconnect(this._changedSignalId);
+                this._changedSignalId = -1;
+            }
+        }));
     },
 
     _onActiveWindowChanged: function() {
