@@ -203,9 +203,9 @@ list.stories row:hover {
 }
 
 .header .date {
-  font-size: 64px;
+  font-size: 72px;
   font-family: 'Alegreya Sans SC', sans-serif;
-  letter-spacing: 6px;
+  letter-spacing: 4px;
   color: #2E6C7F;
 }
 
