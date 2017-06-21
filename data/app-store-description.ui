@@ -17,6 +17,13 @@
         <property name="hexpand">True</property>
         <property name="halign">fill</property>
         <child>
+          <object class="GtkImage" id="app-icon">
+            <property name="width_request">32</property>
+            <property name="height_request">32</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkLabel" id="app-label">
             <property name="visible">True</property>
             <property name="hexpand">True</property>
@@ -26,13 +33,6 @@
             <style>
               <class name="title"/>
             </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkImage" id="app-icon">
-            <property name="width_request">32</property>
-            <property name="height_request">32</property>
-            <property name="visible">True</property>
           </object>
         </child>
       </object>
