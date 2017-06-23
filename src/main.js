@@ -1575,7 +1575,7 @@ function allSettledPromises(promises) {
     }));
 }
 
-function appendDiscoveryFeedQuoteWord(proxyBundle) {
+function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
     return Promise.all([
         promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
         promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
@@ -1736,7 +1736,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     // Note that zipArraysInObject here will zip to the shortest length
     // which means that we may not execute all proxies if there was a
     // mismatch in cardinality.
-    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWord));
+    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWordFromProxy));
 
     // Okay, now wait for all proxies to execute. allSettledPromises will
     // return tuples of errors and "model builders" depending on whether
