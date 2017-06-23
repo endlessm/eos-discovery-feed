@@ -19,6 +19,11 @@
   margin-bottom: 25px;
 }
 
+.content .app {
+  padding: 22px;
+  margin-top: 8px;
+}
+
 .artwork .preview {
   min-height: 400px;
   min-width: 400px;
