@@ -19,6 +19,11 @@
   margin-bottom: 25px;
 }
 
+.content .app {
+  padding: 22px;
+  margin-top: 8px;
+}
+
 .artwork .preview {
   min-height: 400px;
   min-width: 400px;
@@ -203,9 +208,9 @@ list.stories row:hover {
 }
 
 .header .date {
-  font-size: 64px;
+  font-size: 72px;
   font-family: 'Alegreya Sans SC', sans-serif;
-  letter-spacing: 6px;
+  letter-spacing: 4px;
   color: #2E6C7F;
 }
 
@@ -243,6 +248,10 @@ scrollbar contents trough slider {
 .close-button:active,
 .close-button:hover:active {
   color: #444444;
+}
+
+.available-apps {
+  margin: 0 32px 0 32px;
 }
 
 window {

@@ -945,6 +945,7 @@ const DiscoveryFeedAppStoreDescription = new Lang.Class({
     }
 });
 
+const THUMBNAIL_SIZE_APP_STORE = 180;
 const CONTENT_PREVIEW_SMALL = 200;
 const CONTENT_PREVIEW_MID = 300;
 const CONTENT_PREVIEW_LARGE = 400;
@@ -1262,7 +1263,9 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail_data
+                    image_stream: this.model.thumbnail_data,
+                    min_width: THUMBNAIL_SIZE_APP_STORE,
+                    min_height: THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title,
@@ -1311,8 +1314,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: CONTENT_PREVIEW_MID,
-                    min_height: CONTENT_PREVIEW_SMALL
+                    min_width: THUMBNAIL_SIZE_APP_STORE,
+                    min_height: THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title
