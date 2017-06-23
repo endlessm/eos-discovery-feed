@@ -1536,7 +1536,7 @@ function promisifyGIO(obj, funcName, ...args) {
     });
 }
 
-function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
+function appendDiscoveryFeedContentFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
@@ -1547,7 +1547,7 @@ function appendDiscoveryFeedContentToModelFromProxy(proxy, model) {
     });
 }
 
-function appendDiscoveryFeedNewsToModelFromProxy(proxy, model) {
+function appendDiscoveryFeedNewsFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
@@ -1571,11 +1571,11 @@ function allSettledPromises(promises) {
                 logError(e, 'Something went wrong in allSettledPromises resolution');
                 resolve([e, null]);
             }
-        })
+        });
     }));
 }
 
-function appendDiscoveryFeedQuoteWordToModel(proxyBundle) {
+function appendDiscoveryFeedQuoteWord(proxyBundle) {
     return Promise.all([
         promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
         promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
@@ -1599,7 +1599,7 @@ function appendDiscoveryFeedQuoteWordToModel(proxyBundle) {
 
 const N_APPS_TO_DISPLAY = 5;
 
-function appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy) {
+function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
         results.map(response =>
             () => new DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
@@ -1637,8 +1637,8 @@ function parseDuration(duration) {
     return durationMinutes + ':' + withLeadingZero(durationSeconds);
 }
 
-function appendDiscoveryFeedVideoToModelFromProxy(proxy, model) {
-    return promisfyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
+function appendDiscoveryFeedVideoFromProxy(proxy) {
+    return promisifyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
         let [shards, items] = [results[0], results.slice(1, results.length)];
 
         return items.map(function(response) {
@@ -1711,16 +1711,16 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
         case 'com.endlessm.DiscoveryFeedContent':
-            pendingPromises.push(appendDiscoveryFeedContentToModelFromProxy(proxy));
+            pendingPromises.push(appendDiscoveryFeedContentFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedNews':
-            pendingPromises.push(appendDiscoveryFeedNewsToModelFromProxy(proxy));
+            pendingPromises.push(appendDiscoveryFeedNewsFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedInstallableApps':
-            pendingPromises.push(appendDiscoveryFeedInstallableAppsToModelFromProxy(proxy));
+            pendingPromises.push(appendDiscoveryFeedInstallableAppsFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedVideo':
-            pendingPromises.push(appendDiscoveryFeedVideoToModelFromProxy(proxy));
+            pendingPromises.push(appendDiscoveryFeedVideoFromProxy(proxy));
             break;
         case 'com.endlessm.DiscoveryFeedQuote':
             wordQuoteProxies.quote.push(proxy);
@@ -1736,7 +1736,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     // Note that zipArraysInObject here will zip to the shortest length
     // which means that we may not execute all proxies if there was a
     // mismatch in cardinality.
-    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWordToModel));
+    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWord));
 
     // Okay, now wait for all proxies to execute. allSettledPromises will
     // return tuples of errors and "model builders" depending on whether
