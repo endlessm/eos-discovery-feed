@@ -14,32 +14,6 @@
   padding: 30px;
 }
 
-.content .app-info {
-  margin-top: 20px;
-  margin-bottom: 25px;
-}
-
-.content .app {
-  padding: 18px;
-  margin-top: 8px;
-}
-
-.artwork .preview {
-  min-height: 400px;
-  min-width: 400px;
-}
-
-.artwork .title {
-  font-size: 22pt;
-  font-family: 'Merriweather', regular;
-}
-
-.artwork .synopsis {
-  font-size: 16pt;
-  font-family: 'Merriweather', regular;
-  color: black;
-}
-
 .small-header {
   font-size: 9pt;
   font-weight: bold;
@@ -78,6 +52,66 @@
   opacity: 0.2;
 }
 
+.subcard {
+  padding: 20px;
+  margin: 20px;
+  background-color: white;
+}
+
+.subcard-layout {
+  min-height: 250px;
+}
+
+list.stories .content {
+  padding: 0px;
+}
+
+list.stories .button {
+  padding: 0px;
+  background-image: none;
+  border-width: 0px;
+  background-color: alpha(white, 0.6);
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
+  margin: 12.5px 10px 12.5px 10px;
+}
+
+list.stories .button:hover {
+  background-color: white;
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
+}
+
+list.stories {
+  background-color: transparent;
+}
+
+list.stories row:hover {
+  background-color: transparent;
+}
+
+.content-list-container {
+  margin: 0px 50px 0px 50px;
+}
+
+
+/* artwork content */
+.artwork .preview {
+  min-height: 400px;
+  min-width: 400px;
+}
+
+.artwork .title {
+  font-size: 22pt;
+  font-family: 'Merriweather', regular;
+}
+
+.artwork .synopsis {
+  font-size: 16pt;
+  font-family: 'Merriweather', regular;
+  color: black;
+}
+
+
+/* video content */
 .play-button .background {
   transition: 180ms linear;
   background-color: white;
@@ -105,14 +139,16 @@
   opacity: 0.4;
 }
 
-.subcard {
-  padding: 20px;
-  margin: 20px;
-  background-color: white;
-}
 
-.subcard-layout {
-  min-height: 250px;
+/* evergreen content */
+.invisible-button {
+  box-shadow: none;
+  border-color: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0px;
+  background-image: none;
+  border-radius: 0px;
 }
 
 .quote {
@@ -124,26 +160,6 @@
 
 .quote-author {
   color: #2a383e;
-}
-
-.available-apps .title {
-  font-size: 14pt;
-  font-family: 'Lato';
-  color: #243239;
-}
-
-.app-card .title {
-  font-size: 14pt;
-  font-family: 'Lato';
-}
-
-.app-card .synopsis {
-  font-size: 11pt;
-  font-family: 'Lato';
-}
-
-.app-store-link .title {
-  color: #e16d37;
 }
 
 .bolded-word {
@@ -163,46 +179,48 @@
   font-size: 14pt;
 }
 
-list.stories .content {
-  padding: 0px;
+
+/* app store cards */
+.available-apps .title {
+  font-size: 14pt;
+  font-family: 'Lato';
+  color: #243239;
 }
 
-list.stories .button {
-  padding: 0px;
-  background-image: none;
-  border-width: 0px;
-  background-color: alpha(white, 0.6);
-  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
-  margin: 12.5px 10px 12.5px 10px;
+.app-card .title {
+  font-size: 14pt;
+  font-family: 'Lato';
 }
 
-.invisible-button {
-  box-shadow: none;
-  border-color: transparent;
-  border: 0;
-  margin: 0;
-  padding: 0px;
-  background-image: none;
-  border-radius: 0px;
+.app-card .button {
+ margin: 0;
 }
 
-list.stories .button:hover {
-  background-color: white;
-  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
+.app-card .synopsis {
+  font-size: 11pt;
+  font-family: 'Lato';
 }
 
-list.stories {
-  background-color: transparent;
+.app-store-link .title {
+  color: #e16d37;
 }
 
-list.stories row:hover {
-  background-color: transparent;
+.content .app-info {
+  margin-top: 20px;
+  margin-bottom: 25px;
 }
 
-.content-list-container {
-  margin: 0px 50px 0px 50px;
+.content .app {
+  padding: 18px;
+  margin-top: 8px;
 }
 
+.available-apps {
+  margin: 0 32px 0 32px;
+}
+
+
+/* header */
 .header {
   margin: 10px 5px 10px 5px;
 }
@@ -221,6 +239,8 @@ list.stories row:hover {
   color: #12272D;
 }
 
+
+/* controls */
 scrollbar {
   background-color: transparent;
   border-width: 0px;
@@ -248,10 +268,6 @@ scrollbar contents trough slider {
 .close-button:active,
 .close-button:hover:active {
   color: #444444;
-}
-
-.available-apps {
-  margin: 0 32px 0 32px;
 }
 
 window {
