@@ -25,6 +25,8 @@
 		<property name="max-children-per-line">2</property>
 		<property name="homogeneous">True</property>
 		<property name="selection-mode">none</property>
+		<property name="row-spacing">22</property>
+		<property name="column-spacing">22</property>
 		<style>
 		  <class name="available-apps"/>
 		</style>
