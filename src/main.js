@@ -1431,6 +1431,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     Children: [
         'cards',
         'today-date',
+        'recommended',
         'close-button'
     ],
 
@@ -1698,7 +1699,7 @@ function zipArraysInObject(object) {
     return arr;
 }
 
-function populateDiscoveryFeedModelFromQueries(model, proxies) {
+function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
     model.remove_all();
 
     let wordQuoteProxies = {
@@ -1707,6 +1708,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
     };
 
     let pendingPromises = [];
+    recommended.hide();
 
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
@@ -1762,6 +1764,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies) {
         // Finally have our models! Now we can sort them
         models.sort((a, b) => a.weight > b.weight).forEach((m) => {
             model.append(m);
+            if (m.type !== CARD_STORE_TYPE_AVAILABLE_APPS) {
+                recommended.show();
+            }
         });
     }).catch(e => logError(e, 'Query failed'));
 }
@@ -1889,7 +1894,8 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         chain.then(Lang.bind(this, function(proxies) {
             populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
-                                                  proxies);
+                                                  proxies,
+                                                  this._window.recommended);
         }));
     },
 
