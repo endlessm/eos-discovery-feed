@@ -71,8 +71,8 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
+                      <object class="GtkLabel" id="recommended">
+                        <property name="visible">False</property>
                         <property name="hexpand">True</property>
                         <property name="halign">center</property>
                         <property name="label">RECOMMENDED STORIES</property>
