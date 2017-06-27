@@ -1338,7 +1338,9 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
         });
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
-            (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], null);
+            let context = Gdk.AppLaunchContext.new();
+            context.set_timestamp(Gdk.CURRENT_TIME);
+            (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], context);
         }));
     }
 });
