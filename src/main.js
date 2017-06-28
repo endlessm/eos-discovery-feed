@@ -743,8 +743,11 @@ function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType) {
         content_type: contentType
     }));
 
+    let context = Gdk.AppLaunchContext.new();
+    context.set_timestamp(Gdk.CURRENT_TIME);
+
     if (!knowledgeSearchProxy) {
-        app.launch([], null);
+        app.launch([], context);
         return;
     }
 
@@ -752,7 +755,7 @@ function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType) {
         if (!excp)
             return;
         logError(excp, 'Could not load app with article ' + uri + ' fallback to just launch the app, trace');
-        app.launch([], null);
+        app.launch([], context);
     });
 }
 
