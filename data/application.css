@@ -256,7 +256,7 @@ scrollbar {
 
 scrollbar contents trough slider {
   min-width: 8px;
-  margin-right: 8px;
+  margin-right: 7px;
 }
 
 .close-button {
