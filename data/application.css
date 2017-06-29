@@ -185,10 +185,12 @@ list.stories row:hover {
 
 
 /* app store cards */
-.available-apps .title {
-  font-size: 14pt;
+.available-apps-box .title {
+  font-size: 16pt;
   font-family: 'Lato';
   color: #243239;
+  margin-top: 12px;
+  margin-bottom: 28px;
 }
 
 .app-card .title {
