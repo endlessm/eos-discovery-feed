@@ -219,6 +219,9 @@ list.stories row:hover {
   margin: 0 32px 0 32px;
 }
 
+flowboxchild {
+  padding: 0;
+}
 
 /* header */
 .header {
