@@ -16,6 +16,7 @@ service_in_files = \
 # Tests
 javascript_tests = \
 	tests/js/testDiscoveryFeed.js \
+	tests/js/testModelOrdering.js \
 	$(NULL)
 
 # All JS files (used for linting)
