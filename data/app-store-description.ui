@@ -5,7 +5,7 @@
     <property name="hexpand">True</property>
     <property name="halign">fill</property>
     <property name="visible">True</property>
-    <property name="vexpand">True</property>
+    <property name="vexpand">False</property>
     <property name="valign">fill</property>
     <property name="orientation">vertical</property>
     <property name="width_request">180</property>
