@@ -720,7 +720,7 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
         this.add(this.description);
         // If this is an odd card, adjust the packing order of all widgets
         // in the box
-        if (this.layout_direction == Stores.LAYOUT_DIRECTION_IMAGE_FIRST) {
+        if (this.layout_direction == Stores.LAYOUT_DIRECTION_IMAGE_LAST) {
             this.get_children().forEach(Lang.bind(this, function(child) {
                 this.child_set_property(child,
                                         'pack-type',
@@ -1186,7 +1186,7 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function appendArticleCardsFromShardsAndItems(shards, items, proxy, type) {
+function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direction) {
     return items.map(function(response) {
         return Array.prototype.slice.call(response).map(function(entry) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
@@ -1204,7 +1204,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type) {
                         knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                         knowledge_app_id: proxy.knowledgeAppId,
                         uri: entry.ekn_id,
-                        layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST,
+                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
                         type: type
                     });
                 }
@@ -1243,7 +1243,8 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_ARTICLE_CARD))
+                                                              Stores.CARD_STORE_TYPE_ARTICLE_CARD,
+                                                              Stores.LAYOUT_DIRECTION_IMAGE_FIRST))
     .catch((e) => {
         throw new Error('Getting content failed: ' + e + '\n' + e.stack);
     });
@@ -1254,7 +1255,8 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_NEWS_CARD))
+                                                              Stores.CARD_STORE_TYPE_NEWS_CARD,
+                                                              Stores.LAYOUT_DIRECTION_IMAGE_LAST))
     .catch((e) => {
         throw new Error('Getting news failed: ' + e + '\n' + e.stack);
     });
