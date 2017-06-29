@@ -7,7 +7,7 @@
     <property name="halign">fill</property>
     <property name="orientation">vertical</property>
     <style>
-      <class name="available-apps" />
+      <class name="available-apps-box" />
     </style>
     <child>
       <object class="GtkLabel">
