@@ -6,5 +6,8 @@
     <property name="hexpand">True</property>
     <property name="halign">fill</property>
     <property name="activatable">false</property>
+    <style>
+      <class name="card-item"/>
+    </style>
   </template>
 </interface>

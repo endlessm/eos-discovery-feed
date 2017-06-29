@@ -223,6 +223,11 @@ flowboxchild {
   padding: 0;
 }
 
+.card-item {
+  padding: 0;
+}
+
+
 /* header */
 .header {
   margin: 10px 5px 10px 5px;
