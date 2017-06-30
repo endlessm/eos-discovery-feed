@@ -962,7 +962,8 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                     app_name: this.model.title,
                     synopsis: this.model.synopsis,
                     icon: this.model.icon
-                })
+                }),
+                layout_direction: params.model.layout_direction
             })
         });
         this.add(card);
@@ -1010,7 +1011,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title
-                })
+                }),
+                layout_direction: params.model.layout_direction
             })
         });
         this.add(card);

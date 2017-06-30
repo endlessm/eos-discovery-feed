@@ -301,7 +301,15 @@ const DiscoveryFeedAppStore = new Lang.Class({
                                     GObject.ParamFlags.CONSTRUCT_ONLY,
                                     DISCOVERY_FEED_APP_TYPE_BASIC,
                                     DISCOVERY_FEED_APP_TYPE_MAX,
-                                    DISCOVERY_FEED_APP_TYPE_BASIC)
+                                    DISCOVERY_FEED_APP_TYPE_BASIC),
+        layout_direction: GObject.ParamSpec.int('layout-direction',
+                                                '',
+                                                '',
+                                                GObject.ParamFlags.READWRITE |
+                                                GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                LAYOUT_DIRECTION_IMAGE_LAST,
+                                                LAYOUT_DIRECTION_IMAGE_FIRST)
     }
 });
 
@@ -312,10 +320,11 @@ const DiscoveryFeedAppStoreLinkStore = new Lang.Class({
 
     _init: function(params) {
         let thumbnail_uri = 'resource:///com/endlessm/DiscoveryFeed/img/explore.png';
-        params.title = _('Explore the App Center'),
-        params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null),
-        params.app_id = 'org.gnome.Software',
+        params.title = _('Explore the App Center');
+        params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null);
+        params.app_id = 'org.gnome.Software';
         params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
+        params.layout_direction = LAYOUT_DIRECTION_IMAGE_LAST;
         this.parent(params);
     }
 });
@@ -341,6 +350,7 @@ const DiscoveryFeedInstallableAppStore = new Lang.Class({
 
     _init: function(params) {
         params.type = DISCOVERY_FEED_APP_TYPE_DETAILED;
+        params.layout_direction = LAYOUT_DIRECTION_IMAGE_LAST;
         this.parent(params);
     }
 });
