@@ -595,6 +595,28 @@ const DiscoveryFeedAppContentDescription = new Lang.Class({
     }
 });
 
+const DiscoveryFeedAppStoreLink = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreLink',
+    Extends: Gtk.Box,
+    Properties: {
+        message: GObject.ParamSpec.string('message',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          '')
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/app-store-link.ui',
+    Children: [
+        'message-label',
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+        this.message_label.label = this.message;
+    }
+});
+
 const DiscoveryFeedAppStoreDescription = new Lang.Class({
     Name: 'DiscoveryFeedAppStoreDescription',
     Extends: Gtk.Box,
@@ -1009,8 +1031,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                     min_width: Stores.THUMBNAIL_SIZE_APP_STORE,
                     min_height: Stores.THUMBNAIL_SIZE_APP_STORE
                 }),
-                description: new DiscoveryFeedAppStoreDescription({
-                    app_name: this.model.title
+                description: new DiscoveryFeedAppStoreLink({
+                    message: this.model.title
                 }),
                 layout_direction: params.model.layout_direction
             })

@@ -207,8 +207,14 @@ list.stories row:hover {
   font-family: 'Lato';
 }
 
-.app-store-link .title {
+.app-store-link .message {
+  font-size: 14pt;
+  font-family: 'Lato';
   color: #e16d37;
+}
+
+.content .message {
+  padding-bottom: 10px;
 }
 
 .content .app-info {

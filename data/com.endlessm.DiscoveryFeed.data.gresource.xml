@@ -4,6 +4,7 @@
     <file preprocess="xml-stripblanks">activatable-frame.ui</file>
     <file preprocess="xml-stripblanks">app-content-description.ui</file>
     <file preprocess="xml-stripblanks">app-store-description.ui</file>
+    <file preprocess="xml-stripblanks">app-store-link.ui</file>
     <file preprocess="xml-stripblanks">app-store-link-card.ui</file>
     <file preprocess="xml-stripblanks">available-apps.ui</file>
     <file preprocess="xml-stripblanks">content-card-layout.ui</file>
