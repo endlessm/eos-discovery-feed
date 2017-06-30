@@ -196,6 +196,7 @@ list.stories row:hover {
 .app-card .title {
   font-size: 14pt;
   font-family: 'Lato';
+  margin-left: 11px;
 }
 
 .app-card .button {
@@ -207,8 +208,14 @@ list.stories row:hover {
   font-family: 'Lato';
 }
 
-.app-store-link .title {
+.app-store-link .message {
+  font-size: 14pt;
+  font-family: 'Lato';
   color: #e16d37;
+}
+
+.content .message {
+  padding-bottom: 10px;
 }
 
 .content .app-info {
@@ -232,7 +239,7 @@ flowboxchild {
 
 /* header */
 .header {
-  margin: 10px 5px 10px 5px;
+  margin: 0 5px 10px 5px;
 }
 
 .header .date {

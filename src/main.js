@@ -595,6 +595,28 @@ const DiscoveryFeedAppContentDescription = new Lang.Class({
     }
 });
 
+const DiscoveryFeedAppStoreLink = new Lang.Class({
+    Name: 'DiscoveryFeedAppStoreLink',
+    Extends: Gtk.Box,
+    Properties: {
+        message: GObject.ParamSpec.string('message',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          '')
+    },
+    Template: 'resource:///com/endlessm/DiscoveryFeed/app-store-link.ui',
+    Children: [
+        'message-label',
+    ],
+
+    _init: function(params) {
+        this.parent(params);
+        this.message_label.label = this.message;
+    }
+});
+
 const DiscoveryFeedAppStoreDescription = new Lang.Class({
     Name: 'DiscoveryFeedAppStoreDescription',
     Extends: Gtk.Box,
@@ -962,7 +984,8 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                     app_name: this.model.title,
                     synopsis: this.model.synopsis,
                     icon: this.model.icon
-                })
+                }),
+                layout_direction: params.model.layout_direction
             })
         });
         this.add(card);
@@ -1008,9 +1031,10 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                     min_width: Stores.THUMBNAIL_SIZE_APP_STORE,
                     min_height: Stores.THUMBNAIL_SIZE_APP_STORE
                 }),
-                description: new DiscoveryFeedAppStoreDescription({
-                    app_name: this.model.title
-                })
+                description: new DiscoveryFeedAppStoreLink({
+                    message: this.model.title
+                }),
+                layout_direction: params.model.layout_direction
             })
         });
         this.add(card);
@@ -1511,6 +1535,10 @@ const DiscoveryFeedApplication = new Lang.Class({
         if (visual) {
             this._window.set_visual(visual);
         }
+
+        // when the label contains letters and numbers the allocation
+        // does not work properly, force re-allocation here
+        this._window.today_date.realize();
 
         this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
 
