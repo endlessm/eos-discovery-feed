@@ -1512,6 +1512,10 @@ const DiscoveryFeedApplication = new Lang.Class({
             this._window.set_visual(visual);
         }
 
+        // when the label contains letters and numbers the allocation
+        // does not work properly, force re-allocation here
+        this._window.today_date.realize();
+
         this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
 
         this._setupWindowInteraction();
