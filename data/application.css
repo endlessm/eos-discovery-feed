@@ -196,6 +196,7 @@ list.stories row:hover {
 .app-card .title {
   font-size: 14pt;
   font-family: 'Lato';
+  margin-left: 11px;
 }
 
 .app-card .button {
