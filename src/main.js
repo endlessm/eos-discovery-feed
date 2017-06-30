@@ -635,7 +635,6 @@ const DiscoveryFeedAppStoreDescription = new Lang.Class({
     }
 });
 
-const THUMBNAIL_SIZE_APP_STORE = 180;
 const CONTENT_PREVIEW_SMALL = 200;
 const CONTENT_PREVIEW_MID = 300;
 const CONTENT_PREVIEW_LARGE = 400;
@@ -720,7 +719,7 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
         this.add(this.description);
         // If this is an odd card, adjust the packing order of all widgets
         // in the box
-        if (this.layout_direction == Stores.LAYOUT_DIRECTION_IMAGE_FIRST) {
+        if (this.layout_direction == Stores.LAYOUT_DIRECTION_IMAGE_LAST) {
             this.get_children().forEach(Lang.bind(this, function(child) {
                 this.child_set_property(child,
                                         'pack-type',
@@ -841,7 +840,9 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail
+                    image_stream: this.model.thumbnail,
+                    min_width: params.model.thumbnail_size,
+                    min_height: params.model.thumbnail_size
                 }),
                 description: new DiscoveryFeedAppContentDescription({
                     title: params.model.title,
@@ -954,8 +955,8 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: THUMBNAIL_SIZE_APP_STORE,
-                    min_height: THUMBNAIL_SIZE_APP_STORE
+                    min_width: Stores.THUMBNAIL_SIZE_APP_STORE,
+                    min_height: Stores.THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title,
@@ -1004,8 +1005,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: THUMBNAIL_SIZE_APP_STORE,
-                    min_height: THUMBNAIL_SIZE_APP_STORE
+                    min_width: Stores.THUMBNAIL_SIZE_APP_STORE,
+                    min_height: Stores.THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title
@@ -1186,7 +1187,7 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function appendArticleCardsFromShardsAndItems(shards, items, proxy, type) {
+function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direction, thumbnailSize) {
     return items.map(function(response) {
         return Array.prototype.slice.call(response).map(function(entry) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
@@ -1204,8 +1205,9 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type) {
                         knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                         knowledge_app_id: proxy.knowledgeAppId,
                         uri: entry.ekn_id,
-                        layout_direction: modelIndex % 2 === 0 ? Stores.LAYOUT_DIRECTION_IMAGE_FIRST : Stores.LAYOUT_DIRECTION_IMAGE_LAST,
-                        type: type
+                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                        type: type,
+                        thumbnail_size: thumbnailSize
                     });
                 }
             };
@@ -1243,7 +1245,9 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_ARTICLE_CARD))
+                                                              Stores.CARD_STORE_TYPE_ARTICLE_CARD,
+                                                              Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                              Stores.THUMBNAIL_SIZE_ARTICLE))
     .catch((e) => {
         throw new Error('Getting content failed: ' + e + '\n' + e.stack);
     });
@@ -1254,7 +1258,9 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_NEWS_CARD))
+                                                              Stores.CARD_STORE_TYPE_NEWS_CARD,
+                                                              Stores.LAYOUT_DIRECTION_IMAGE_LAST,
+                                                              Stores.THUMBNAIL_SIZE_NEWS))
     .catch((e) => {
         throw new Error('Getting news failed: ' + e + '\n' + e.stack);
     });

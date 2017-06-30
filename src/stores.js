@@ -160,6 +160,10 @@ const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
     }
 });
 
+const THUMBNAIL_SIZE_APP_STORE = 180;
+const THUMBNAIL_SIZE_ARTICLE = 254;
+const THUMBNAIL_SIZE_NEWS = 322;
+
 // eslint-disable-next-line no-unused-vars
 const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCardStore',
@@ -214,7 +218,15 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
                                                 LAYOUT_DIRECTION_IMAGE_FIRST,
                                                 LAYOUT_DIRECTION_IMAGE_LAST,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST)
+                                                LAYOUT_DIRECTION_IMAGE_FIRST),
+        'thumbnail-size': GObject.ParamSpec.int('thumbnail-size',
+                                                '',
+                                                '',
+                                                GObject.ParamFlags.READWRITE |
+                                                GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                THUMBNAIL_SIZE_APP_STORE,
+                                                THUMBNAIL_SIZE_NEWS,
+                                                THUMBNAIL_SIZE_ARTICLE)
     },
 
     _init: function(params) {
