@@ -686,7 +686,13 @@ const DiscoveryFeedContentPreview = new Lang.Class({
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           0,
                                           GLib.MAXINT32,
-                                          CONTENT_PREVIEW_SMALL)
+                                          CONTENT_PREVIEW_SMALL),
+        has_alpha: GObject.ParamSpec.boolean('has-alpha',
+                                             'Has Alpha',
+                                             'Has Alpha',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             false),
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-preview.ui',
     Children: [
@@ -700,7 +706,8 @@ const DiscoveryFeedContentPreview = new Lang.Class({
 
         if (this.image_stream) {
             let frame = new ImageCoverFrame.ImageCoverFrame({
-                hexpand: true
+                hexpand: true,
+                has_alpha: this.has_alpha
             });
             frame.set_content(this.image_stream);
             this.thumbnail_container.add(frame);
@@ -1028,8 +1035,9 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: Stores.THUMBNAIL_SIZE_APP_STORE,
-                    min_height: Stores.THUMBNAIL_SIZE_APP_STORE
+                    min_width: Stores.THUMBNAIL_WIDTH_APP_STORE_LINK,
+                    min_height: Stores.THUMBNAIL_SIZE_APP_STORE,
+                    has_alpha: true
                 }),
                 description: new DiscoveryFeedAppStoreLink({
                     message: this.model.title

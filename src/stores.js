@@ -161,6 +161,7 @@ const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
 });
 
 const THUMBNAIL_SIZE_APP_STORE = 180;
+const THUMBNAIL_WIDTH_APP_STORE_LINK = 211;
 const THUMBNAIL_SIZE_ARTICLE = 254;
 const THUMBNAIL_SIZE_NEWS = 322;
 

@@ -1,5 +1,6 @@
 const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
+const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
@@ -17,6 +18,15 @@ const ImageCoverFrame = new Lang.Class({ // eslint-disable-line no-unused-vars
     Name: 'ImageCoverFrame',
     Extends: Gtk.Widget,
 
+    Properties: {
+        'has-alpha': GObject.ParamSpec.boolean('has-alpha',
+                                               'Has Alpha',
+                                               'Has Alpha',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               false),
+    },
+
     _init: function (props={}) {
         props.visible = true;
         this.parent(props);
@@ -27,7 +37,7 @@ const ImageCoverFrame = new Lang.Class({ // eslint-disable-line no-unused-vars
         this._last_height = 0;
 
         this._surface_cache = new WidgetSurfaceCache.WidgetSurfaceCache(this, this._draw_scaled_pixbuf.bind(this), {
-            has_alpha: false
+            has_alpha: this.has_alpha
         });
     },
 
