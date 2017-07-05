@@ -212,6 +212,7 @@ list.stories row:hover {
   font-size: 14pt;
   font-family: 'Lato';
   color: #e16d37;
+  margin-left: 20px;
 }
 
 .content .message {
