@@ -197,6 +197,8 @@ list.stories row:hover {
   font-size: 14pt;
   font-family: 'Lato';
   margin-left: 11px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .app-card .button {
@@ -206,6 +208,7 @@ list.stories row:hover {
 .app-card .synopsis {
   font-size: 11pt;
   font-family: 'Lato';
+  margin-top: 11px;
 }
 
 .app-store-link .message {
