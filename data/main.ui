@@ -17,6 +17,16 @@
             <property name="hexpand">True</property>
             <property name="halign">fill</property>
             <child>
+              <object class="GtkLabel" id="collapsed-date">
+                <property name="visible">False</property>
+                <property name="hexpand">True</property>
+                <property name="halign">end</property>
+                <style>
+                  <class name="collapsed-date"/>
+                </style>
+              </object>
+            </child>
+            <child>
               <object class="GtkButton" id="close-button">
                 <property name="visible">True</property>
                 <property name="halign">end</property>
@@ -39,7 +49,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkScrolledWindow">
+          <object class="GtkScrolledWindow" id="scroll-view">
             <property name="visible">True</property>
             <property name="overlay-scrolling">True</property>
             <child>
