@@ -1120,6 +1120,7 @@ function populateCardsListFromStore(store) {
     });
 }
 
+const COLLAPSED_DATE_VISIBLE_THRESHOLD = 60;
 
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
@@ -1137,7 +1138,9 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         'cards',
         'today-date',
         'recommended',
-        'close-button'
+        'close-button',
+        'collapsed-date',
+        'scroll-view'
     ],
 
     close: function(method) {
@@ -1152,6 +1155,15 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
         this.today_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
+
+        this.collapsed_date.label = "Today is " + (new Date()).toLocaleFormat('%B %e, %Y');
+        let vadjustment = this.scroll_view.vadjustment;
+        vadjustment.connect('value-changed', Lang.bind(this, function() {
+            if (vadjustment.value > COLLAPSED_DATE_VISIBLE_THRESHOLD)
+                this.collapsed_date.show();
+            else
+                this.collapsed_date.hide();
+        }));
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button
