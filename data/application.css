@@ -273,6 +273,14 @@ scrollbar contents trough slider {
   margin-right: 7px;
 }
 
+scrolledwindow undershoot.top {
+  background-image: none;
+}
+
+scrolledwindow undershoot.bottom {
+  background-image: none;
+}
+
 .close-button {
   background: none;
   border: none;
