@@ -1164,7 +1164,8 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
 
-        this.collapsed_date.label = "Today is " + (new Date()).toLocaleFormat('%B %e, %Y');
+        // Translators: collapsed date at the header of the DiscoveryFeed
+        this.collapsed_date.label = _("Today is %s").format((new Date()).toLocaleFormat('%B %e, %Y'));
 
         let vadjustment = this.scroll_view.vadjustment;
         vadjustment.connect('value-changed', Lang.bind(this, function() {
