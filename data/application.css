@@ -254,7 +254,7 @@ flowboxchild {
   color: #2E6C7F;
 }
 
-.header .date {
+.expanded-date {
   font-size: 72px;
   font-family: 'Alegreya Sans SC', sans-serif;
   letter-spacing: 4px;
