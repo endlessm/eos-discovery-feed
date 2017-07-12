@@ -1121,6 +1121,7 @@ function populateCardsListFromStore(store) {
 }
 
 const COLLAPSED_DATE_VISIBLE_THRESHOLD = 50;
+const HEADER_SEPARATOR_VISIBLE_THRESHOLD = 20;
 const COLLAPSED_DATE_TRANSITION_DURATION = 500;
 
 const DiscoveryFeedMainWindow = new Lang.Class({
@@ -1143,6 +1144,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         'collapsed-date',
         'expanded-date-revealer',
         'expanded-date',
+        'header-separator-revealer',
         'scroll-view'
     ],
 
@@ -1160,6 +1162,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
         this.collapsed_date_revealer.set_transition_duration(COLLAPSED_DATE_TRANSITION_DURATION);
         this.expanded_date_revealer.set_transition_duration(COLLAPSED_DATE_TRANSITION_DURATION);
+        this.header_separator_revealer.set_transition_duration(COLLAPSED_DATE_TRANSITION_DURATION)
 
         this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
@@ -1169,11 +1172,15 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
         let vadjustment = this.scroll_view.vadjustment;
         vadjustment.connect('value-changed', Lang.bind(this, function() {
+            if (vadjustment.value > HEADER_SEPARATOR_VISIBLE_THRESHOLD)
+                this.header_separator_revealer.set_reveal_child(true);
+            else
+                this.header_separator_revealer.set_reveal_child(false);
+
             if (vadjustment.value > COLLAPSED_DATE_VISIBLE_THRESHOLD) {
                 this.expanded_date_revealer.set_reveal_child(false);
                 this.collapsed_date_revealer.set_reveal_child(true);
-            }
-            else {
+            } else {
                 this.collapsed_date_revealer.set_reveal_child(false);
                 this.expanded_date_revealer.set_reveal_child(true);
             }
@@ -1541,7 +1548,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._discoveryFeedCardModel = new Gio.ListStore({
             item_type: Stores.DiscoveryFeedCardStore.$gtype
         });
-
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
     },
 
