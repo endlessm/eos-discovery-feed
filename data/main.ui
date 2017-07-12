@@ -55,6 +55,20 @@
           </object>
         </child>
         <child>
+          <object class="GtkRevealer" id="header-separator-revealer">
+            <property name="visible">True</property>
+            <property name="transition-type">crossfade</property>
+            <child>
+              <object class="GtkSeparator">
+                <property name="visible">True</property>
+                <property name="orientation">horizontal</property>
+                <property name="hexpand">true</property>
+                <property name="halign">fill</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
           <object class="GtkScrolledWindow" id="scroll-view">
             <property name="visible">True</property>
             <property name="overlay-scrolling">True</property>
