@@ -109,7 +109,7 @@
                         <property name="visible">False</property>
                         <property name="hexpand">True</property>
                         <property name="halign">center</property>
-                        <property name="label">RECOMMENDED STORIES</property>
+                        <property name="label" translatable="yes">RECOMMENDED STORIES</property>
                         <style>
                           <class name="recommended-stories"/>
                         </style>
