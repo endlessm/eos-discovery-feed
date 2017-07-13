@@ -12,7 +12,7 @@
     <child>
       <object class="GtkLabel">
         <property name="visible">True</property>
-        <property name="label">Install some apps to discover great content!</property>
+        <property name="label" translatable="yes">Install some apps to discover great content!</property>
         <style>
           <class name="title"/>
         </style>

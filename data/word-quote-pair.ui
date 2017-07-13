@@ -33,7 +33,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
-                    <property name="label">QUOTE OF THE DAY</property>
+                    <property name="label" translatable="yes">QUOTE OF THE DAY</property>
                     <property name="xalign">0.0</property>
                     <style>
                       <class name="small-header"/>
@@ -83,7 +83,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="hexpand">True</property>
-                    <property name="label">WORD OF THE DAY</property>
+                    <property name="label" translatable="yes">WORD OF THE DAY</property>
                     <property name="xalign">0.0</property>
                     <style>
                       <class name="small-header"/>

@@ -1,1 +1,4 @@
+[type: gettext/glade]data/available-apps.ui
+[type: gettext/glade]data/main.ui
+[type: gettext/glade]data/word-quote-pair.ui
 src/main.js

@@ -2,8 +2,6 @@
 # Bootstrap script for Endless OS showmehow-service
 # Run this script on a clean source checkout to get ready for building.
 
-POT_FILE=po/com.endlessm.DiscoveryFeed.pot
-
 test -n "$srcdir" || srcdir=`dirname "$0"`
 test -n "$srcdir" || srcdir=.
 olddir=`pwd`
@@ -23,6 +21,7 @@ if test -z "$NOCONFIGURE"; then
 fi
 
 # Run the actual tools to prepare the clean checkout
+intltoolize --force --copy --automake || exit 1
 autoreconf -fi || exit $?
 rm -f po/Makevars.template
 
