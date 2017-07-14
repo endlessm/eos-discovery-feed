@@ -1,3 +1,8 @@
+SUBDIRS = po
+
+# Our Autoconf macros are kept in the m4/ directory
+ACLOCAL_AMFLAGS = -I m4
+
 # Resources
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --generate-dependencies $(srcdir)/src/com.endlessm.DiscoveryFeed.src.gresource.xml)
 app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/data --generate-dependencies $(srcdir)/data/com.endlessm.DiscoveryFeed.data.gresource.xml)

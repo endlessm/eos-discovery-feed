@@ -1128,6 +1128,8 @@ function populateCardsListFromStore(store) {
     });
 }
 
+const COLLAPSED_DATE_VISIBLE_THRESHOLD = 50;
+const HEADER_SEPARATOR_VISIBLE_THRESHOLD = 20;
 
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
@@ -1143,9 +1145,14 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     Template: 'resource:///com/endlessm/DiscoveryFeed/main.ui',
     Children: [
         'cards',
-        'today-date',
         'recommended',
-        'close-button'
+        'close-button',
+        'collapsed-date-revealer',
+        'collapsed-date',
+        'expanded-date-revealer',
+        'expanded-date',
+        'header-separator-revealer',
+        'scroll-view'
     ],
 
     close: function(method) {
@@ -1159,7 +1166,28 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
-        this.today_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
+
+        this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
+        this.expanded_date_revealer.set_reveal_child(true);
+
+        // Translators: collapsed date at the header of the DiscoveryFeed
+        this.collapsed_date.label = _("Today is %s").format((new Date()).toLocaleFormat('%B %e, %Y'));
+
+        let vadjustment = this.scroll_view.vadjustment;
+        vadjustment.connect('value-changed', Lang.bind(this, function() {
+            if (vadjustment.value > HEADER_SEPARATOR_VISIBLE_THRESHOLD)
+                this.header_separator_revealer.set_reveal_child(true);
+            else
+                this.header_separator_revealer.set_reveal_child(false);
+
+            if (vadjustment.value > COLLAPSED_DATE_VISIBLE_THRESHOLD) {
+                this.expanded_date_revealer.set_reveal_child(false);
+                this.collapsed_date_revealer.set_reveal_child(true);
+            } else {
+                this.collapsed_date_revealer.set_reveal_child(false);
+                this.expanded_date_revealer.set_reveal_child(true);
+            }
+        }));
 
         // Add an action so that we can dismiss the view by pressing the
         // escape key or by pressing the close button
@@ -1546,7 +1574,7 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         // when the label contains letters and numbers the allocation
         // does not work properly, force re-allocation here
-        this._window.today_date.realize();
+        this._window.expanded_date.realize();
 
         this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
 

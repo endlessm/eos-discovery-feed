@@ -13,6 +13,12 @@ AM_SILENT_RULES([yes])
 # Custom macros
 AC_CONFIG_MACRO_DIRS([m4])
 
+# Gettext package name
+GETTEXT_PACKAGE=$PACKAGE_NAME
+AC_SUBST(GETTEXT_PACKAGE)
+IT_PROG_INTLTOOL([0.35.0])
+AC_PROG_LN_S
+
 # Set up libtool
 LT_INIT
 
@@ -57,6 +63,11 @@ EOS_ESLINT
 
 # Substitute variables
 AC_SUBST(GLIB_COMPILE_RESOURCES)
-AC_CONFIG_FILES([Makefile])
+
+AC_CONFIG_FILES([
+    Makefile
+    po/Makefile.in
+])
+
 AC_OUTPUT
 

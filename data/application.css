@@ -246,7 +246,16 @@ flowboxchild {
   margin: 0 5px 10px 5px;
 }
 
-.header .date {
+.collapsed-date {
+  font-size: 18px;
+  font-family: 'Alegreya Sans SC', sans-serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-left: 24px;
+  color: #2E6C7F;
+}
+
+.expanded-date {
   font-size: 72px;
   font-family: 'Alegreya Sans SC', sans-serif;
   letter-spacing: 4px;

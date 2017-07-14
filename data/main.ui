@@ -17,6 +17,23 @@
             <property name="hexpand">True</property>
             <property name="halign">fill</property>
             <child>
+              <object class="GtkRevealer" id="collapsed-date-revealer">
+                <property name="visible">True</property>
+                <property name="transition-type">crossfade</property>
+                <property name="transition-duration">500</property>
+                <child>
+                  <object class="GtkLabel" id="collapsed-date">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="halign">end</property>
+                    <style>
+                      <class name="collapsed-date"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
               <object class="GtkButton" id="close-button">
                 <property name="visible">True</property>
                 <property name="halign">end</property>
@@ -39,7 +56,22 @@
           </object>
         </child>
         <child>
-          <object class="GtkScrolledWindow">
+          <object class="GtkRevealer" id="header-separator-revealer">
+            <property name="visible">True</property>
+            <property name="transition-type">crossfade</property>
+            <property name="transition-duration">500</property>
+            <child>
+              <object class="GtkSeparator">
+                <property name="visible">True</property>
+                <property name="orientation">horizontal</property>
+                <property name="hexpand">true</property>
+                <property name="halign">fill</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scroll-view">
             <property name="visible">True</property>
             <property name="overlay-scrolling">True</property>
             <child>
@@ -61,13 +93,18 @@
                       <class name="header"/>
                     </style>
                     <child>
-                      <object class="GtkLabel" id="today-date">
+                      <object class="GtkRevealer" id="expanded-date-revealer">
                         <property name="visible">True</property>
-                        <property name="hexpand">True</property>
-                        <property name="halign">center</property>
-                        <style>
-                          <class name="date"/>
-                        </style>
+                        <property name="transition-type">crossfade</property>
+                        <property name="transition-duration">500</property>
+                        <child>
+                          <object class="GtkLabel" id="expanded-date">
+                            <property name="visible">True</property>
+                            <style>
+                              <class name="expanded-date"/>
+                            </style>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
@@ -75,7 +112,7 @@
                         <property name="visible">False</property>
                         <property name="hexpand">True</property>
                         <property name="halign">center</property>
-                        <property name="label">RECOMMENDED STORIES</property>
+                        <property name="label" translatable="yes">RECOMMENDED STORIES</property>
                         <style>
                           <class name="recommended-stories"/>
                         </style>

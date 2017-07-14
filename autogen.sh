@@ -21,7 +21,9 @@ if test -z "$NOCONFIGURE"; then
 fi
 
 # Run the actual tools to prepare the clean checkout
+intltoolize --force --copy --automake || exit 1
 autoreconf -fi || exit $?
+rm -f po/Makevars.template
 
 cd "$olddir"
 test -n "$NOCONFIGURE" || "./configure" "$@"
