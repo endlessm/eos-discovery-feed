@@ -1122,7 +1122,6 @@ function populateCardsListFromStore(store) {
 
 const COLLAPSED_DATE_VISIBLE_THRESHOLD = 50;
 const HEADER_SEPARATOR_VISIBLE_THRESHOLD = 20;
-const COLLAPSED_DATE_TRANSITION_DURATION = 500;
 
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
@@ -1159,10 +1158,6 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this.cards.bind_model(this.card_model, populateCardsListFromStore);
-
-        this.collapsed_date_revealer.set_transition_duration(COLLAPSED_DATE_TRANSITION_DURATION);
-        this.expanded_date_revealer.set_transition_duration(COLLAPSED_DATE_TRANSITION_DURATION);
-        this.header_separator_revealer.set_transition_duration(COLLAPSED_DATE_TRANSITION_DURATION)
 
         this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);

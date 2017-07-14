@@ -20,6 +20,7 @@
               <object class="GtkRevealer" id="collapsed-date-revealer">
                 <property name="visible">True</property>
                 <property name="transition-type">crossfade</property>
+                <property name="transition-duration">500</property>
                 <child>
                   <object class="GtkLabel" id="collapsed-date">
                     <property name="visible">True</property>
@@ -58,6 +59,7 @@
           <object class="GtkRevealer" id="header-separator-revealer">
             <property name="visible">True</property>
             <property name="transition-type">crossfade</property>
+            <property name="transition-duration">500</property>
             <child>
               <object class="GtkSeparator">
                 <property name="visible">True</property>
@@ -94,6 +96,7 @@
                       <object class="GtkRevealer" id="expanded-date-revealer">
                         <property name="visible">True</property>
                         <property name="transition-type">crossfade</property>
+                        <property name="transition-duration">500</property>
                         <child>
                           <object class="GtkLabel" id="expanded-date">
                             <property name="visible">True</property>
