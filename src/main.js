@@ -142,6 +142,16 @@ const DiscoveryFeedQuoteIface = '\
   </interface> \
 </node>';
 
+const DiscoveryFeedArtworkIface = '\
+<node> \
+  <interface name="com.endlessm.DiscoveryFeedArtwork"> \
+    <method name="ArticleCardDescriptions"> \
+      <arg type="as" name="Shards" direction="out" /> \
+      <arg type="aa{ss}" name="Result" direction="out" /> \
+    </method> \
+  </interface> \
+</node>';
+
 //
 // maybeGetKeyfileString
 //
@@ -351,7 +361,8 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
         'com.endlessm.DiscoveryFeedInstallableApps': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedInstallableAppsIface),
         'com.endlessm.DiscoveryFeedVideo': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedVideoIface),
         'com.endlessm.DiscoveryFeedQuote': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedQuoteIface),
-        'com.endlessm.DiscoveryFeedWord': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedWordIface)
+        'com.endlessm.DiscoveryFeedWord': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedWordIface),
+        'com.endlessm.DiscoveryFeedArtwork': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedArtworkIface)
     };
 
     // Map to promises and then flat map promises
@@ -1313,6 +1324,19 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
     });
 }
 
+function appendDiscoveryFeedArtworkFromProxy(proxy) {
+    return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
+    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
+                                                              results.slice(1, results.length),
+                                                              proxy,
+                                                              Stores.CARD_STORE_TYPE_ARTWORK_CARD,
+                                                              Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                              Stores.THUMBNAIL_SIZE_ARTICLE))
+    .catch((e) => {
+        throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
+    });
+}
+
 function appendDiscoveryFeedNewsFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
@@ -1486,6 +1510,9 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
             break;
         case 'com.endlessm.DiscoveryFeedWord':
             wordQuoteProxies.word.push(proxy);
+            break;
+        case 'com.endlessm.DiscoveryFeedArtwork':
+            pendingPromises.push(appendDiscoveryFeedArtworkFromProxy(proxy));
             break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
