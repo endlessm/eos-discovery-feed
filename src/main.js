@@ -145,7 +145,7 @@ const DiscoveryFeedQuoteIface = '\
 const DiscoveryFeedArtworkIface = '\
 <node> \
   <interface name="com.endlessm.DiscoveryFeedArtwork"> \
-    <method name="ArticleCardDescriptions"> \
+    <method name="ArtworkCardDescriptions"> \
       <arg type="as" name="Shards" direction="out" /> \
       <arg type="aa{ss}" name="Result" direction="out" /> \
     </method> \
@@ -1287,6 +1287,35 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
     .reduce((list, incoming) => list.concat(incoming), []);
 }
 
+function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direction, thumbnailSize) {
+    return items.map(function(response) {
+        return Array.prototype.slice.call(response).map(function(entry) {
+            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+            return {
+                type: type,
+                source: proxy.desktopId,
+                builder: function(modelIndex) {
+                    return new Stores.DiscoveryFeedKnowlegeArtworkCardStore({
+                        title: entry.title,
+                        author: entry.author,
+                        thumbnail: thumbnail,
+                        desktop_id: proxy.desktopId,
+                        bus_name: proxy.busName,
+                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                        knowledge_app_id: proxy.knowledgeAppId,
+                        uri: entry.ekn_id,
+                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                        type: type,
+                        thumbnail_size: thumbnailSize
+                    });
+                }
+            };
+        });
+    })
+    .reduce((list, incoming) => list.concat(incoming), []);
+}
+
 function promisifyGIO(obj, funcName, ...args) {
     return new Promise((resolve, reject) => {
         try {
@@ -1325,8 +1354,8 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
 }
 
 function appendDiscoveryFeedArtworkFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
-    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
+    return promisifyGIO(proxy.iface, 'ArtworkCardDescriptionsRemote')
+    .then(([results]) => appendArtworkCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               Stores.CARD_STORE_TYPE_ARTWORK_CARD,
