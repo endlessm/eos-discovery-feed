@@ -845,7 +845,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             loadKnowledgeAppContent(this._app,
                                     this._knowledgeSearchProxy,
                                     this.model.uri,
-				    this.contentType);
+                                    this.contentType);
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
