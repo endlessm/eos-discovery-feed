@@ -204,11 +204,11 @@ const DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
     Extends: DiscoveryFeedKnowledgeAppCardStore,
     Properties: {
         author: GObject.ParamSpec.string('author',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           '')
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         '')
     },
 
     _init: function(params) {
