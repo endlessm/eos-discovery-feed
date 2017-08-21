@@ -884,11 +884,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                     min_width: this.model.thumbnail_size,
                     min_height: this.model.thumbnail_size
                 }),
-                description: new DiscoveryFeedAppContentDescription({
-                    title: this.model.title,
-                    synopsis: this.model.synopsis,
-                    app_name: this._app.get_display_name().toUpperCase()
-                }),
+                description: this.createDescription(),
                 layout_direction: this.model.layout_direction
             })
         });
@@ -901,6 +897,14 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
+    },
+
+    createDescription: function() {
+	return new DiscoveryFeedAppContentDescription({
+            title: this.model.title,
+            synopsis: this.model.synopsis,
+            app_name: this._app.get_display_name().toUpperCase()
+        });
     }
 });
 
