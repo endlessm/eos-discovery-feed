@@ -878,15 +878,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         // appropriately
         this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
         let card = new DiscoveryFeedActivatableFrame({
-            content: new DiscoveryFeedContentCardLayout({
-                content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail,
-                    min_width: this.model.thumbnail_size,
-                    min_height: this.model.thumbnail_size
-                }),
-                description: this.createDescription(),
-                layout_direction: this.model.layout_direction
-            })
+            content: this.createLayout()
         });
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
@@ -897,6 +889,18 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
+    },
+
+    createLayout: function() {
+	return new DiscoveryFeedContentCardLayout({
+            content: new DiscoveryFeedContentPreview({
+                image_stream: this.model.thumbnail,
+                min_width: this.model.thumbnail_size,
+                min_height: this.model.thumbnail_size
+            }),
+            description: this.createDescription(),
+            layout_direction: this.model.layout_direction
+        })
     },
 
     createDescription: function() {
