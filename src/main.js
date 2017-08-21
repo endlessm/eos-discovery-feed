@@ -818,46 +818,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
     }
 });
 
-const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeVideoCard',
-    Extends: Gtk.Box,
-    Properties: {
-        model: GObject.ParamSpec.object('model',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
-    },
-
-    _init: function(params) {
-        params.visible = true;
-        this.parent(params);
-
-        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
-        let card = new DiscoveryFeedActivatableFrame({
-            content: new DiscoveryFeedVideoCardLayout({
-                title: this.model.title,
-                duration: this.model.duration,
-                app_name: this._app.get_display_name().toUpperCase(),
-                content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail,
-                    min_height: CONTENT_PREVIEW_MID
-                })
-            })
-        });
-        this.add(card);
-        card.connect('clicked', Lang.bind(this, function() {
-            loadKnowledgeAppContent(this._app,
-                                    this._knowledgeSearchProxy,
-                                    this.model.uri,
-                                    'knowledge_video');
-        }));
-        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
-                                                                     this.model.knowledge_search_object_path);
-    }
-});
-
 const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCard',
     Extends: Gtk.Box,
@@ -913,6 +873,35 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
 
     get contentType() {
 	return 'knowledge_content';
+    }
+});
+
+const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeVideoCard',
+    Extends: DiscoveryFeedKnowledgeAppCard,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        Stores.DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
+    },
+
+    createLayout: function() {
+        return new DiscoveryFeedVideoCardLayout({
+            title: this.model.title,
+            duration: this.model.duration,
+            app_name: this._app.get_display_name().toUpperCase(),
+            content: new DiscoveryFeedContentPreview({
+                image_stream: this.model.thumbnail,
+                min_height: CONTENT_PREVIEW_MID
+            })
+	});
+    },
+
+    get contentType() {
+	return 'knowledge_video';
     }
 });
 
