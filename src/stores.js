@@ -199,8 +199,8 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowlegeArtworkCardStore',
+const DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeArtworkCardStore',
     Extends: DiscoveryFeedKnowledgeAppCardStore,
     Properties: {
         author: GObject.ParamSpec.string('author',

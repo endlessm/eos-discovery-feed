@@ -921,7 +921,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+                                        Stores.DiscoveryFeedKnowledgeArtworkCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -1299,7 +1299,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                 type: type,
                 source: proxy.desktopId,
                 builder: function(modelIndex) {
-                    return new Stores.DiscoveryFeedKnowlegeArtworkCardStore({
+                    return new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
                         title: entry.title,
                         author: entry.author,
                         thumbnail: thumbnail,
