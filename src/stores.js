@@ -121,49 +121,11 @@ const DiscoveryFeedWordQuotePairStore = new Lang.Class({
 const LAYOUT_DIRECTION_IMAGE_FIRST = 0;
 const LAYOUT_DIRECTION_IMAGE_LAST = 1;
 
-// eslint-disable-next-line no-unused-vars
-const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowlegeArtworkCardStore',
-    Extends: DiscoveryFeedCardStore,
-    Properties: {
-        title: GObject.ParamSpec.string('title',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
-        author: GObject.ParamSpec.string('author',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
-        thumbnail: GObject.ParamSpec.object('thumbnail',
-                                              '',
-                                              '',
-                                              GObject.ParamFlags.READWRITE |
-                                              GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Gio.InputStream),
-        layout_direction: GObject.ParamSpec.int('layout-direction',
-                                                '',
-                                                '',
-                                                GObject.ParamFlags.READWRITE |
-                                                GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                LAYOUT_DIRECTION_IMAGE_LAST,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST)
-    },
-
-    _init: function(params) {
-        params.type = CARD_STORE_TYPE_ARTWORK_CARD;
-        this.parent(params);
-    }
-});
-
 const THUMBNAIL_SIZE_APP_STORE = 180;
 const THUMBNAIL_WIDTH_APP_STORE_LINK = 211;
 const THUMBNAIL_SIZE_ARTICLE = 254;
 const THUMBNAIL_SIZE_NEWS = 322;
+const THUMBNAIL_SIZE_ARTWORK = 400;
 
 // eslint-disable-next-line no-unused-vars
 const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
@@ -226,12 +188,31 @@ const DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
                                                 THUMBNAIL_SIZE_APP_STORE,
-                                                THUMBNAIL_SIZE_NEWS,
+                                                THUMBNAIL_SIZE_ARTWORK,
                                                 THUMBNAIL_SIZE_ARTICLE)
     },
 
     _init: function(params) {
         params.type = params.type || CARD_STORE_TYPE_ARTICLE_CARD;
+        this.parent(params);
+    }
+});
+
+// eslint-disable-next-line no-unused-vars
+const DiscoveryFeedKnowlegeArtworkCardStore = new Lang.Class({
+    Name: 'DiscoveryFeedKnowlegeArtworkCardStore',
+    Extends: DiscoveryFeedKnowledgeAppCardStore,
+    Properties: {
+        author: GObject.ParamSpec.string('author',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           '')
+    },
+
+    _init: function(params) {
+        params.type = CARD_STORE_TYPE_ARTWORK_CARD;
         this.parent(params);
     }
 });

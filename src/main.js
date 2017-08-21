@@ -893,7 +893,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             loadKnowledgeAppContent(this._app,
                                     this._knowledgeSearchProxy,
                                     this.model.uri,
-                                    'knowledge_content');
+				    this.contentType);
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
@@ -905,12 +905,16 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             synopsis: this.model.synopsis,
             app_name: this._app.get_display_name().toUpperCase()
         });
+    },
+
+    get contentType() {
+	return 'knowledge_content';
     }
 });
 
 const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeArtworkCard',
-    Extends: Gtk.Box,
+    Extends: DiscoveryFeedKnowledgeAppCard,
     Properties: {
         model: GObject.ParamSpec.object('model',
                                         '',
@@ -921,26 +925,21 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
     },
 
     _init: function(params) {
-        params.visible = true;
         this.parent(params);
 
-        let card = new DiscoveryFeedActivatableFrame({
-            content: new DiscoveryFeedContentCardLayout({
-                content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail,
-                    min_width: CONTENT_PREVIEW_LARGE,
-                    min_height: CONTENT_PREVIEW_LARGE
-                }),
-                description: new DiscoveryFeedAppContentDescription({
-                    title: this.model.title,
-                    synopsis: 'by ' + this.model.author,
-                    app_name: 'Masterpiece of the Day'.toUpperCase()
-                }),
-                layout_direction: this.model.layout_direction
-            })
-        });
-        this.add(card);
         this.get_style_context().add_class('artwork');
+    },
+
+    createDescription: function() {
+        return new DiscoveryFeedAppContentDescription({
+            title: this.model.title,
+            synopsis: 'by ' + this.model.author,
+            app_name: 'Masterpiece of the Day'.toUpperCase()
+        });
+    },
+
+    get contentType() {
+	return 'knowledge_artwork';
     }
 });
 
@@ -1364,7 +1363,7 @@ function appendDiscoveryFeedArtworkFromProxy(proxy) {
                                                               proxy,
                                                               Stores.CARD_STORE_TYPE_ARTWORK_CARD,
                                                               Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                              Stores.THUMBNAIL_SIZE_ARTICLE))
+                                                              Stores.THUMBNAIL_SIZE_ARTWORK))
     .catch((e) => {
         throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
     });
