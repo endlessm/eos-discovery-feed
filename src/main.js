@@ -834,14 +834,14 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
         params.visible = true;
         this.parent(params);
 
-        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedVideoCardLayout({
-                title: params.model.title,
-                duration: params.model.duration,
+                title: this.model.title,
+                duration: this.model.duration,
                 app_name: this._app.get_display_name().toUpperCase(),
                 content: new DiscoveryFeedContentPreview({
-                    image_stream: params.model.thumbnail,
+                    image_stream: this.model.thumbnail,
                     min_height: CONTENT_PREVIEW_MID
                 })
             })
@@ -876,20 +876,20 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
 
         // Read the desktop file and then set the app icon and label
         // appropriately
-        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail,
-                    min_width: params.model.thumbnail_size,
-                    min_height: params.model.thumbnail_size
+                    min_width: this.model.thumbnail_size,
+                    min_height: this.model.thumbnail_size
                 }),
                 description: new DiscoveryFeedAppContentDescription({
-                    title: params.model.title,
-                    synopsis: params.model.synopsis,
+                    title: this.model.title,
+                    synopsis: this.model.synopsis,
                     app_name: this._app.get_display_name().toUpperCase()
                 }),
-                layout_direction: params.model.layout_direction
+                layout_direction: this.model.layout_direction
             })
         });
         this.add(card);
@@ -928,11 +928,11 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
                     min_height: CONTENT_PREVIEW_LARGE
                 }),
                 description: new DiscoveryFeedAppContentDescription({
-                    title: params.model.title,
-                    synopsis: 'by ' + params.model.author,
+                    title: this.model.title,
+                    synopsis: 'by ' + this.model.author,
                     app_name: 'Masterpiece of the Day'.toUpperCase()
                 }),
-                layout_direction: params.model.layout_direction
+                layout_direction: this.model.layout_direction
             })
         });
         this.add(card);
@@ -1003,7 +1003,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                     synopsis: this.model.synopsis,
                     icon: this.model.icon
                 }),
-                layout_direction: params.model.layout_direction
+                layout_direction: this.model.layout_direction
             })
         });
         this.add(card);
@@ -1053,7 +1053,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                 description: new DiscoveryFeedAppStoreLink({
                     message: this.model.title
                 }),
-                layout_direction: params.model.layout_direction
+                layout_direction: this.model.layout_direction
             })
         });
         this.add(card);
