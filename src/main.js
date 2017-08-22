@@ -818,46 +818,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
     }
 });
 
-const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeVideoCard',
-    Extends: Gtk.Box,
-    Properties: {
-        model: GObject.ParamSpec.object('model',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
-    },
-
-    _init: function(params) {
-        params.visible = true;
-        this.parent(params);
-
-        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
-        let card = new DiscoveryFeedActivatableFrame({
-            content: new DiscoveryFeedVideoCardLayout({
-                title: params.model.title,
-                duration: params.model.duration,
-                app_name: this._app.get_display_name().toUpperCase(),
-                content: new DiscoveryFeedContentPreview({
-                    image_stream: params.model.thumbnail,
-                    min_height: CONTENT_PREVIEW_MID
-                })
-            })
-        });
-        this.add(card);
-        card.connect('clicked', Lang.bind(this, function() {
-            loadKnowledgeAppContent(this._app,
-                                    this._knowledgeSearchProxy,
-                                    this.model.uri,
-                                    'knowledge_video');
-        }));
-        this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
-                                                                     this.model.knowledge_search_object_path);
-    }
-});
-
 const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCard',
     Extends: Gtk.Box,
@@ -876,67 +836,103 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
 
         // Read the desktop file and then set the app icon and label
         // appropriately
-        this._app = Gio.DesktopAppInfo.new(params.model.desktop_id);
+        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
         let card = new DiscoveryFeedActivatableFrame({
-            content: new DiscoveryFeedContentCardLayout({
-                content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail,
-                    min_width: params.model.thumbnail_size,
-                    min_height: params.model.thumbnail_size
-                }),
-                description: new DiscoveryFeedAppContentDescription({
-                    title: params.model.title,
-                    synopsis: params.model.synopsis,
-                    app_name: this._app.get_display_name().toUpperCase()
-                }),
-                layout_direction: params.model.layout_direction
-            })
+            content: this.createLayout()
         });
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
             loadKnowledgeAppContent(this._app,
                                     this._knowledgeSearchProxy,
                                     this.model.uri,
-                                    'knowledge_content');
+                                    this.contentType);
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
+    },
+
+    createLayout: function() {
+	return new DiscoveryFeedContentCardLayout({
+            content: new DiscoveryFeedContentPreview({
+                image_stream: this.model.thumbnail,
+                min_width: this.model.thumbnail_size,
+                min_height: this.model.thumbnail_size
+            }),
+            description: this.createDescription(),
+            layout_direction: this.model.layout_direction
+        })
+    },
+
+    createDescription: function() {
+	return new DiscoveryFeedAppContentDescription({
+            title: this.model.title,
+            synopsis: this.model.synopsis,
+            app_name: this._app.get_display_name().toUpperCase()
+        });
+    },
+
+    get contentType() {
+	return 'knowledge_content';
     }
 });
 
-const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeArtworkCard',
-    Extends: Gtk.Box,
+const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeVideoCard',
+    Extends: DiscoveryFeedKnowledgeAppCard,
     Properties: {
         model: GObject.ParamSpec.object('model',
                                         '',
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowlegeArtworkCardStore.$gtype)
+                                        Stores.DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
+    },
+
+    createLayout: function() {
+        return new DiscoveryFeedVideoCardLayout({
+            title: this.model.title,
+            duration: this.model.duration,
+            app_name: this._app.get_display_name().toUpperCase(),
+            content: new DiscoveryFeedContentPreview({
+                image_stream: this.model.thumbnail,
+                min_height: CONTENT_PREVIEW_MID
+            })
+	});
+    },
+
+    get contentType() {
+	return 'knowledge_video';
+    }
+});
+
+const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
+    Name: 'DiscoveryFeedKnowledgeArtworkCard',
+    Extends: DiscoveryFeedKnowledgeAppCard,
+    Properties: {
+        model: GObject.ParamSpec.object('model',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        Stores.DiscoveryFeedKnowledgeArtworkCardStore.$gtype)
     },
 
     _init: function(params) {
-        params.visible = true;
         this.parent(params);
 
-        let card = new DiscoveryFeedActivatableFrame({
-            content: new DiscoveryFeedContentCardLayout({
-                content: new DiscoveryFeedContentPreview({
-                    image_stream: this.model.thumbnail,
-                    min_width: CONTENT_PREVIEW_LARGE,
-                    min_height: CONTENT_PREVIEW_LARGE
-                }),
-                description: new DiscoveryFeedAppContentDescription({
-                    title: params.model.title,
-                    synopsis: 'by ' + params.model.author,
-                    app_name: 'Masterpiece of the Day'.toUpperCase()
-                }),
-                layout_direction: params.model.layout_direction
-            })
-        });
-        this.add(card);
         this.get_style_context().add_class('artwork');
+    },
+
+    createDescription: function() {
+        return new DiscoveryFeedAppContentDescription({
+            title: this.model.title,
+            synopsis: 'by ' + this.model.author,
+            app_name: 'Masterpiece of the Day'.toUpperCase()
+        });
+    },
+
+    get contentType() {
+	return 'knowledge_artwork';
     }
 });
 
@@ -1003,7 +999,7 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
                     synopsis: this.model.synopsis,
                     icon: this.model.icon
                 }),
-                layout_direction: params.model.layout_direction
+                layout_direction: this.model.layout_direction
             })
         });
         this.add(card);
@@ -1053,7 +1049,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
                 description: new DiscoveryFeedAppStoreLink({
                     message: this.model.title
                 }),
-                layout_direction: params.model.layout_direction
+                layout_direction: this.model.layout_direction
             })
         });
         this.add(card);
@@ -1296,7 +1292,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                 type: type,
                 source: proxy.desktopId,
                 builder: function(modelIndex) {
-                    return new Stores.DiscoveryFeedKnowlegeArtworkCardStore({
+                    return new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
                         title: entry.title,
                         author: entry.author,
                         thumbnail: thumbnail,
@@ -1360,7 +1356,7 @@ function appendDiscoveryFeedArtworkFromProxy(proxy) {
                                                               proxy,
                                                               Stores.CARD_STORE_TYPE_ARTWORK_CARD,
                                                               Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                              Stores.THUMBNAIL_SIZE_ARTICLE))
+                                                              Stores.THUMBNAIL_SIZE_ARTWORK))
     .catch((e) => {
         throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
     });
