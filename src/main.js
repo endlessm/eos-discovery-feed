@@ -1167,7 +1167,10 @@ const DiscoveryFeedMainWindow = new Lang.Class({
             closed_by: method,
             time: String(GLib.get_real_time() - this._openedAtTime)
         }));
-        this.visible = false;
+
+        // We need to destroy the window here instead of simply hiding it
+        // so that GtkApplicationWindow will release the hold on the application
+        this.destroy();
     },
 
     _init: function(params) {
@@ -1599,7 +1602,11 @@ const DiscoveryFeedApplication = new Lang.Class({
     Extends: Gtk.Application,
 
     _init: function() {
-        this.parent({ application_id: pkg.name });
+        this.parent({
+            application_id: pkg.name,
+            inactivity_timeout: 12000,
+            flags: Gio.ApplicationFlags.IS_SERVICE
+        });
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
         this._installedAppsChangedId = -1;
@@ -1700,9 +1707,11 @@ const DiscoveryFeedApplication = new Lang.Class({
                                                       this._updateGeometry));
         this._updateGeometry();
 
-        // We release the hold that gtk takes over the application so that
-        // our inactivity timeout will still work
-        this.release();
+        // When the window gets destroyed we should release our reference
+        // to it so that we can re-create it later
+        this._window.connect('destroy', Lang.bind(this, function() {
+            this._window = null;
+        }));
     },
 
     vfunc_activate: function() {
@@ -1718,7 +1727,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         if (!this._window)
             this._createWindowResources();
 
-        this.hold();
         this._window.show();
         this._window.present_with_time(timestamp);
 
@@ -1741,7 +1749,6 @@ const DiscoveryFeedApplication = new Lang.Class({
     },
 
     hide: function() {
-        this.release();
         this._window.close('lost_focus');
     },
 
