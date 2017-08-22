@@ -1616,38 +1616,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent();
 
         load_style_sheet('/com/endlessm/DiscoveryFeed/application.css');
-
-        this._window = new DiscoveryFeedMainWindow({
-            application: this,
-            type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
-            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
-            card_model: this._discoveryFeedCardModel
-        });
-
-        // to be able to set the opacity from css
-        let visual = Gdk.Screen.get_default().get_rgba_visual();
-        if (visual) {
-            this._window.set_visual(visual);
-        }
-
-        // when the label contains letters and numbers the allocation
-        // does not work properly, force re-allocation here
-        this._window.expanded_date.realize();
-
-        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
-
-        this._setupWindowInteraction();
-
-        // update position when workarea changes
-        let display = Gdk.Display.get_default();
-        display.connect('monitor-added', Lang.bind(this,
-                                                   this._updateGeometry));
-        display.connect('monitor-removed', Lang.bind(this,
-                                                     this._updateGeometry));
-        let monitor = display.get_primary_monitor();
-        monitor.connect('notify::workarea', Lang.bind(this,
-                                                      this._updateGeometry));
-        this._updateGeometry();
     },
 
     // Using connection, refresh discovery feed proxies. Returns a promise
@@ -1699,12 +1667,58 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent(connection, path);
     },
 
+    _createWindowResources: function() {
+        this._window = new DiscoveryFeedMainWindow({
+            application: this,
+            type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
+            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
+            card_model: this._discoveryFeedCardModel
+        });
+
+        // to be able to set the opacity from css
+        let visual = Gdk.Screen.get_default().get_rgba_visual();
+        if (visual) {
+            this._window.set_visual(visual);
+        }
+
+        // when the label contains letters and numbers the allocation
+        // does not work properly, force re-allocation here
+        this._window.expanded_date.realize();
+
+        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
+
+        this._setupWindowInteraction();
+
+        // update position when workarea changes
+        let display = Gdk.Display.get_default();
+        display.connect('monitor-added', Lang.bind(this,
+                                                   this._updateGeometry));
+        display.connect('monitor-removed', Lang.bind(this,
+                                                     this._updateGeometry));
+        let monitor = display.get_primary_monitor();
+        monitor.connect('notify::workarea', Lang.bind(this,
+                                                      this._updateGeometry));
+        this._updateGeometry();
+
+        // We release the hold that gtk takes over the application so that
+        // our inactivity timeout will still work
+        this.release();
+    },
+
     vfunc_activate: function() {
         if (this._debugWindow)
             this.show(Gdk.CURRENT_TIME);
     },
 
     show: function(timestamp) {
+        // We need to create window resources here so that gtk does not
+        // take a hold on the application during startup. We cannot do it
+        // during activate, since this function might be called by the
+        // shell instead of activate.
+        if (!this._window)
+            this._createWindowResources();
+
+        this.hold();
         this._window.show();
         this._window.present_with_time(timestamp);
 
@@ -1727,6 +1741,7 @@ const DiscoveryFeedApplication = new Lang.Class({
     },
 
     hide: function() {
+        this.release();
         this._window.close('lost_focus');
     },
 
