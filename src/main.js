@@ -1506,8 +1506,6 @@ function zipArraysInObject(object) {
 }
 
 function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
-    model.remove_all();
-
     let wordQuoteProxies = {
         word: [],
         quote: []
@@ -1568,6 +1566,10 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
         .filter(r => !!r)
         // Flat map, since we get a list list from promise
         .reduce((a, b) => a.concat(b), []);
+
+        // We only want to throw stuff away from the model
+        // once we have information to replace it with
+        model.remove_all();
 
         let layoutIndex = 0;
         ModelOrdering.arrange(models).forEach(descriptor => {
