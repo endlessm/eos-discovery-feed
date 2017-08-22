@@ -1262,7 +1262,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                builder: function(modelIndex) {
+                builder: function(layoutIndex) {
                     return new Stores.DiscoveryFeedKnowledgeAppCardStore({
                         title: entry.title,
                         synopsis: TextSanitization.synopsis(entry.synopsis),
@@ -1272,7 +1272,9 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
                         knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                         knowledge_app_id: proxy.knowledgeAppId,
                         uri: entry.ekn_id,
-                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                        layout_direction: layoutIndex % 2 == 0 ?
+                                          Stores.LAYOUT_DIRECTION_IMAGE_FIRST :
+                                          Stores.LAYOUT_DIRECTION_IMAGE_LAST,
                         type: type,
                         thumbnail_size: thumbnailSize
                     });
@@ -1291,7 +1293,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                builder: function(modelIndex) {
+                builder: function(layoutIndex) {
                     return new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
                         title: entry.title,
                         author: entry.author,
@@ -1301,7 +1303,9 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                         knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                         knowledge_app_id: proxy.knowledgeAppId,
                         uri: entry.ekn_id,
-                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                        layout_direction: layoutIndex % 2 == 0 ?
+                                          Stores.LAYOUT_DIRECTION_IMAGE_FIRST :
+                                          Stores.LAYOUT_DIRECTION_IMAGE_LAST,
                         type: type,
                         thumbnail_size: thumbnailSize
                     });
