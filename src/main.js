@@ -1389,7 +1389,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
         source: 'word-quote',
         builder: () => new Stores.DiscoveryFeedWordQuotePairStore({
             quote: new Stores.DiscoveryFeedQuoteStore({
-                quote: TextSanitization.synopsis(quote.quote),
+                quote: TextSanitization.synopsis(quote.title),
                 author: quote.author
             }),
             word: new Stores.DiscoveryFeedWordStore({
