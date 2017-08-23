@@ -1597,6 +1597,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
     }).catch(e => logError(e, 'Query failed'));
 }
 
+const AUTO_CLOSE_MILLISECONDS_TIMEOUT = 12000;
+
 const DiscoveryFeedApplication = new Lang.Class({
     Name: 'DiscoveryFeedApplication',
     Extends: Gtk.Application,
@@ -1604,7 +1606,7 @@ const DiscoveryFeedApplication = new Lang.Class({
     _init: function() {
         this.parent({
             application_id: pkg.name,
-            inactivity_timeout: 12000,
+            inactivity_timeout: AUTO_CLOSE_MILLISECONDS_TIMEOUT,
             flags: Gio.ApplicationFlags.IS_SERVICE
         });
         GLib.set_application_name(_('Discovery Feed'));
