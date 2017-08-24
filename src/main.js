@@ -1625,6 +1625,9 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent();
 
         load_style_sheet('/com/endlessm/DiscoveryFeed/application.css');
+
+        if (this._debugWindow)
+            this.activate();
     },
 
     // Using connection, refresh discovery feed proxies. Returns a promise
