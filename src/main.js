@@ -1167,7 +1167,10 @@ const DiscoveryFeedMainWindow = new Lang.Class({
             closed_by: method,
             time: String(GLib.get_real_time() - this._openedAtTime)
         }));
-        this.visible = false;
+
+        // We need to destroy the window here instead of simply hiding it
+        // so that GtkApplicationWindow will release the hold on the application
+        this.destroy();
     },
 
     _init: function(params) {
@@ -1590,12 +1593,18 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
     }).catch(e => logError(e, 'Query failed'));
 }
 
+const AUTO_CLOSE_MILLISECONDS_TIMEOUT = 12000;
+
 const DiscoveryFeedApplication = new Lang.Class({
     Name: 'DiscoveryFeedApplication',
     Extends: Gtk.Application,
 
     _init: function() {
-        this.parent({ application_id: pkg.name });
+        this.parent({
+            application_id: pkg.name,
+            inactivity_timeout: AUTO_CLOSE_MILLISECONDS_TIMEOUT,
+            flags: Gio.ApplicationFlags.IS_SERVICE
+        });
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
         this._installedAppsChangedId = -1;
@@ -1613,37 +1622,8 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         load_style_sheet('/com/endlessm/DiscoveryFeed/application.css');
 
-        this._window = new DiscoveryFeedMainWindow({
-            application: this,
-            type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
-            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
-            card_model: this._discoveryFeedCardModel
-        });
-
-        // to be able to set the opacity from css
-        let visual = Gdk.Screen.get_default().get_rgba_visual();
-        if (visual) {
-            this._window.set_visual(visual);
-        }
-
-        // when the label contains letters and numbers the allocation
-        // does not work properly, force re-allocation here
-        this._window.expanded_date.realize();
-
-        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
-
-        this._setupWindowInteraction();
-
-        // update position when workarea changes
-        let display = Gdk.Display.get_default();
-        display.connect('monitor-added', Lang.bind(this,
-                                                   this._updateGeometry));
-        display.connect('monitor-removed', Lang.bind(this,
-                                                     this._updateGeometry));
-        let monitor = display.get_primary_monitor();
-        monitor.connect('notify::workarea', Lang.bind(this,
-                                                      this._updateGeometry));
-        this._updateGeometry();
+        if (this._debugWindow)
+            this.activate();
     },
 
     // Using connection, refresh discovery feed proxies. Returns a promise
@@ -1695,12 +1675,59 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.parent(connection, path);
     },
 
+    _createWindowResources: function() {
+        this._window = new DiscoveryFeedMainWindow({
+            application: this,
+            type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
+            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
+            card_model: this._discoveryFeedCardModel
+        });
+
+        // to be able to set the opacity from css
+        let visual = Gdk.Screen.get_default().get_rgba_visual();
+        if (visual) {
+            this._window.set_visual(visual);
+        }
+
+        // when the label contains letters and numbers the allocation
+        // does not work properly, force re-allocation here
+        this._window.expanded_date.realize();
+
+        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
+
+        this._setupWindowInteraction();
+
+        // update position when workarea changes
+        let display = Gdk.Display.get_default();
+        display.connect('monitor-added', Lang.bind(this,
+                                                   this._updateGeometry));
+        display.connect('monitor-removed', Lang.bind(this,
+                                                     this._updateGeometry));
+        let monitor = display.get_primary_monitor();
+        monitor.connect('notify::workarea', Lang.bind(this,
+                                                      this._updateGeometry));
+        this._updateGeometry();
+
+        // When the window gets destroyed we should release our reference
+        // to it so that we can re-create it later
+        this._window.connect('destroy', Lang.bind(this, function() {
+            this._window = null;
+        }));
+    },
+
     vfunc_activate: function() {
         if (this._debugWindow)
             this.show(Gdk.CURRENT_TIME);
     },
 
     show: function(timestamp) {
+        // We need to create window resources here so that gtk does not
+        // take a hold on the application during startup. We cannot do it
+        // during activate, since this function might be called by the
+        // shell instead of activate.
+        if (!this._window)
+            this._createWindowResources();
+
         this._window.show();
         this._window.present_with_time(timestamp);
 
