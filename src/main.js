@@ -1708,6 +1708,9 @@ const DiscoveryFeedApplication = new Lang.Class({
         // to it so that we can re-create it later
         this._window.connect('destroy', Lang.bind(this, function() {
             this._window = null;
+            this._discoveryFeedCardModel = new Gio.ListStore({
+                item_type: Stores.DiscoveryFeedCardStore.$gtype
+            });
 
             // We also need to disconnect all signals now
             if (this._changedSignalId !== -1) {
