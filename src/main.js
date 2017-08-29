@@ -1142,14 +1142,6 @@ const HEADER_SEPARATOR_VISIBLE_THRESHOLD = 20;
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
     Extends: Gtk.ApplicationWindow,
-    Properties: {
-        'card-model': GObject.ParamSpec.object('card-model',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               Gio.ListModel)
-    },
     Template: 'resource:///com/endlessm/DiscoveryFeed/main.ui',
     Children: [
         'cards',
@@ -1176,7 +1168,11 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.cards.bind_model(this.card_model, populateCardsListFromStore);
+
+        this._cardModel = new Gio.ListStore({
+            item_type: Stores.DiscoveryFeedCardStore.$gtype
+        });
+        this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
         this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
@@ -1221,6 +1217,12 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.application.set_accels_for_action('win.escclose', ['Escape']);
         this.close_button.set_action_name('win.buttonclose');
     },
+
+    updateContentFromProxies: function(proxies) {
+        return populateDiscoveryFeedModelFromQueries(this._cardModel,
+                                                     proxies,
+                                                     this.recommended);
+    }
 });
 
 function load_style_sheet(resourcePath) {
@@ -1604,9 +1606,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._monitorChangedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
-        this._discoveryFeedCardModel = new Gio.ListStore({
-            item_type: Stores.DiscoveryFeedCardStore.$gtype
-        });
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
     },
 
@@ -1672,8 +1671,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window = new DiscoveryFeedMainWindow({
             application: this,
             type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
-            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
-            card_model: this._discoveryFeedCardModel
+            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null
         });
 
         // to be able to set the opacity from css
@@ -1708,9 +1706,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         // to it so that we can re-create it later
         this._window.connect('destroy', Lang.bind(this, function() {
             this._window = null;
-            this._discoveryFeedCardModel = new Gio.ListStore({
-                item_type: Stores.DiscoveryFeedCardStore.$gtype
-            });
 
             // We also need to disconnect all signals now
             if (this._changedSignalId !== -1) {
@@ -1763,9 +1758,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         }
 
         chain.then(Lang.bind(this, function(proxies) {
-            populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
-                                                  proxies,
-                                                  this._window.recommended);
+            return this._window.updateContentFromProxies(proxies);
         }));
     },
 
