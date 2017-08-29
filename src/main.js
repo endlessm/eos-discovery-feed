@@ -1219,9 +1219,24 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     },
 
     updateContentFromProxies: function(proxies) {
-        return populateDiscoveryFeedModelFromQueries(this._cardModel,
-                                                     proxies,
-                                                     this.recommended);
+        return Promise.resolve()
+        .then(() => this.recommended.hide())
+        .then(() => discoveryFeedCardsFromQueries(proxies))
+        .then(Lang.bind(this, function(descriptors) {
+            // We only want to throw stuff away from the model
+            // once we have information to replace it with
+            this._cardModel.remove_all();
+
+            descriptors.forEach(descriptor => {
+                this._cardModel.append(descriptor.model);
+
+                // If we show a card that is not the available apps card,
+                // we'll want to show the 'recommended content' text now.
+                if (descriptor.type !== Stores.CARD_STORE_TYPE_AVAILABLE_APPS) {
+                    this.recommended.show();
+                }
+            });
+        }));
     }
 });
 
@@ -1507,14 +1522,13 @@ function zipArraysInObject(object) {
     return arr;
 }
 
-function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
+function discoveryFeedCardsFromQueries(proxies) {
     let wordQuoteProxies = {
         word: [],
         quote: []
     };
 
     let pendingPromises = [];
-    recommended.hide();
 
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
@@ -1554,7 +1568,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
     // or not an D-Bus call failed or succeeded. From there we can add
     // the results to a model as we build it up (since we will now have
     // the index) of the model.
-    allSettledPromises(pendingPromises)
+    return allSettledPromises(pendingPromises)
     .then(states => {
         let models = states.map(([error, stateModels]) => {
             if (error) {
@@ -1569,19 +1583,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
         // Flat map, since we get a list list from promise
         .reduce((a, b) => a.concat(b), []);
 
-        // We only want to throw stuff away from the model
-        // once we have information to replace it with
-        model.remove_all();
-
-        ModelOrdering.arrange(models).forEach(descriptor => {
-            model.append(descriptor.model);
-
-            // If we show a card that is not the available apps card,
-            // we'll want to show the 'recommended content' text now.
-            if (descriptor.type !== Stores.CARD_STORE_TYPE_AVAILABLE_APPS) {
-                recommended.show();
-            }
-        });
+        return ModelOrdering.arrange(models);
     }).catch(e => logError(e, 'Query failed'));
 }
 
