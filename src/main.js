@@ -1599,6 +1599,9 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.Visible = false;
         this._installedAppsChangedId = -1;
         this._changedSignalId = -1;
+        this._monitorAddedSignalId = -1;
+        this._monitorRemovedSignalId = -1;
+        this._monitorChangedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._discoveryFeedCardModel = new Gio.ListStore({
@@ -1689,19 +1692,43 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         // update position when workarea changes
         let display = Gdk.Display.get_default();
-        display.connect('monitor-added', Lang.bind(this,
-                                                   this._updateGeometry));
-        display.connect('monitor-removed', Lang.bind(this,
-                                                     this._updateGeometry));
+        this._monitorAddedSignalId = display.connect('monitor-added',
+                                                     Lang.bind(this,
+                                                               this._updateGeometry));
+        this._monitorRemovedSignalId = display.connect('monitor-removed',
+                                                       Lang.bind(this,
+                                                                 this._updateGeometry));
         let monitor = display.get_primary_monitor();
-        monitor.connect('notify::workarea', Lang.bind(this,
-                                                      this._updateGeometry));
+        this._monitorWorkareaChangedSignalId = monitor.connect('notify::workarea',
+                                                               Lang.bind(this,
+                                                                        this._updateGeometry));
         this._updateGeometry();
 
         // When the window gets destroyed we should release our reference
         // to it so that we can re-create it later
         this._window.connect('destroy', Lang.bind(this, function() {
             this._window = null;
+
+            // We also need to disconnect all signals now
+            if (this._changedSignalId !== -1) {
+                Wnck.Screen.get_default().disconnect(this._changedSignalId);
+                this._changedSignalId = -1;
+            }
+
+            if (this._monitorAddedSignalId !== -1) {
+                display.disconnect(this._monitorAddedSignalId);
+                this._monitorAddedSignalId = -1;
+            }
+
+            if (this._monitorRemovedSignalId !== -1) {
+                display.disconnect(this._monitorRemovedSignalId);
+                this._monitorRemovedSignalId = -1;
+            }
+
+            if (this._monitorWorkareaChangedSignalId !== -1) {
+                monitor.disconnect(this._monitorWorkareaChangedSignalId);
+                this._monitorWorkareaChangedSignalId = -1;
+            }
         }));
     },
 
@@ -1777,12 +1804,6 @@ const DiscoveryFeedApplication = new Lang.Class({
                                                                           Lang.bind(this, this._onActiveWindowChanged));
             }
             return false;
-        }));
-        this._window.connect('unmap', Lang.bind(this, function() {
-            if (this._changedSignalId != -1) {
-                Wnck.Screen.get_default().disconnect(this._changedSignalId);
-                this._changedSignalId = -1;
-            }
         }));
     },
 
