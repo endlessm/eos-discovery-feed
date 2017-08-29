@@ -1490,7 +1490,7 @@ function appendDiscoveryFeedVideoFromProxy(proxy) {
 function zipArraysInObject(object) {
     let minLength = Object.keys(object).reduce((v, k) =>
         v < object[k].length ? v : object[k].length ,
-        Number.MAX_INT
+        Number.MAX_VALUE
     );
     let arr = [];
 
