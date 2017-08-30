@@ -1265,21 +1265,19 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                builder: function(modelIndex) {
-                    return new Stores.DiscoveryFeedKnowledgeAppCardStore({
-                        title: entry.title,
-                        synopsis: TextSanitization.synopsis(entry.synopsis),
-                        thumbnail: thumbnail,
-                        desktop_id: proxy.desktopId,
-                        bus_name: proxy.busName,
-                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                        knowledge_app_id: proxy.knowledgeAppId,
-                        uri: entry.ekn_id,
-                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
-                        type: type,
-                        thumbnail_size: thumbnailSize
-                    });
-                }
+                model: new Stores.DiscoveryFeedKnowledgeAppCardStore({
+                    title: entry.title,
+                    synopsis: TextSanitization.synopsis(entry.synopsis),
+                    thumbnail: thumbnail,
+                    desktop_id: proxy.desktopId,
+                    bus_name: proxy.busName,
+                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                    knowledge_app_id: proxy.knowledgeAppId,
+                    uri: entry.ekn_id,
+                    layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                    type: type,
+                    thumbnail_size: thumbnailSize
+                })
             };
         });
     })
@@ -1294,21 +1292,19 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                builder: function(modelIndex) {
-                    return new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
-                        title: entry.title,
-                        author: entry.author,
-                        thumbnail: thumbnail,
-                        desktop_id: proxy.desktopId,
-                        bus_name: proxy.busName,
-                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                        knowledge_app_id: proxy.knowledgeAppId,
-                        uri: entry.ekn_id,
-                        layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
-                        type: type,
-                        thumbnail_size: thumbnailSize
-                    });
-                }
+                model: new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
+                    title: entry.title,
+                    author: entry.author,
+                    thumbnail: thumbnail,
+                    desktop_id: proxy.desktopId,
+                    bus_name: proxy.busName,
+                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                    knowledge_app_id: proxy.knowledgeAppId,
+                    uri: entry.ekn_id,
+                    layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                    type: type,
+                    thumbnail_size: thumbnailSize
+                })
             };
         });
     })
@@ -1386,7 +1382,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
     .then(([quote, word]) => ({
         type: Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD,
         source: 'word-quote',
-        builder: () => new Stores.DiscoveryFeedWordQuotePairStore({
+        model: new Stores.DiscoveryFeedWordQuotePairStore({
             quote: new Stores.DiscoveryFeedQuoteStore({
                 quote: TextSanitization.synopsis(quote.title),
                 author: quote.author
@@ -1408,7 +1404,7 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
         results.map(response => ({
             type: Stores.CARD_STORE_TYPE_AVAILABLE_APPS,
             source: proxy.desktopId,
-            builder: () => new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
+            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
                     app_id: entry.id.get_string()[0],
                     title: entry.name.get_string()[0],
@@ -1454,7 +1450,7 @@ function appendDiscoveryFeedVideoFromProxy(proxy) {
                 return ({
                     type: Stores.CARD_STORE_TYPE_VIDEO_CARD,
                     source: proxy.desktopId,
-                    builder: () => new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
+                    model: new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
                         title: entry.title,
                         thumbnail: thumbnail,
                         desktop_id: proxy.desktopId,
@@ -1551,19 +1547,19 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
     pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWordFromProxy));
 
     // Okay, now wait for all proxies to execute. allSettledPromises will
-    // return tuples of errors and "model builders" depending on whether
+    // return tuples of errors and models depending on whether
     // or not an D-Bus call failed or succeeded. From there we can add
     // the results to a model as we build it up (since we will now have
     // the index) of the model.
     allSettledPromises(pendingPromises)
     .then(states => {
-        let models = states.map(([error, builders]) => {
+        let models = states.map(([error, stateModels]) => {
             if (error) {
                 logError(error, 'Query failed');
                 return null;
             }
 
-            return builders;
+            return stateModels;
         })
         // Remove null entries (errors)
         .filter(r => !!r)
@@ -1574,15 +1570,8 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
         // once we have information to replace it with
         model.remove_all();
 
-        let layoutIndex = 0;
         ModelOrdering.arrange(models).forEach(descriptor => {
-            model.append(descriptor.builder(layoutIndex));
-
-            // Only increment layout determinant index where we should
-            // do so. For instance on the word quote card we want to keep
-            // it as is so that we still get left-right layout.
-            if (descriptor.type !== Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD)
-                ++layoutIndex;
+            model.append(descriptor.model);
 
             // If we show a card that is not the available apps card,
             // we'll want to show the 'recommended content' text now.
