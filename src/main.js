@@ -852,7 +852,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     },
 
     createLayout: function() {
-	return new DiscoveryFeedContentCardLayout({
+        return new DiscoveryFeedContentCardLayout({
             content: new DiscoveryFeedContentPreview({
                 image_stream: this.model.thumbnail,
                 min_width: this.model.thumbnail_size,
@@ -864,7 +864,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     },
 
     createDescription: function() {
-	return new DiscoveryFeedAppContentDescription({
+        return new DiscoveryFeedAppContentDescription({
             title: this.model.title,
             synopsis: this.model.synopsis,
             app_name: this._app.get_display_name().toUpperCase()
@@ -872,7 +872,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     },
 
     get contentType() {
-	return 'knowledge_content';
+        return 'knowledge_content';
     }
 });
 
@@ -897,11 +897,11 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
                 image_stream: this.model.thumbnail,
                 min_height: CONTENT_PREVIEW_MID
             })
-	});
+        });
     },
 
     get contentType() {
-	return 'knowledge_video';
+        return 'knowledge_video';
     }
 });
 
@@ -932,7 +932,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
     },
 
     get contentType() {
-	return 'knowledge_artwork';
+        return 'knowledge_artwork';
     }
 });
 
