@@ -1169,6 +1169,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
+        this._alive = true;
         this._cardModel = new Gio.ListStore({
             item_type: Stores.DiscoveryFeedCardStore.$gtype
         });
@@ -1216,6 +1217,10 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.add_action(buttonAction);
         this.application.set_accels_for_action('win.escclose', ['Escape']);
         this.close_button.set_action_name('win.buttonclose');
+
+        this.connect('destroy', Lang.bind(this, function() {
+            this._alive = false;
+        }));
     },
 
     updateContentFromProxies: function(proxies) {
@@ -1223,6 +1228,11 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         .then(() => this.recommended.hide())
         .then(() => discoveryFeedCardsFromQueries(proxies))
         .then(Lang.bind(this, function(descriptors) {
+            // If we're not alive, return early - doing any of this work
+            // would either have no effect or cause Gtk to crash.
+            if (!this._alive)
+                return;
+
             // We only want to throw stuff away from the model
             // once we have information to replace it with
             this._cardModel.remove_all();
