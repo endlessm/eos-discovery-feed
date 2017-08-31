@@ -960,7 +960,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
         this.parent(params);
 
         this.word.label = this.model.word.word;
-        this.word_description.label = '(' + this.model.word.word_type + ') ' + this.model.word.definition;
+        this.word_description.label = '(' + this.model.word.part_of_speech + ') ' + this.model.word.definition;
         this.quote.label = '"' + this.model.quote.quote + '"';
         this.quote_author.label = this.model.quote.author.toUpperCase();
 
@@ -1390,6 +1390,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
             }),
             word: new Stores.DiscoveryFeedWordStore({
                 word: word.word,
+                part_of_speech: word.part_of_speech,
                 definition: TextSanitization.synopsis(word.definition)
             })
         })

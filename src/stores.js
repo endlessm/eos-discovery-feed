@@ -58,12 +58,12 @@ const DiscoveryFeedWordStore = new Lang.Class({
                                          GObject.ParamFlags.READWRITE |
                                          GObject.ParamFlags.CONSTRUCT_ONLY,
                                          ''),
-        word_type: GObject.ParamSpec.string('word-type',
-                                            '',
-                                            '',
-                                            GObject.ParamFlags.READWRITE |
-                                            GObject.ParamFlags.CONSTRUCT_ONLY,
-                                            ''),
+        part_of_speech: GObject.ParamSpec.string('part-of-speech',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 ''),
         definition: GObject.ParamSpec.string('definition',
                                              '',
                                              '',
