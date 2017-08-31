@@ -1760,6 +1760,11 @@ const DiscoveryFeedApplication = new Lang.Class({
         }
 
         chain.then(Lang.bind(this, function(proxies) {
+            // It is possible that the window could have gone away just after
+            // we refreshed our providers, in that case, we'll need to
+            if (!this._window)
+                return Promise.resolve()
+
             return this._window.updateContentFromProxies(proxies);
         }));
     },
