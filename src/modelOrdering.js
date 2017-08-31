@@ -101,6 +101,7 @@ function arrange(descriptors) {
     let innerOuterIndex = 0;
     let nCardsToTake = 1;
     let overallIndex = 0;
+    let evergreenCardAdded = false;
     
     let cardsTakenFromApp = 0;
     let cardsTakenFromType = 0;
@@ -125,6 +126,7 @@ function arrange(descriptors) {
                 // first entry.
                 arrangedDescriptors.push(descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD][0].model[0]);
                 overallIndex++;
+                evergreenCardAdded = true;
                 continue;
             }
         }
@@ -177,6 +179,10 @@ function arrange(descriptors) {
             }
         }
     }
+
+    // We have less than 3 apps, add word/quote card neverless
+    if (!evergreenCardAdded && descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD])
+        arrangedDescriptors.push(descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD][0].model[0]);
 
     // Okay, now that we're at the end, add installable apps, again, only
     // taking the first descriptor
