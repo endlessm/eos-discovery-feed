@@ -421,21 +421,21 @@ function recordMetricsEvent(eventId, payload) {
 //
 // Try to load a specific EknURI in a knowledge app, opening the app
 // itself if that fails.
-function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType) {
+function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType, timestamp) {
     recordMetricsEvent(EVENT_DISCOVERY_FEED_CLICK, new GLib.Variant('a{ss}', {
         app_id: app.get_id(),
         content_type: contentType
     }));
 
     let context = Gdk.AppLaunchContext.new();
-    context.set_timestamp(Gdk.CURRENT_TIME);
+    context.set_timestamp(timestamp);
 
     if (!knowledgeSearchProxy) {
         app.launch([], context);
         return;
     }
 
-    knowledgeSearchProxy.LoadItemRemote(uri, '', Gdk.CURRENT_TIME, function(result, excp) {
+    knowledgeSearchProxy.LoadItemRemote(uri, '', timestamp, function(result, excp) {
         if (!excp)
             return;
         logError(excp, 'Could not load app with article ' + uri + ' fallback to just launch the app, trace');
@@ -845,14 +845,15 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             loadKnowledgeAppContent(this._app,
                                     this._knowledgeSearchProxy,
                                     this.model.uri,
-                                    this.contentType);
+                                    this.contentType,
+                                    Gtk.get_current_event_time());
         }));
         this._knowledgeSearchProxy = createSearchProxyFromObjectPath(this.model.knowledge_app_id,
                                                                      this.model.knowledge_search_object_path);
     },
 
     createLayout: function() {
-	return new DiscoveryFeedContentCardLayout({
+        return new DiscoveryFeedContentCardLayout({
             content: new DiscoveryFeedContentPreview({
                 image_stream: this.model.thumbnail,
                 min_width: this.model.thumbnail_size,
@@ -864,7 +865,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     },
 
     createDescription: function() {
-	return new DiscoveryFeedAppContentDescription({
+        return new DiscoveryFeedAppContentDescription({
             title: this.model.title,
             synopsis: this.model.synopsis,
             app_name: this._app.get_display_name().toUpperCase()
@@ -872,7 +873,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
     },
 
     get contentType() {
-	return 'knowledge_content';
+        return 'knowledge_content';
     }
 });
 
@@ -897,11 +898,11 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
                 image_stream: this.model.thumbnail,
                 min_height: CONTENT_PREVIEW_MID
             })
-	});
+        });
     },
 
     get contentType() {
-	return 'knowledge_video';
+        return 'knowledge_video';
     }
 });
 
@@ -932,7 +933,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
     },
 
     get contentType() {
-	return 'knowledge_artwork';
+        return 'knowledge_artwork';
     }
 });
 
@@ -1055,7 +1056,7 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
             let context = Gdk.AppLaunchContext.new();
-            context.set_timestamp(Gdk.CURRENT_TIME);
+            context.set_timestamp(Gtk.get_current_event_time());
             (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], context);
         }));
     }
