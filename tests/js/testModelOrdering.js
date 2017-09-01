@@ -321,6 +321,18 @@ describe('Model ordering', function() {
             Stores.CARD_STORE_TYPE_ARTWORK_CARD
         ]);
     });
+    it('appends word/quote card if it is not already added', function() {
+        let models = addBuilders([
+            {
+                source: 'word/quote',
+                type: Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD
+            }
+        ]);
+        let arranged = ModelOrdering.arrange(models);
+        expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
+            Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD
+        ]);
+    });
     it('appends installable apps to the end', function() {
         let models = addBuilders([
             {
