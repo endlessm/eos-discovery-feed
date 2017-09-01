@@ -1142,14 +1142,6 @@ const HEADER_SEPARATOR_VISIBLE_THRESHOLD = 20;
 const DiscoveryFeedMainWindow = new Lang.Class({
     Name: 'DiscoveryFeedMainWindow',
     Extends: Gtk.ApplicationWindow,
-    Properties: {
-        'card-model': GObject.ParamSpec.object('card-model',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               Gio.ListModel)
-    },
     Template: 'resource:///com/endlessm/DiscoveryFeed/main.ui',
     Children: [
         'cards',
@@ -1176,7 +1168,12 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.cards.bind_model(this.card_model, populateCardsListFromStore);
+
+        this._alive = true;
+        this._cardModel = new Gio.ListStore({
+            item_type: Stores.DiscoveryFeedCardStore.$gtype
+        });
+        this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
         this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
@@ -1220,7 +1217,37 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         this.add_action(buttonAction);
         this.application.set_accels_for_action('win.escclose', ['Escape']);
         this.close_button.set_action_name('win.buttonclose');
+
+        this.connect('destroy', Lang.bind(this, function() {
+            this._alive = false;
+        }));
     },
+
+    updateContentFromProxies: function(proxies) {
+        return Promise.resolve()
+        .then(() => this.recommended.hide())
+        .then(() => discoveryFeedCardsFromQueries(proxies))
+        .then(Lang.bind(this, function(descriptors) {
+            // If we're not alive, return early - doing any of this work
+            // would either have no effect or cause Gtk to crash.
+            if (!this._alive)
+                return;
+
+            // We only want to throw stuff away from the model
+            // once we have information to replace it with
+            this._cardModel.remove_all();
+
+            descriptors.forEach(descriptor => {
+                this._cardModel.append(descriptor.model);
+
+                // If we show a card that is not the available apps card,
+                // we'll want to show the 'recommended content' text now.
+                if (descriptor.type !== Stores.CARD_STORE_TYPE_AVAILABLE_APPS) {
+                    this.recommended.show();
+                }
+            });
+        }));
+    }
 });
 
 function load_style_sheet(resourcePath) {
@@ -1506,14 +1533,13 @@ function zipArraysInObject(object) {
     return arr;
 }
 
-function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
+function discoveryFeedCardsFromQueries(proxies) {
     let wordQuoteProxies = {
         word: [],
         quote: []
     };
 
     let pendingPromises = [];
-    recommended.hide();
 
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
@@ -1553,7 +1579,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
     // or not an D-Bus call failed or succeeded. From there we can add
     // the results to a model as we build it up (since we will now have
     // the index) of the model.
-    allSettledPromises(pendingPromises)
+    return allSettledPromises(pendingPromises)
     .then(states => {
         let models = states.map(([error, stateModels]) => {
             if (error) {
@@ -1568,19 +1594,7 @@ function populateDiscoveryFeedModelFromQueries(model, proxies, recommended) {
         // Flat map, since we get a list list from promise
         .reduce((a, b) => a.concat(b), []);
 
-        // We only want to throw stuff away from the model
-        // once we have information to replace it with
-        model.remove_all();
-
-        ModelOrdering.arrange(models).forEach(descriptor => {
-            model.append(descriptor.model);
-
-            // If we show a card that is not the available apps card,
-            // we'll want to show the 'recommended content' text now.
-            if (descriptor.type !== Stores.CARD_STORE_TYPE_AVAILABLE_APPS) {
-                recommended.show();
-            }
-        });
+        return ModelOrdering.arrange(models);
     }).catch(e => logError(e, 'Query failed'));
 }
 
@@ -1600,11 +1614,11 @@ const DiscoveryFeedApplication = new Lang.Class({
         this.Visible = false;
         this._installedAppsChangedId = -1;
         this._changedSignalId = -1;
+        this._monitorAddedSignalId = -1;
+        this._monitorRemovedSignalId = -1;
+        this._monitorChangedSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
-        this._discoveryFeedCardModel = new Gio.ListStore({
-            item_type: Stores.DiscoveryFeedCardStore.$gtype
-        });
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
     },
 
@@ -1670,8 +1684,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._window = new DiscoveryFeedMainWindow({
             application: this,
             type_hint: !this._debugWindow ? Gdk.WindowTypeHint.DOCK : Gdk.WindowTypeHint.NORMAL,
-            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null,
-            card_model: this._discoveryFeedCardModel
+            role: !this._debugWindow ? SIDE_COMPONENT_ROLE : null
         });
 
         // to be able to set the opacity from css
@@ -1690,19 +1703,43 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         // update position when workarea changes
         let display = Gdk.Display.get_default();
-        display.connect('monitor-added', Lang.bind(this,
-                                                   this._updateGeometry));
-        display.connect('monitor-removed', Lang.bind(this,
-                                                     this._updateGeometry));
+        this._monitorAddedSignalId = display.connect('monitor-added',
+                                                     Lang.bind(this,
+                                                               this._updateGeometry));
+        this._monitorRemovedSignalId = display.connect('monitor-removed',
+                                                       Lang.bind(this,
+                                                                 this._updateGeometry));
         let monitor = display.get_primary_monitor();
-        monitor.connect('notify::workarea', Lang.bind(this,
-                                                      this._updateGeometry));
+        this._monitorWorkareaChangedSignalId = monitor.connect('notify::workarea',
+                                                               Lang.bind(this,
+                                                                        this._updateGeometry));
         this._updateGeometry();
 
         // When the window gets destroyed we should release our reference
         // to it so that we can re-create it later
         this._window.connect('destroy', Lang.bind(this, function() {
             this._window = null;
+
+            // We also need to disconnect all signals now
+            if (this._changedSignalId !== -1) {
+                Wnck.Screen.get_default().disconnect(this._changedSignalId);
+                this._changedSignalId = -1;
+            }
+
+            if (this._monitorAddedSignalId !== -1) {
+                display.disconnect(this._monitorAddedSignalId);
+                this._monitorAddedSignalId = -1;
+            }
+
+            if (this._monitorRemovedSignalId !== -1) {
+                display.disconnect(this._monitorRemovedSignalId);
+                this._monitorRemovedSignalId = -1;
+            }
+
+            if (this._monitorWorkareaChangedSignalId !== -1) {
+                monitor.disconnect(this._monitorWorkareaChangedSignalId);
+                this._monitorWorkareaChangedSignalId = -1;
+            }
         }));
     },
 
@@ -1734,9 +1771,12 @@ const DiscoveryFeedApplication = new Lang.Class({
         }
 
         chain.then(Lang.bind(this, function(proxies) {
-            populateDiscoveryFeedModelFromQueries(this._discoveryFeedCardModel,
-                                                  proxies,
-                                                  this._window.recommended);
+            // It is possible that the window could have gone away just after
+            // we refreshed our providers, in that case, we'll need to
+            if (!this._window)
+                return Promise.resolve()
+
+            return this._window.updateContentFromProxies(proxies);
         }));
     },
 
@@ -1778,12 +1818,6 @@ const DiscoveryFeedApplication = new Lang.Class({
                                                                           Lang.bind(this, this._onActiveWindowChanged));
             }
             return false;
-        }));
-        this._window.connect('unmap', Lang.bind(this, function() {
-            if (this._changedSignalId != -1) {
-                Wnck.Screen.get_default().disconnect(this._changedSignalId);
-                this._changedSignalId = -1;
-            }
         }));
     },
 
