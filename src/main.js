@@ -684,7 +684,6 @@ const DiscoveryFeedAppStoreDescription = new Lang.Class({
 
 const CONTENT_PREVIEW_SMALL = 200;
 const CONTENT_PREVIEW_MID = 300;
-const CONTENT_PREVIEW_LARGE = 400;
 
 const DiscoveryFeedContentPreview = new Lang.Class({
     Name: 'DiscoveryFeedContentPreview',
