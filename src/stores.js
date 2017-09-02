@@ -122,9 +122,9 @@ const LAYOUT_DIRECTION_IMAGE_FIRST = 0;
 const LAYOUT_DIRECTION_IMAGE_LAST = 1;
 
 const THUMBNAIL_SIZE_APP_STORE = 180;
-const THUMBNAIL_WIDTH_APP_STORE_LINK = 211;
+const THUMBNAIL_WIDTH_APP_STORE_LINK = 211;  // eslint-disable-line no-unused-vars
 const THUMBNAIL_SIZE_ARTICLE = 254;
-const THUMBNAIL_SIZE_NEWS = 322;
+const THUMBNAIL_SIZE_NEWS = 322;  // eslint-disable-line no-unused-vars
 const THUMBNAIL_SIZE_ARTWORK = 400;
 
 // eslint-disable-next-line no-unused-vars
