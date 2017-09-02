@@ -1719,12 +1719,7 @@ const DiscoveryFeedApplication = new Lang.Class({
             this._window.set_visual(visual);
         }
 
-        // when the label contains letters and numbers the allocation
-        // does not work properly, force re-allocation here
-        this._window.expanded_date.realize();
-
         this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
-
         this._setupWindowInteraction();
 
         // update position when workarea changes
@@ -1762,6 +1757,17 @@ const DiscoveryFeedApplication = new Lang.Class({
 
             this._window = null;
         }));
+
+        // when the label contains letters and numbers the allocation
+        // does not work properly, force re-allocation here
+        //
+        // Note that we only want to do this *after* we have connected
+        // to window signals, including the 'realize' signal earlier
+        // in this._setupWindowInteraction. This is because calling
+        // realize() here will also recursively call realize() on all
+        // parents and immediately fire the signal before we have a chance
+        // to connect to it.
+        this._window.expanded_date.realize();
     },
 
     vfunc_activate: function() {
@@ -1827,12 +1833,14 @@ const DiscoveryFeedApplication = new Lang.Class({
         if (this._debugWindow)
             return;
 
-        let gdkWindow = this._window.get_window();
-        gdkWindow.set_events(gdkWindow.get_events() |
-                             Gdk.EventMask.FOCUS_CHANGE_MASK);
-        this._window.connect('focus-out-event', Lang.bind(this, function() {
-            this.hide();
-            return false;
+        this._window.connect('realize', Lang.bind(this, function() {
+            let gdkWindow = this._window.get_window();
+            gdkWindow.set_events(gdkWindow.get_events() |
+                                 Gdk.EventMask.FOCUS_CHANGE_MASK);
+            this._window.connect('focus-out-event', Lang.bind(this, function() {
+                this.hide();
+                return false;
+            }));
         }));
     },
 
