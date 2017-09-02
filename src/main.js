@@ -874,7 +874,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             }),
             description: this.createDescription(),
             layout_direction: this.model.layout_direction
-        })
+        });
     },
 
     createDescription: function() {
@@ -1800,7 +1800,7 @@ const DiscoveryFeedApplication = new Lang.Class({
             // It is possible that the window could have gone away just after
             // we refreshed our providers, in that case, we'll need to
             if (!this._window)
-                return Promise.resolve()
+                return Promise.resolve();
 
             return this._window.updateContentFromProxies(proxies);
         }));
