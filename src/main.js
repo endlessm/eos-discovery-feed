@@ -1642,7 +1642,9 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._installedAppsChangedId = -1;
         this._monitorAddedSignalId = -1;
         this._monitorRemovedSignalId = -1;
-        this._monitorWorkareaChangedSignalId = -1;
+        this._monitorChangedSignalId = -1;
+        this._windowRealizedSignalId = -1;
+        this._windowFocusOutEventSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
@@ -1760,6 +1762,18 @@ const DiscoveryFeedApplication = new Lang.Class({
                 this._monitorWorkareaChangedSignalId = -1;
             }
 
+            // Make sure to disconnect from the focus-out-event and draw
+            // signals
+            if (this._windowRealizedSignalId !== -1) {
+                this._window.disconnect(this._windowRealizedSignalId);
+                this._windowRealizedSignalId = -1;
+            }
+
+            if (this._windowFocusOutEventSignalId !== -1) {
+                this._window.disconnect(this._windowFocusOutEventSignalId);
+                this._windowFocusOutEventSignalId = -1;
+            }
+
             this._window = null;
         }));
     },
@@ -1827,12 +1841,20 @@ const DiscoveryFeedApplication = new Lang.Class({
         if (this._debugWindow)
             return;
 
-        let gdkWindow = this._window.get_window();
-        gdkWindow.set_events(gdkWindow.get_events() |
-                             Gdk.EventMask.FOCUS_CHANGE_MASK);
-        this._window.connect('focus-out-event', Lang.bind(this, function() {
-            this.hide();
-            return false;
+        // Connecting to 'draw' here is not ideal, however it seems like
+        // the 'realize' signal is not fired for GtkWindow when it gets
+        // mapped
+        this._windowRealizedSignalId = this._window.connect('draw', Lang.bind(this, function() {
+            let gdkWindow = this._window.get_window();
+            gdkWindow.set_events(gdkWindow.get_events() |
+                                 Gdk.EventMask.FOCUS_CHANGE_MASK);
+            this._windowFocusOutEventSignalId = this._window.connect('focus-out-event', Lang.bind(this, function() {
+                this.hide();
+                return false;
+            }));
+
+            this._window.disconnect(this._windowRealizedSignalId);
+            this._windowRealizedSignalId = -1;
         }));
     },
 
