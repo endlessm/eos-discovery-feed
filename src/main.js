@@ -21,7 +21,6 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
-const Wnck = imports.gi.Wnck;
 
 const Lang = imports.lang;
 
@@ -1613,10 +1612,10 @@ const DiscoveryFeedApplication = new Lang.Class({
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
         this._installedAppsChangedId = -1;
-        this._changedSignalId = -1;
         this._monitorAddedSignalId = -1;
         this._monitorRemovedSignalId = -1;
-        this._monitorChangedSignalId = -1;
+        this._monitorWorkareaChangedSignalId = -1;
+        this._windowFocusOutEventSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
@@ -1718,14 +1717,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         // When the window gets destroyed we should release our reference
         // to it so that we can re-create it later
         this._window.connect('destroy', Lang.bind(this, function() {
-            this._window = null;
-
             // We also need to disconnect all signals now
-            if (this._changedSignalId !== -1) {
-                Wnck.Screen.get_default().disconnect(this._changedSignalId);
-                this._changedSignalId = -1;
-            }
-
             if (this._monitorAddedSignalId !== -1) {
                 display.disconnect(this._monitorAddedSignalId);
                 this._monitorAddedSignalId = -1;
@@ -1740,6 +1732,13 @@ const DiscoveryFeedApplication = new Lang.Class({
                 monitor.disconnect(this._monitorWorkareaChangedSignalId);
                 this._monitorWorkareaChangedSignalId = -1;
             }
+
+            if (this._windowFocusOutEventSignalId !== -1) {
+                this._window.disconnect(this._windowFocusOutEventSignalId);
+                this._windowFocusOutEventSignalId = -1;
+            }
+
+            this._window = null;
         }));
     },
 
@@ -1806,40 +1805,12 @@ const DiscoveryFeedApplication = new Lang.Class({
         if (this._debugWindow)
             return;
 
-        // There seems to be a race condition with the WM that can
-        // lead the sidebar into an inconsistent state if the
-        // _onActiveWindowChanged callback gets executed in such a
-        // way that ends up calling to hide() between the user pressed
-        // the tray button and the sidebar has been made visible,
-        // which can lead to the sidebar never been displayed.
-        this._window.connect('map-event', Lang.bind(this, function() {
-            if (this._changedSignalId == -1) {
-                this._changedSignalId = Wnck.Screen.get_default().connect('active-window-changed',
-                                                                          Lang.bind(this, this._onActiveWindowChanged));
-            }
-            return false;
-        }));
-    },
-
-    _onActiveWindowChanged: function() {
-        let active_window = Wnck.Screen.get_default().get_active_window();
-        let current_window = this._window.get_window();
-        let active_window_xid = active_window ? active_window.get_xid() : 0;
-        let current_window_xid = current_window ? current_window.get_xid() : 0;
-
-        if (active_window !== null) {
-            // try to match transient windows
-            let transient_window = active_window.get_transient();
-
-            if (transient_window !== null &&
-                current_window_xid === transient_window.get_xid()) {
-                return;
-            }
-        }
-
-        if (active_window_xid !== current_window_xid) {
+        let gdkWindow = this._window.get_window();
+        gdkWindow.set_events(gdkWindow.get_events() |
+                             Gdk.EventMask.FOCUS_CHANGE_MASK);
+        this._windowFocusOutEventSignalId = this._window.connect('focus-out-event', Lang.bind(this, function() {
             this.hide();
-        }
+        }));
     },
 
     _updateGeometry: function() {
