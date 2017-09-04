@@ -1615,7 +1615,6 @@ const DiscoveryFeedApplication = new Lang.Class({
         this._monitorAddedSignalId = -1;
         this._monitorRemovedSignalId = -1;
         this._monitorWorkareaChangedSignalId = -1;
-        this._windowFocusOutEventSignalId = -1;
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
@@ -1733,11 +1732,6 @@ const DiscoveryFeedApplication = new Lang.Class({
                 this._monitorWorkareaChangedSignalId = -1;
             }
 
-            if (this._windowFocusOutEventSignalId !== -1) {
-                this._window.disconnect(this._windowFocusOutEventSignalId);
-                this._windowFocusOutEventSignalId = -1;
-            }
-
             this._window = null;
         }));
     },
@@ -1808,7 +1802,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         let gdkWindow = this._window.get_window();
         gdkWindow.set_events(gdkWindow.get_events() |
                              Gdk.EventMask.FOCUS_CHANGE_MASK);
-        this._windowFocusOutEventSignalId = this._window.connect('focus-out-event', Lang.bind(this, function() {
+        this._window.connect('focus-out-event', Lang.bind(this, function() {
             this.hide();
         }));
     },
