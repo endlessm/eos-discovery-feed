@@ -1804,6 +1804,7 @@ const DiscoveryFeedApplication = new Lang.Class({
                              Gdk.EventMask.FOCUS_CHANGE_MASK);
         this._window.connect('focus-out-event', Lang.bind(this, function() {
             this.hide();
+            return false;
         }));
     },
 
