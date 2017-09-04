@@ -27,7 +27,6 @@ Depends: ${misc:Depends},
          gir1.2-glib-2.0,
          gir1.2-gtk-3.0,
          gir1.2-eos-shard-0,
-         gir1.2-eosmetrics-0,
-         gir1.2-wnck-3.0
+         gir1.2-eosmetrics-0
 Description: Discovery Feed
  Notification center and sidebar for EOS.
