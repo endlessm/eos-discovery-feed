@@ -10,34 +10,35 @@ msgstr ""
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
 "POT-Creation-Date: 2017-09-02 11:39-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Septira Taruna <septira@endlessm.com>, 2017\n"
 "Language-Team: Indonesian (https://www.transifex.com/endless-mobile-inc/teams/9016/id/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: id\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr ""
+msgstr "Instal beberapa aplikasi untuk menjelajahi konten-konten seru!"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr ""
+msgstr "REKOMENDASI BERITA"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
-msgstr ""
+msgstr "KATA-KATA BIJAK HARI INI"
 
 #: ../data/word-quote-pair.ui.h:2
 msgid "WORD OF THE DAY"
-msgstr ""
+msgstr "KATA HARI INI"
 
 #. Translators: collapsed date at the header of the DiscoveryFeed
 #: ../src/main.js:1182
 #, javascript-format
 msgid "today is %s"
-msgstr ""
+msgstr "Hari ini tanggal %s"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
@@ -45,4 +46,4 @@ msgstr ""
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
-msgstr ""
+msgstr "Jelajahi Pusat Aplikasi"

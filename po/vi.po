@@ -10,39 +10,40 @@ msgstr ""
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
 "POT-Creation-Date: 2017-09-02 11:39-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Roddy Shuler <roddy@endlessm.com>, 2017\n"
 "Language-Team: Vietnamese (https://www.transifex.com/endless-mobile-inc/teams/9016/vi/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr ""
+msgstr "Cài đặt một số ứng dụng để khám phá những nội dung tuyệt vời!"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr ""
+msgstr "NHỮNG CÂU CHUYỆN ĐỀ XUẤT"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
-msgstr ""
+msgstr "TRÍCH DẪN TRONG NGÀY"
 
 #: ../data/word-quote-pair.ui.h:2
 msgid "WORD OF THE DAY"
-msgstr ""
+msgstr "TỪ NỔI BẬT TRONG NGÀY"
 
 #. Translators: collapsed date at the header of the DiscoveryFeed
 #: ../src/main.js:1182
 #, javascript-format
 msgid "today is %s"
-msgstr ""
+msgstr "hôm nay là %s"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
-msgstr ""
+msgstr "Feed Khám phá"
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
-msgstr ""
+msgstr "Khám phá Trung tâm Ứng dụng"

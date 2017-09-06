@@ -10,39 +10,40 @@ msgstr ""
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
 "POT-Creation-Date: 2017-09-02 11:39-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Stefan Schroeder <ondekoza@gmail.com>, 2017\n"
 "Language-Team: German (https://www.transifex.com/endless-mobile-inc/teams/9016/de/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr ""
+msgstr "Installiere tolle Apps!"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr ""
+msgstr "EMPFEHLUNGEN"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
-msgstr ""
+msgstr "ZITAT DES TAGES"
 
 #: ../data/word-quote-pair.ui.h:2
 msgid "WORD OF THE DAY"
-msgstr ""
+msgstr "WORT DES TAGES"
 
 #. Translators: collapsed date at the header of the DiscoveryFeed
 #: ../src/main.js:1182
 #, javascript-format
 msgid "today is %s"
-msgstr ""
+msgstr "Heute ist 1%s"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
-msgstr ""
+msgstr "Entdecker-Kanal"
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
-msgstr ""
+msgstr "Entdecke das App-Center"

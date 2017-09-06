@@ -10,39 +10,40 @@ msgstr ""
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
 "POT-Creation-Date: 2017-09-02 11:39-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: e2f_in c7 <e2f_in_c7@outlook.com>, 2017\n"
 "Language-Team: Hindi (https://www.transifex.com/endless-mobile-inc/teams/9016/hi/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: hi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr ""
+msgstr "बेहतर सामग्री खोजने के लिए कुछ ऐप्स स्थापित करें!"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr ""
+msgstr "अनुशंसित कहानियाँ"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
-msgstr ""
+msgstr "आज का विचार"
 
 #: ../data/word-quote-pair.ui.h:2
 msgid "WORD OF THE DAY"
-msgstr ""
+msgstr "आज का शब्द"
 
 #. Translators: collapsed date at the header of the DiscoveryFeed
 #: ../src/main.js:1182
 #, javascript-format
 msgid "today is %s"
-msgstr ""
+msgstr "आज %s है"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
-msgstr ""
+msgstr "खोज फ़ीड"
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
-msgstr ""
+msgstr "ऐप सेंटर खोजें"
