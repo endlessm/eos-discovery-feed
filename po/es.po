@@ -41,7 +41,7 @@ msgstr "hoy es %e de %B de %Y"
 
 #: ../src/main.js:1612
 msgid "Discovery Feed"
-msgstr "Muro de descubrimiento"
+msgstr "Sugerencia del día"
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
