@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
-"POT-Creation-Date: 2017-09-02 11:39-0700\n"
+"POT-Creation-Date: 2017-09-07 13:39-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Language-Team: Tajik (https://www.transifex.com/endless-mobile-inc/teams/9016/tg/)\n"
 "MIME-Version: 1.0\n"
@@ -33,13 +33,12 @@ msgstr ""
 msgid "WORD OF THE DAY"
 msgstr ""
 
-#. Translators: collapsed date at the header of the DiscoveryFeed
-#: ../src/main.js:1182
-#, javascript-format
-msgid "today is %s"
+#. Translators: date header (%B = month name, %e = day number, %Y = year)
+#: ../src/main.js:1181
+msgid "today is %B %e, %Y"
 msgstr ""
 
-#: ../src/main.js:1613
+#: ../src/main.js:1612
 msgid "Discovery Feed"
 msgstr ""
 
