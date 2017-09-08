@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
-"POT-Creation-Date: 2017-09-07 13:39-0700\n"
+"POT-Creation-Date: 2017-09-07 22:49-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: e2f_in c7 <e2f_in_c7@outlook.com>, 2017\n"
 "Language-Team: Hindi (https://www.transifex.com/endless-mobile-inc/teams/9016/hi/)\n"
@@ -34,12 +34,18 @@ msgstr "आज का विचार"
 msgid "WORD OF THE DAY"
 msgstr "आज का शब्द"
 
-#. Translators: date header (%B = month name, %e = day number, %Y = year)
-#: ../src/main.js:1181
+#. Translators: main date header (%B = month name, %e = day number)
+#: ../src/main.js:1178
+msgid "%B %e"
+msgstr ""
+
+#. Translators: scrolled date header (%B = month name, %e = day number, %Y =
+#. year)
+#: ../src/main.js:1182
 msgid "today is %B %e, %Y"
 msgstr ""
 
-#: ../src/main.js:1612
+#: ../src/main.js:1613
 msgid "Discovery Feed"
 msgstr "खोज फ़ीड"
 
