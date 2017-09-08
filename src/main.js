@@ -1174,10 +1174,11 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         });
         this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
-        this.expanded_date.label = (new Date()).toLocaleFormat('%B %e').toLowerCase();
+	// Translators: main date header (%B = month name, %e = day number)
+        this.expanded_date.label = (new Date()).toLocaleFormat(_("%B %e")).toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
 
-        // Translators: date header (%B = month name, %e = day number, %Y = year)
+        // Translators: scrolled date header (%B = month name, %e = day number, %Y = year)
         this.collapsed_date.label = (new Date()).toLocaleFormat(_("today is %B %e, %Y"));
 
         let vadjustment = this.scroll_view.vadjustment;
