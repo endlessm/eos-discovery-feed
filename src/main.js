@@ -1381,7 +1381,7 @@ function appendDiscoveryFeedArtworkFromProxy(proxy) {
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               Stores.CARD_STORE_TYPE_ARTWORK_CARD,
-                                                              Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                              Stores.LAYOUT_DIRECTION_IMAGE_LAST,
                                                               Stores.THUMBNAIL_SIZE_ARTWORK))
     .catch((e) => {
         throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
