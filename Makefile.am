@@ -18,6 +18,14 @@ service_in_files = \
 	data/com.endlessm.DiscoveryFeed.service.in \
         $(NULL)
 
+gsettings_SCHEMAS = data/com.endlessm.DiscoveryFeed.gschema.xml
+
+%.gschema.xml: %.gschema.xml.in Makefile
+	$(AM_V_GEN) sed -e 's|@GETTEXT_PACKAGE[@]|$(GETTEXT_PACKAGE)|g' \
+	$< > $@ || rm $@
+
+@GSETTINGS_RULES@
+
 # Tests
 javascript_tests = \
 	tests/js/testDiscoveryFeed.js \
@@ -39,6 +47,7 @@ EXTRA_DIST = \
 	src/com.endlessm.DiscoveryFeed.in \
 	src/com.endlessm.DiscoveryFeed.src.gresource.xml \
 	data/com.endlessm.DiscoveryFeed.data.gresource.xml \
+	data/com.endlessm.DiscoveryFeed.gschema.xml \
 	$(NULL)
 
 data/com.endlessm.DiscoveryFeed.service: $(srcdir)/data/com.endlessm.DiscoveryFeed.service.in
@@ -73,6 +82,7 @@ CLEANFILES = \
 	$(resource_DATA) \
 	$(service_DATA) \
 	src/com.endlessm.DiscoveryFeed \
+	$(gsettings_SCHEMAS) \
 	$(NULL)
 
 #  Run tests when running 'make check'
