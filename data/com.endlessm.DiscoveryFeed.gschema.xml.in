@@ -1,0 +1,11 @@
+<schemalist gettext-domain="@GETTEXT_PACKAGE@">
+  <schema id="com.endlessm.DiscoveryFeed" path="/com/endlessm/DiscoveryFeed/">
+    <key name="force-additional-languages" type="as">
+      <default>[]</default>
+      <summary>Additional languages for which content will be aggregated in the feed.</summary>
+      <description>
+        With this setting you can enable content from the languages specified. This is in addition to the current locale for which content will always be shown. The content providers specify the language the content is in.
+      </description>
+    </key>
+  </schema>
+</schemalist>

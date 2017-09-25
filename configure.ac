@@ -22,6 +22,9 @@ AC_PROG_LN_S
 # Set up libtool
 LT_INIT
 
+# GSettings schema
+GLIB_GSETTINGS
+
 # Set up GObject-Introspection
 GOBJECT_INTROSPECTION_CHECK([1.30.0])
 
