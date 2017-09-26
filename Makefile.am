@@ -47,7 +47,7 @@ EXTRA_DIST = \
 	src/com.endlessm.DiscoveryFeed.in \
 	src/com.endlessm.DiscoveryFeed.src.gresource.xml \
 	data/com.endlessm.DiscoveryFeed.data.gresource.xml \
-	data/com.endlessm.DiscoveryFeed.gschema.xml \
+	data/com.endlessm.DiscoveryFeed.gschema.xml.in \
 	$(NULL)
 
 data/com.endlessm.DiscoveryFeed.service: $(srcdir)/data/com.endlessm.DiscoveryFeed.service.in
