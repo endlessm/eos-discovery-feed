@@ -24,7 +24,7 @@ msgstr "¡Instala algunos programas para descrubir gran contenido!"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr "HISTORIAS RECOMENDADAS"
+msgstr "ARTÍCULOS RECOMENDADOS"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
