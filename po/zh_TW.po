@@ -37,13 +37,13 @@ msgstr "本日一字"
 #. Translators: main date header (%B = month name, %e = day number)
 #: ../src/main.js:1178
 msgid "%B %e"
-msgstr ""
+msgstr "月 日"
 
 #. Translators: scrolled date header (%B = month name, %e = day number, %Y =
 #. year)
 #: ../src/main.js:1182
 msgid "today is %B %e, %Y"
-msgstr ""
+msgstr "今天是 年 月 日"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"

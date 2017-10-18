@@ -37,13 +37,13 @@ msgstr "TỪ NỔI BẬT TRONG NGÀY"
 #. Translators: main date header (%B = month name, %e = day number)
 #: ../src/main.js:1178
 msgid "%B %e"
-msgstr ""
+msgstr "%e tháng %B"
 
 #. Translators: scrolled date header (%B = month name, %e = day number, %Y =
 #. year)
 #: ../src/main.js:1182
 msgid "today is %B %e, %Y"
-msgstr ""
+msgstr "hôm nay là %e/%B/%Y"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"

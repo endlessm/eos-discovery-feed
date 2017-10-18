@@ -37,13 +37,13 @@ msgstr "كلمة اليوم"
 #. Translators: main date header (%B = month name, %e = day number)
 #: ../src/main.js:1178
 msgid "%B %e"
-msgstr ""
+msgstr "%B %e"
 
 #. Translators: scrolled date header (%B = month name, %e = day number, %Y =
 #. year)
 #: ../src/main.js:1182
 msgid "today is %B %e, %Y"
-msgstr ""
+msgstr "اليوم هو %B %e، %Y"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
