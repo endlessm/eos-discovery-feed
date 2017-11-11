@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr "Instal beberapa aplikasi untuk menjelajahi konten-konten seru!"
+msgstr "Pasang beberapa aplikasi untuk menjelajahi konten-konten seru!"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
