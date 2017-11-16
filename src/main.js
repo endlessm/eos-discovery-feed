@@ -1316,6 +1316,51 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
     .reduce((list, incoming) => list.concat(incoming), []);
 }
 
+function withLeadingZero(value) {
+    if (value < 10)
+        return '0' + value;
+
+    return String(value);
+}
+
+function parseDuration(duration) {
+    let durationTotalSeconds = Number.parseInt(duration);
+    let durationHours = Math.floor(durationTotalSeconds / 3600);
+    let durationMinutes = Math.floor(durationTotalSeconds / 60) % 60;
+    let durationSeconds = durationTotalSeconds % 60;
+
+    if (durationHours > 0)
+        return durationHours + ':' + withLeadingZero(durationMinutes);
+
+    return durationMinutes + ':' + withLeadingZero(durationSeconds);
+}
+
+function appendVideoCardsFromShardsAndItems(shards, items, proxy, type) {
+    return items.map(function(response) {
+        return Array.prototype.slice.call(response).map(function(entry) {
+            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
+
+            return {
+                type: type,
+                source: proxy.desktopId,
+                model: new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
+                    title: entry.title,
+                    synopsis: TextSanitization.synopsis(entry.synopsis),
+                    thumbnail: thumbnail,
+                    desktop_id: proxy.desktopId,
+                    bus_name: proxy.busName,
+                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
+                    knowledge_app_id: proxy.knowledgeAppId,
+                    uri: entry.ekn_id,
+                    type: type,
+                    duration: parseDuration(entry.duration)
+                })
+            };
+        });
+    })
+    .reduce((list, incoming) => list.concat(incoming), []);
+}
+
 function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direction, thumbnailSize) {
     return items.map(function(response) {
         return Array.prototype.slice.call(response).map(function(entry) {
@@ -1452,50 +1497,14 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
     });
 }
 
-
-function withLeadingZero(value) {
-    if (value < 10)
-        return '0' + value;
-
-    return String(value);
-}
-
-function parseDuration(duration) {
-    let durationTotalSeconds = Number.parseInt(duration);
-    let durationHours = Math.floor(durationTotalSeconds / 3600);
-    let durationMinutes = Math.floor(durationTotalSeconds / 60) % 60;
-    let durationSeconds = durationTotalSeconds % 60;
-
-    if (durationHours > 0)
-        return durationHours + ':' + withLeadingZero(durationMinutes);
-
-    return durationMinutes + ':' + withLeadingZero(durationSeconds);
-}
-
 function appendDiscoveryFeedVideoFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetVideosRemote')(function(results) {
-        let [shards, items] = [results[0], results.slice(1, results.length)];
-
-        return items.map(function(response) {
-            return response.map(function(entry) {
-                let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-                return ({
-                    type: Stores.CARD_STORE_TYPE_VIDEO_CARD,
-                    source: proxy.desktopId,
-                    model: new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
-                        title: entry.title,
-                        thumbnail: thumbnail,
-                        desktop_id: proxy.desktopId,
-                        bus_name: proxy.busName,
-                        knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                        knowledge_app_id: proxy.knowledgeAppId,
-                        uri: entry.ekn_id,
-                        duration: parseDuration(entry.duration)
-                    })
-                });
-            });
-        }).reduce((a, b) => a.concat(b));
+    return promisifyGIO(proxy.iface, 'GetVideosRemote')
+    .then(([results]) => appendVideoCardsFromShardsAndItems(results[0],
+                                                            results.slice(1, results.length),
+                                                            proxy,
+                                                            Stores.CARD_STORE_TYPE_VIDEO_CARD))
+    .catch((e) => {
+        throw new Error('Getting video card information failed: ' + e + '\n' + e.stack);
     });
 }
 
