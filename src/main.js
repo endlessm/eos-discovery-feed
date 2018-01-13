@@ -1345,7 +1345,6 @@ function appendVideoCardsFromShardsAndItems(shards, items, proxy, type) {
                 source: proxy.desktopId,
                 model: new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
                     title: entry.title,
-                    synopsis: TextSanitization.synopsis(entry.synopsis),
                     thumbnail: thumbnail,
                     desktop_id: proxy.desktopId,
                     bus_name: proxy.busName,
