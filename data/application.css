@@ -8,6 +8,7 @@
 .content .synopsis {
   font-size: 12pt;
   font-family: 'Merriweather', regular;
+  margin-bottom: 10px;
 }
 
 .content .article {
