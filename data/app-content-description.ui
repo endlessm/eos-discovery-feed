@@ -84,5 +84,17 @@
         </style>
       </object>
     </child>
+    <child>
+      <object class="GtkLabel" id="date-label">
+        <property name="visible">False</property>
+        <property name="hexpand">True</property>
+        <property name="halign">start</property>
+        <property name="valign">center</property>
+        <style>
+          <class name="small-header" />
+          <class name="dark-text" />
+        </style>
+      </object>
+    </child>
   </template>
 </interface>

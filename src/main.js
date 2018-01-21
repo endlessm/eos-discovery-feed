@@ -587,6 +587,12 @@ const DiscoveryFeedAppContentDescription = new Lang.Class({
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         ''),
+        formatted_date: GObject.ParamSpec.string('formatted-date',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 ''),
         synopsis: GObject.ParamSpec.string('synopsis',
                                            '',
                                            '',
@@ -598,7 +604,8 @@ const DiscoveryFeedAppContentDescription = new Lang.Class({
     Children: [
         'app-label',
         'title-label',
-        'synopsis-label'
+        'synopsis-label',
+        'date-label'
     ],
 
     _init: function(params) {
@@ -606,6 +613,10 @@ const DiscoveryFeedAppContentDescription = new Lang.Class({
         this.app_label.label = this.app_name;
         this.title_label.label = this.title;
         this.synopsis_label.label = this.synopsis;
+
+        // Not visible unless a date is actually set
+        this.date_label.visible = !!this.formatted_date
+        this.date_label.label = this.formatted_date
     }
 });
 
@@ -931,7 +942,10 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
         return new DiscoveryFeedAppContentDescription({
             title: this.model.title,
             synopsis: 'by ' + this.model.author,
-            app_name: 'Masterpiece of the Day'.toUpperCase()
+            app_name: 'Masterpiece of the Day'.toUpperCase(),
+            // Need to use a ternary here since this.model.date can be an empty
+            // string
+            formatted_date: this.model.first_date ? String(new Date(this.model.first_date).getFullYear()) : null
         });
     },
 
@@ -1371,6 +1385,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                 model: new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
                     title: entry.title,
                     author: entry.author,
+                    first_date: entry.first_date,
                     thumbnail: thumbnail,
                     desktop_id: proxy.desktopId,
                     bus_name: proxy.busName,

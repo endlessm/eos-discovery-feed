@@ -208,7 +208,13 @@ const DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
                                          '',
                                          GObject.ParamFlags.READWRITE |
                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         '')
+                                         ''),
+        first_date: GObject.ParamSpec.string('first-date',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             '')
     },
 
     _init: function(params) {
