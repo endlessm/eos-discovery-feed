@@ -684,7 +684,6 @@ const DiscoveryFeedAppStoreDescription = new Lang.Class({
 
 const CONTENT_PREVIEW_SMALL = 200;
 const CONTENT_PREVIEW_MID = 300;
-const CONTENT_PREVIEW_LARGE = 400;
 
 const DiscoveryFeedContentPreview = new Lang.Class({
     Name: 'DiscoveryFeedContentPreview',
@@ -875,7 +874,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
             }),
             description: this.createDescription(),
             layout_direction: this.model.layout_direction
-        })
+        });
     },
 
     createDescription: function() {
@@ -1625,6 +1624,41 @@ function discoveryFeedCardsFromQueries(proxies) {
     }).catch(e => logError(e, 'Query failed'));
 }
 
+
+// A helper class for tracking single-connections to signals
+//
+// A bit gross in the sense that it uses O(N) lookups, but
+// JS doesn't seem to have unique IDs for objects.
+const SignalManager = new Lang.Class({
+    Name: 'SignalManager',
+
+    _init: function() {
+        this._tracking = [];
+    },
+
+    track: function(obj, signal, callback) {
+        let conn = obj.connect(signal, callback);
+        this._tracking.push([signal, obj, conn]);
+        return conn;
+    },
+
+    drop: function(obj, signal) {
+        let pendingDisconnections = [];
+
+        this._tracking = this._tracking.filter(([trackedSignal, trackedObj, conn]) => {
+            if (trackedSignal === signal && trackedObj === obj) {
+                pendingDisconnections.push([trackedObj, conn]);
+                return false;
+            }
+
+            return true;
+        });
+
+        pendingDisconnections.forEach(([trackedObj, conn]) => trackedObj.disconnect(conn));
+    }
+});
+
+
 const AUTO_CLOSE_MILLISECONDS_TIMEOUT = 12000;
 
 const DiscoveryFeedApplication = new Lang.Class({
@@ -1639,10 +1673,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         });
         GLib.set_application_name(_('Discovery Feed'));
         this.Visible = false;
-        this._installedAppsChangedId = -1;
-        this._monitorAddedSignalId = -1;
-        this._monitorRemovedSignalId = -1;
-        this._monitorWorkareaChangedSignalId = -1;
+        this._signals = new SignalManager();
         this._discoveryFeedProxies = [];
         this._contentAppIds = [];
         this._debugWindow = !!GLib.getenv('DISCOVERY_FEED_DEBUG_WINDOW');
@@ -1690,7 +1721,7 @@ const DiscoveryFeedApplication = new Lang.Class({
         // otherwise the signal will be automatically disconnected, even though
         // the Gio documentation says that this is a singleton.
         this._appInfoMonitor = Gio.AppInfoMonitor.get();
-        this._installedAppsChangedId = this._appInfoMonitor.connect('changed', Lang.bind(this, function() {
+        this._signals.track(this._appInfoMonitor, 'changed', Lang.bind(this, function() {
             this._providersRequireRefresh = true;
         }));
 
@@ -1729,36 +1760,28 @@ const DiscoveryFeedApplication = new Lang.Class({
 
         // update position when workarea changes
         let display = Gdk.Display.get_default();
-        this._monitorAddedSignalId = display.connect('monitor-added',
-                                                     Lang.bind(this,
-                                                               this._updateGeometry));
-        this._monitorRemovedSignalId = display.connect('monitor-removed',
-                                                       Lang.bind(this,
-                                                                 this._updateGeometry));
+        this._signals.track(display, 'monitor-added', Lang.bind(this, this._updateGeometry));
+        this._signals.track(display, 'monitor-removed', Lang.bind(this, this._updateGeometry));
         let monitor = display.get_primary_monitor();
-        this._monitorWorkareaChangedSignalId = monitor.connect('notify::workarea',
-                                                               Lang.bind(this,
-                                                                        this._updateGeometry));
+        this._signals.track(display, 'notify::workarea',  Lang.bind(this, this._updateGeometry));
         this._updateGeometry();
 
         // When the window gets destroyed we should release our reference
         // to it so that we can re-create it later
         this._window.connect('destroy', Lang.bind(this, function() {
             // We also need to disconnect all signals now
-            if (this._monitorAddedSignalId !== -1) {
-                display.disconnect(this._monitorAddedSignalId);
-                this._monitorAddedSignalId = -1;
-            }
+            let signalObjects = [
+                [display, ['monitor-added', 'monitor-removed']],
+                [monitor, ['notify::workarea']],
+                [this._window, ['draw', 'focus-out-event']]
+            ];
 
-            if (this._monitorRemovedSignalId !== -1) {
-                display.disconnect(this._monitorRemovedSignalId);
-                this._monitorRemovedSignalId = -1;
-            }
-
-            if (this._monitorWorkareaChangedSignalId !== -1) {
-                monitor.disconnect(this._monitorWorkareaChangedSignalId);
-                this._monitorWorkareaChangedSignalId = -1;
-            }
+            let tracker = this._signals;
+            signalObjects.forEach(([object, signals]) =>
+                signals.forEach(signal =>
+                    tracker.drop(object, signal)
+                )
+            );
 
             this._window = null;
         }));
@@ -1795,7 +1818,7 @@ const DiscoveryFeedApplication = new Lang.Class({
             // It is possible that the window could have gone away just after
             // we refreshed our providers, in that case, we'll need to
             if (!this._window)
-                return Promise.resolve()
+                return Promise.resolve();
 
             return this._window.updateContentFromProxies(proxies);
         }));
@@ -1827,12 +1850,18 @@ const DiscoveryFeedApplication = new Lang.Class({
         if (this._debugWindow)
             return;
 
-        let gdkWindow = this._window.get_window();
-        gdkWindow.set_events(gdkWindow.get_events() |
-                             Gdk.EventMask.FOCUS_CHANGE_MASK);
-        this._window.connect('focus-out-event', Lang.bind(this, function() {
-            this.hide();
-            return false;
+        // Connecting to 'draw' here is not ideal, however it seems like
+        // the 'realize' signal is not fired for GtkWindow when it gets
+        // mapped
+        this._signals.track(this._window, 'draw', Lang.bind(this, function() {
+            let gdkWindow = this._window.get_window();
+            gdkWindow.set_events(gdkWindow.get_events() |
+                                 Gdk.EventMask.FOCUS_CHANGE_MASK);
+            this._signals.track(this._window, 'focus-out-event', Lang.bind(this, function() {
+                this.hide();
+                return false;
+            }));
+            this._signals.drop(this._window, 'draw');
         }));
     },
 
