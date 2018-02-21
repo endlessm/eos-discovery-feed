@@ -1384,7 +1384,9 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                 model: new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
                     title: entry.title,
                     author: entry.author,
-                    first_date: entry.first_date,
+                    /* first_date is a new property, so defend against old
+                     * EknServices versions that may not have it. */
+                    first_date: entry.hasOwnProperty('first_date') ? entry.first_date: '',
                     thumbnail: thumbnail,
                     desktop_id: proxy.desktopId,
                     bus_name: proxy.busName,
