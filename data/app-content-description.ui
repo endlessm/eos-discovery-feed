@@ -91,7 +91,7 @@
         <property name="halign">start</property>
         <property name="valign">center</property>
         <style>
-          <class name="small-header" />
+          <class name="formatted-date" />
           <class name="dark-text" />
         </style>
       </object>
