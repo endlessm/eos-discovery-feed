@@ -10,30 +10,6 @@ const GObject = imports.gi.GObject;
 
 const Lang = imports.lang; 
 
-var DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeArtworkCardStore',
-    Extends: EosDiscoveryFeed.KnowledgeAppCardStore,
-    Properties: {
-        author: GObject.ParamSpec.string('author',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         ''),
-        first_date: GObject.ParamSpec.string('first-date',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             '')
-    },
-
-    _init: function(params) {
-        params.type = EosDiscoveryFeed.CardStoreType.ARTWORK_CARD;
-        this.parent(params);
-    }
-});
-
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppVideoCardStore',

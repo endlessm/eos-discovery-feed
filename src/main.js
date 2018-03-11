@@ -1017,7 +1017,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowledgeArtworkCardStore.$gtype)
+                                        EosDiscoveryFeed.KnowledgeAppArtworkCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -1492,7 +1492,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                model: new Stores.DiscoveryFeedKnowledgeArtworkCardStore({
+                model: new EosDiscoveryFeed.KnowledgeAppArtworkCardStore({
                     title: entry.title,
                     author: entry.author,
                     /* first_date is a new property, so defend against old

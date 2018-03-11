@@ -37,6 +37,8 @@ libeos_discovery_feed_1_la_SOURCES = \
 	libfeed/feed-base-card-store.c \
 	libfeed/feed-base-card-store.h \
 	libfeed/feed-card-layout-direction.h \
+	libfeed/feed-knowledge-app-artwork-card-store.c \
+	libfeed/feed-knowledge-app-artwork-card-store.h \
 	libfeed/feed-knowledge-app-card-store.c \
 	libfeed/feed-knowledge-app-card-store.h \
 	libfeed/feed-knowledge-app-news-card-store.c \
