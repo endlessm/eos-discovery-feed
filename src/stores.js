@@ -25,26 +25,6 @@ var DiscoveryFeedAppCardStore = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-var DiscoveryFeedQuoteStore = new Lang.Class({
-    Name: 'DiscoveryFeedQuoteStore',
-    Extends: GObject.Object,
-    Properties: {
-        quote: GObject.ParamSpec.string('quote',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          ''),
-        author: GObject.ParamSpec.string('author',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           '')
-    }
-});
-
-// eslint-disable-next-line no-unused-vars
 var DiscoveryFeedWordQuotePairStore = new Lang.Class({
     Name: 'DiscoveryFeedQuotePairStore',
     Extends: EosDiscoveryFeed.BaseCardStore,

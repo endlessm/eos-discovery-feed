@@ -1585,7 +1585,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
         type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD,
         source: 'word-quote',
         model: new Stores.DiscoveryFeedWordQuotePairStore({
-            quote: new Stores.DiscoveryFeedQuoteStore({
+            quote: new EosDiscoveryFeed.QuoteCardStore({
                 quote: TextSanitization.synopsis(quote.title),
                 author: quote.author
             }),
