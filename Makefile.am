@@ -32,6 +32,8 @@ include $(top_srcdir)/Makefile.am.enums
 libeos_discovery_feed_1_la_SOURCES = \
 	$(glib_enum_c) \
 	$(glib_enum_h) \
+	libfeed/feed-app-card-store.c \
+	libfeed/feed-app-card-store.h \
 	libfeed/feed-base-card-store.c \
 	libfeed/feed-base-card-store.h \
 	libfeed/feed-card-layout-direction.h \
