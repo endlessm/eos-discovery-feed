@@ -1052,7 +1052,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedWordQuotePairStore.$gtype)
+                                        EosDiscoveryFeed.WordQuoteCardStore.$gtype)
     },
     Children: [
         'word',
@@ -1585,7 +1585,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
     .then(([quote, word]) => ({
         type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD,
         source: 'word-quote',
-        model: new Stores.DiscoveryFeedWordQuotePairStore({
+        model: new EosDiscoveryFeed.WordQuoteCardStore({
             quote: new EosDiscoveryFeed.QuoteCardStore({
                 quote: TextSanitization.synopsis(quote.title),
                 author: quote.author

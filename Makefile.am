@@ -44,6 +44,8 @@ libeos_discovery_feed_1_la_SOURCES = \
 	libfeed/feed-text-sanitization.h \
 	libfeed/feed-word-card-store.c \
 	libfeed/feed-word-card-store.h \
+	libfeed/feed-word-quote-card-store.c \
+	libfeed/feed-word-quote-card-store.h \
 	$(NULL)
 
 libeos_discovery_feed_1_la_CPPFLAGS = \

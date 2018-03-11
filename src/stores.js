@@ -11,31 +11,6 @@ const GObject = imports.gi.GObject;
 const Lang = imports.lang; 
 
 // eslint-disable-next-line no-unused-vars
-var DiscoveryFeedWordQuotePairStore = new Lang.Class({
-    Name: 'DiscoveryFeedQuotePairStore',
-    Extends: EosDiscoveryFeed.BaseCardStore,
-    Properties: {
-        quote: GObject.ParamSpec.object('quote',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          DiscoveryFeedQuoteStore.$gtype),
-        word: GObject.ParamSpec.object('word',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         EosDiscoveryFeed.WordCardStore.$gtype)
-    },
-
-    _init: function(params) {
-        params.type = EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD;
-        this.parent(params);
-    }
-});
-
-// eslint-disable-next-line no-unused-vars
 var DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCardStore',
     Extends: EosDiscoveryFeed.AppCardStore,
