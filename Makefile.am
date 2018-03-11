@@ -49,6 +49,7 @@ libeos_discovery_feed_1_la_SOURCES = \
 libeos_discovery_feed_1_la_CPPFLAGS = \
 	$(EOS_DISCOVERY_FEED_CFLAGS) \
 	-I$(abs_top_builddir)/libfeed \
+	-I$(abs_top_srcdir)/libfeed \
 	$(NULL)
 
 libeos_discovery_feed_1_la_LIBADD = \
@@ -68,7 +69,7 @@ introspection_sources = \
 
 EosDiscoveryFeed-1.0.gir: libeos-discovery-feed-1.la
 EosDiscoveryFeed_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 GLib-2.0
-EosDiscoveryFeed_1_0_gir_CFLAGS = $(EOS_DISCOVERY_FEED_CFLAGS)
+EosDiscoveryFeed_1_0_gir_CFLAGS = $(libeos_discovery_feed_1_la_CPPFLAGS)
 EosDiscoveryFeed_1_0_gir_LIBS = libeos-discovery-feed-1.la
 EosDiscoveryFeed_1_0_gir_FILES = $(introspection_sources)
 
