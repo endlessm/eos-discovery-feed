@@ -188,6 +188,21 @@ function languageCodeIsCompatible(language, languages) {
     return languages.some(l => l === languageCode);
 }
 
+function flatpakSystemDirs() {
+  let env = GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIRS');
+  if (env)
+      return env.split(':');
+
+  return ['/var/lib/flatpak', '/var/endless-extra/flatpak'];
+}
+
+// We need to look at the flatpak directories and /run/host/usr/share explicitly
+// since they are not included in XDG_DATA_DIRS
+function allRelevantDataDirs() {
+  return [...(new Set(GLib.get_system_data_dirs().concat(flatpakSystemDirs().map((directory) =>
+    GLib.build_filenamev([directory, 'exports', 'share'])
+  )).concat(['/run/host/usr/share']))).values()];
+}
 //
 // appLanguage
 function appLanguage(desktopId) {
@@ -312,8 +327,20 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
     return providerBusDescriptors;
 }
 
+function flatpakSystemDir() {
+  return GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIR') || '/var/lib/flatpak';
+}
+
+/* We need to look in the flatpak directories explicitly,
+ * since XDG_DATA_DIRS is set by flatpak itself. */
+function allRelevantDataDirs() {
+  return GLib.get_system_data_dirs().concat([
+    GLib.build_filenamev([flatpakSystemDir(), 'exports', 'share'])
+  ]);
+}
+
 function readDiscoveryFeedProvidersInDataDirectories() {
-    let dataDirectories = GLib.get_system_data_dirs();
+    let dataDirectories = allRelevantDataDirs();
     return dataDirectories.reduce((allProviders, directory) => {
         let dir = Gio.File.new_for_path(GLib.build_filenamev([
             directory,
