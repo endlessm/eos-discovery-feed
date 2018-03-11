@@ -4,39 +4,16 @@
 //
 // This file contains the model state for all the cards.
 
+const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
 const Gio = imports.gi.Gio;
 const GObject = imports.gi.GObject;
 
 const Lang = imports.lang; 
 
-var CARD_STORE_TYPE_ARTICLE_CARD = 0;
-var CARD_STORE_TYPE_WORD_QUOTE_CARD = 1;
-var CARD_STORE_TYPE_ARTWORK_CARD = 2;
-var CARD_STORE_TYPE_AVAILABLE_APPS = 3;
-var CARD_STORE_TYPE_VIDEO_CARD = 4;
-var CARD_STORE_TYPE_NEWS_CARD = 5;
-var CARD_STORE_TYPE_MAX = CARD_STORE_TYPE_NEWS_CARD;
-
-// eslint-disable-next-line no-unused-vars
-var DiscoveryFeedCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedCardStore',
-    Extends: GObject.Object,
-    Properties: {
-        type: GObject.ParamSpec.int('type',
-                                    '',
-                                    '',
-                                    GObject.ParamFlags.READWRITE |
-                                    GObject.ParamFlags.CONSTRUCT_ONLY,
-                                    CARD_STORE_TYPE_ARTICLE_CARD,
-                                    CARD_STORE_TYPE_MAX,
-                                    CARD_STORE_TYPE_ARTICLE_CARD)
-    }
-});
-
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedAppCardStore',
-    Extends: DiscoveryFeedCardStore,
+    Extends: EosDiscoveryFeed.BaseCardStore,
     Properties: {
         'desktop-id': GObject.ParamSpec.string('desktop-id',
                                                '',
@@ -96,7 +73,7 @@ var DiscoveryFeedQuoteStore = new Lang.Class({
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedWordQuotePairStore = new Lang.Class({
     Name: 'DiscoveryFeedQuotePairStore',
-    Extends: DiscoveryFeedCardStore,
+    Extends: EosDiscoveryFeed.BaseCardStore,
     Properties: {
         quote: GObject.ParamSpec.object('quote',
                                           '',
@@ -113,7 +90,7 @@ var DiscoveryFeedWordQuotePairStore = new Lang.Class({
     },
 
     _init: function(params) {
-        params.type = CARD_STORE_TYPE_WORD_QUOTE_CARD;
+        params.type = EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD;
         this.parent(params);
     }
 });
@@ -193,7 +170,7 @@ var DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     },
 
     _init: function(params) {
-        params.type = params.type || CARD_STORE_TYPE_ARTICLE_CARD;
+        params.type = params.type || EosDiscoveryFeed.CardStoreType.ARTICLE_CARD;
         this.parent(params);
     }
 });
@@ -218,7 +195,7 @@ var DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
     },
 
     _init: function(params) {
-        params.type = CARD_STORE_TYPE_ARTWORK_CARD;
+        params.type = EosDiscoveryFeed.CardStoreType.ARTWORK_CARD;
         this.parent(params);
     }
 });
@@ -237,7 +214,7 @@ var DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
     },
 
     _init: function(params) {
-        params.type = CARD_STORE_TYPE_VIDEO_CARD;
+        params.type = EosDiscoveryFeed.CardStoreType.VIDEO_CARD;
         this.parent(params);
     }
 });
@@ -245,10 +222,10 @@ var DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedAvailableAppsStore = new Lang.Class({
     Name: 'DiscoveryFeedAvailableAppsStore',
-    Extends: DiscoveryFeedCardStore,
+    Extends: EosDiscoveryFeed.BaseCardStore,
 
     _init: function(params, apps) {
-        params.type = CARD_STORE_TYPE_AVAILABLE_APPS;
+        params.type = EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS;
         this.parent(params);
         this.apps = apps;
     }

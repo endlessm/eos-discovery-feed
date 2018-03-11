@@ -1239,17 +1239,17 @@ const DiscoveryFeedListItem = new Lang.Class({
 function contentViewFromType(type, store) {
     let params = { model: store };
     switch (type) {
-    case Stores.CARD_STORE_TYPE_ARTICLE_CARD:
+    case EosDiscoveryFeed.CardStoreType.ARTICLE_CARD:
         return new DiscoveryFeedKnowledgeAppCard(params);
-    case Stores.CARD_STORE_TYPE_NEWS_CARD:
+    case EosDiscoveryFeed.CardStoreType.NEWS_CARD:
         return new DiscoveryFeedKnowledgeAppCard(params);
-    case Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD:
+    case EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD:
         return new DiscoveryFeedWordQuotePair(params);
-    case Stores.CARD_STORE_TYPE_ARTWORK_CARD:
+    case EosDiscoveryFeed.CardStoreType.ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
-    case Stores.CARD_STORE_TYPE_AVAILABLE_APPS:
+    case EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS:
         return new DiscoveryFeedAvailableAppsCard(params);
-    case Stores.CARD_STORE_TYPE_VIDEO_CARD:
+    case EosDiscoveryFeed.CardStoreType.VIDEO_CARD:
         return new DiscoveryFeedKnowledgeVideoCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
@@ -1297,7 +1297,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
         this._alive = true;
         this._cardModel = new Gio.ListStore({
-            item_type: Stores.DiscoveryFeedCardStore.$gtype
+            item_type: EosDiscoveryFeed.BaseCardStore.$gtype
         });
         this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
@@ -1369,7 +1369,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
                 // If we show a card that is not the available apps card,
                 // we'll want to show the 'recommended content' text now.
-                if (descriptor.type !== Stores.CARD_STORE_TYPE_AVAILABLE_APPS) {
+                if (descriptor.type !== EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS) {
                     this.recommended.show();
                 }
             });
@@ -1542,7 +1542,7 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_ARTICLE_CARD,
+                                                              EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
                                                               Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
                                                               Stores.THUMBNAIL_SIZE_ARTICLE))
     .catch((e) => {
@@ -1555,7 +1555,7 @@ function appendDiscoveryFeedArtworkFromProxy(proxy) {
     .then(([results]) => appendArtworkCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_ARTWORK_CARD,
+                                                              EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
                                                               Stores.LAYOUT_DIRECTION_IMAGE_LAST,
                                                               Stores.THUMBNAIL_SIZE_ARTWORK))
     .catch((e) => {
@@ -1568,7 +1568,7 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
-                                                              Stores.CARD_STORE_TYPE_NEWS_CARD,
+                                                              EosDiscoveryFeed.CardStoreType.NEWS_CARD,
                                                               Stores.LAYOUT_DIRECTION_IMAGE_LAST,
                                                               Stores.THUMBNAIL_SIZE_NEWS))
     .catch((e) => {
@@ -1582,7 +1582,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
         promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
     ])
     .then(([quote, word]) => ({
-        type: Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD,
+        type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD,
         source: 'word-quote',
         model: new Stores.DiscoveryFeedWordQuotePairStore({
             quote: new Stores.DiscoveryFeedQuoteStore({
@@ -1605,7 +1605,7 @@ const N_APPS_TO_DISPLAY = 5;
 function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
     return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
         results.map(response => ({
-            type: Stores.CARD_STORE_TYPE_AVAILABLE_APPS,
+            type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
             model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
@@ -1627,7 +1627,7 @@ function appendDiscoveryFeedVideoFromProxy(proxy) {
     .then(([results]) => appendVideoCardsFromShardsAndItems(results[0],
                                                             results.slice(1, results.length),
                                                             proxy,
-                                                            Stores.CARD_STORE_TYPE_VIDEO_CARD))
+                                                            EosDiscoveryFeed.CardStoreType.VIDEO_CARD))
     .catch((e) => {
         throw new Error('Getting video card information failed: ' + e + '\n' + e.stack);
     });
