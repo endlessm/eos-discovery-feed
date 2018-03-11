@@ -11,25 +11,6 @@ const GObject = imports.gi.GObject;
 const Lang = imports.lang; 
 
 // eslint-disable-next-line no-unused-vars
-var DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeAppVideoCardStore',
-    Extends: EosDiscoveryFeed.KnowledgeAppCardStore,
-    Properties: {
-        duration: GObject.ParamSpec.string('duration',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           '')
-    },
-
-    _init: function(params) {
-        params.type = EosDiscoveryFeed.CardStoreType.VIDEO_CARD;
-        this.parent(params);
-    }
-});
-
-// eslint-disable-next-line no-unused-vars
 var DiscoveryFeedAvailableAppsStore = new Lang.Class({
     Name: 'DiscoveryFeedAvailableAppsStore',
     Extends: GObject.Object,

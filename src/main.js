@@ -988,7 +988,7 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowledgeAppVideoCardStore.$gtype)
+                                        EosDiscoveryFeed.KnowledgeAppVideoCardStore.$gtype)
     },
 
     createLayout: function() {
@@ -1467,7 +1467,7 @@ function appendVideoCardsFromShardsAndItems(shards, items, proxy, type) {
             return {
                 type: type,
                 source: proxy.desktopId,
-                model: new Stores.DiscoveryFeedKnowledgeAppVideoCardStore({
+                model: new EosDiscoveryFeed.KnowledgeAppVideoCardStore({
                     title: entry.title,
                     thumbnail: thumbnail,
                     desktop_id: proxy.desktopId,
