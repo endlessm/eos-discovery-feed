@@ -188,16 +188,20 @@ function languageCodeIsCompatible(language, languages) {
     return languages.some(l => l === languageCode);
 }
 
-function flatpakSystemDir() {
-  return GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIR') || '/var/lib/flatpak';
+function flatpakSystemDirs() {
+  let env = GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIRS');
+  if (env)
+      return env.split(':');
+
+  return ['/var/lib/flatpak', '/var/endless-extra/flatpak'];
 }
 
-/* We need to look in the flatpak directories explicitly,
- * since XDG_DATA_DIRS is set by flatpak itself. */
+// We need to look at the flatpak directories and /var/lib explicitly
+// since they are not included in XDG_DATA_DIRS
 function allRelevantDataDirs() {
-  return GLib.get_system_data_dirs().concat([
-    GLib.build_filenamev([flatpakSystemDir(), 'exports', 'share'])
-  ]);
+  return GLib.get_system_data_dirs().concat(flatpakSystemDirs().map((directory) =>
+    GLib.build_filenamev([directory, 'exports', 'share'])
+  )).concat(['/var/lib']);
 }
 
 //
@@ -250,6 +254,8 @@ function appLanguage(desktopId) {
 // @param {function} done - The function to call with a list of providers
 //                          when done.
 function readDiscoveryFeedProvidersInDirectory(directory) {
+    log('Checking directory ' + directory.get_path());
+
     let enumerator = null;
     let info = null;
     let providerBusDescriptors = [];
@@ -265,6 +271,7 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
                                                   null);
     } catch (e) {
         if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
+            log('Directory not found :(');
             return providerBusDescriptors;
         }
 
@@ -277,6 +284,8 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
             info.get_name()
         ]));
         let path = file.get_path();
+
+        log('Checking file ' + path);
 
         let keyFile = new GLib.KeyFile();
         try {
