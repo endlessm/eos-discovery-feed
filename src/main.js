@@ -188,10 +188,49 @@ function languageCodeIsCompatible(language, languages) {
     return languages.some(l => l === languageCode);
 }
 
+function flatpakSystemDir() {
+  return GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIR') || '/var/lib/flatpak';
+}
+
+/* We need to look in the flatpak directories explicitly,
+ * since XDG_DATA_DIRS is set by flatpak itself. */
+function allRelevantDataDirs() {
+  return GLib.get_system_data_dirs().concat([
+    GLib.build_filenamev([flatpakSystemDir(), 'exports', 'share'])
+  ]);
+}
+
+//
+// flatpakCompatibleDesktopInfo
+//
+// Build a GDesktopAppInfo object for a .desktop file that might
+// be in the exports directory but is not necessarily executable
+// because the binary was not mounted in the bwrap jail.
+function flatpakCompatibleDesktopInfo(desktopId) {
+  for (let directory of allRelevantDataDirs()) {
+    let path = GLib.build_filenamev([directory, 'applications', desktopId]);
+    let keyfile = new GLib.KeyFile();
+
+    try {
+        keyfile.load_from_file(path, GLib.KeyFileFlags.NONE);
+    } catch(e) {
+        continue;
+    }
+
+    // Now that we have the keyfile, set the Exec line to some
+    // well-known binary, so that GDesktopAppInfo doesn't trip up
+    // when we try to read it.
+    keyfile.set_string('Desktop Entry', 'Exec', '/bin/true');
+    return Gio.DesktopAppInfo.new_from_keyfile(keyfile);
+  };
+
+  return null;
+}
+
 //
 // appLanguage
 function appLanguage(desktopId) {
-    let appInfo = Gio.DesktopAppInfo.new(desktopId);
+    let appInfo = flatpakCompatibleDesktopInfo(desktopId);
     if (!appInfo) {
         // This case shouldn't happen - the app id passed must always
         // be valid.
@@ -309,18 +348,6 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
     }
 
     return providerBusDescriptors;
-}
-
-function flatpakSystemDir() {
-  return GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIR') || '/var/lib/flatpak';
-}
-
-/* We need to look in the flatpak directories explicitly,
- * since XDG_DATA_DIRS is set by flatpak itself. */
-function allRelevantDataDirs() {
-  return GLib.get_system_data_dirs().concat([
-    GLib.build_filenamev([flatpakSystemDir(), 'exports', 'share'])
-  ]);
 }
 
 function readDiscoveryFeedProvidersInDataDirectories() {
@@ -446,7 +473,7 @@ function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType, ti
     context.set_timestamp(timestamp);
 
     if (!knowledgeSearchProxy) {
-        app.launch([], context);
+        log('Without a known search proxy, app ' + app.get_id() + ' cannot be launched directly');
         return;
     }
 
@@ -454,7 +481,12 @@ function loadKnowledgeAppContent(app, knowledgeSearchProxy, uri, contentType, ti
         if (!excp)
             return;
         logError(excp, 'Could not load app with article ' + uri + ' fallback to just launch the app, trace');
-        app.launch([], context);
+        knowledgeSearchProxy.LaunchApplicationDirectlyRemote(timestamp, function(result, excp) {
+            if (!excp)
+              return;
+ 
+            logError(excp, 'Failed to launch app ' + app.get_id() + ' directly');
+        });
     });
 }
 
@@ -533,7 +565,15 @@ function createShellAppLauncherMetaCallProxy(interfaceMetadata,
                                                 wrapped,
                                                 args);
     };
-    return createMetaCallProxy(interfaceMetadata, asyncCallFunc, syncCallFunc);
+    let proxy = createMetaCallProxy(interfaceMetadata, asyncCallFunc, syncCallFunc);
+
+    // Also add method to directly launch the app if required
+    proxy.LaunchApplicationDirectlyRemote = function(timestamp, callback) {
+      return shellProxy.LaunchRemote(appId, timestamp, callback);
+    };
+    proxy.LaunchApplicationDirectlySync = function(timestamp) {
+      return shellProxy.LaunchSync(appId, timestamp);
+    };
 }
 
 // createSearchProxyFromObjectPath
@@ -861,7 +901,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
 
         // Read the desktop file and then set the app icon and label
         // appropriately
-        this._app = Gio.DesktopAppInfo.new(this.model.desktop_id);
+        this._app = flatpakCompatibleDesktopInfo(this.model.desktop_id);
         let card = new DiscoveryFeedActivatableFrame({
             content: this.createLayout()
         });
@@ -1067,6 +1107,20 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
+        let interfaceWrapper = Gio.DBusProxy.makeProxyWrapper(AppLauncherIface);
+        let onProxyReady = function(initable, error) {
+            if (error) {
+                logError(error,
+                         'Could not create proxy for ' + objectPath);
+                return;
+            }
+        };
+        let shellProxy = interfaceWrapper(Gio.DBus.session,
+                                          SHELL_BUS_NAME,
+                                          SHELL_OBJECT_PATH,
+                                          onProxyReady);
+
+
         let card = new DiscoveryFeedActivatableFrame({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
@@ -1083,9 +1137,17 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
         });
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
-            let context = Gdk.AppLaunchContext.new();
-            context.set_timestamp(Gtk.get_current_event_time());
-            (Gio.DesktopAppInfo.new('org.gnome.Software.desktop')).launch([], context);
+            // We can't use g_desktop_app_info_launch to launch
+            // GNOME-Software directly, instead use the shell's
+            // interface to do that
+            shellProxy.LaunchRemote('org.gnome.Software.desktop',
+                                    Gtk.get_current_event_time(),
+                                    (result, excp) => {
+                                        if (!excp)
+                                            return;
+                                        logError(excp,
+                                                 'Could not launch GNOME-Software');
+                                    });
         }));
     }
 });
