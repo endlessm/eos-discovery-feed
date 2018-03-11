@@ -1589,7 +1589,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
                 quote: TextSanitization.synopsis(quote.title),
                 author: quote.author
             }),
-            word: new Stores.DiscoveryFeedWordStore({
+            word: new EosDiscoveryFeed.WordCardStore({
                 word: word.word,
                 part_of_speech: word.part_of_speech,
                 definition: TextSanitization.synopsis(word.definition)

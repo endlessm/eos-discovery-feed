@@ -25,32 +25,6 @@ var DiscoveryFeedAppCardStore = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-var DiscoveryFeedWordStore = new Lang.Class({
-    Name: 'DiscoveryFeedWordStore',
-    Extends: GObject.Object,
-    Properties: {
-        word: GObject.ParamSpec.string('word',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         ''),
-        part_of_speech: GObject.ParamSpec.string('part-of-speech',
-                                                 '',
-                                                 '',
-                                                 GObject.ParamFlags.READWRITE |
-                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                 ''),
-        definition: GObject.ParamSpec.string('definition',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             '')
-    }
-});
-
-// eslint-disable-next-line no-unused-vars
 var DiscoveryFeedQuoteStore = new Lang.Class({
     Name: 'DiscoveryFeedQuoteStore',
     Extends: GObject.Object,
@@ -86,7 +60,7 @@ var DiscoveryFeedWordQuotePairStore = new Lang.Class({
                                          '',
                                          GObject.ParamFlags.READWRITE |
                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         DiscoveryFeedWordStore.$gtype)
+                                         EosDiscoveryFeed.WordCardStore.$gtype)
     },
 
     _init: function(params) {

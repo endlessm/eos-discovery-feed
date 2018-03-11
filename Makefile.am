@@ -38,6 +38,8 @@ libeos_discovery_feed_1_la_SOURCES = \
 	libfeed/feed-sizes.h \
 	libfeed/feed-text-sanitization.c \
 	libfeed/feed-text-sanitization.h \
+	libfeed/feed-word-card-store.c \
+	libfeed/feed-word-card-store.h \
 	$(NULL)
 
 libeos_discovery_feed_1_la_CPPFLAGS = \
