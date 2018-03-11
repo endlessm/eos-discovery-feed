@@ -38,7 +38,7 @@ GLIB_COMPILE_RESOURCES=`$PKG_CONFIG --variable glib_compile_resources gio-2.0`
 AC_PATH_PROG([GJS],[gjs])
 
 # Checks for libraries.
-PKG_CHECK_MODULES(DISCOVERY_FEED, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0])
+PKG_CHECK_MODULES(EOS_DISCOVERY_FEED, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0])
 
 # Checks for header files.
 

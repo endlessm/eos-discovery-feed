@@ -12,7 +12,12 @@
 //
 // @param {string} synopsis - The synopsis to sanitize.
 // @returns {string} A sanitized synopsis.
+
+const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
+
 function synopsis(synopsis) {  // eslint-disable-line no-unused-vars
+    return EosDiscoveryFeed.sanitize_synopsis(synopsis);
+
     if (!synopsis.trim()) {
         return '';
     }
