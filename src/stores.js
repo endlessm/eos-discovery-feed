@@ -95,15 +95,6 @@ var DiscoveryFeedWordQuotePairStore = new Lang.Class({
     }
 });
 
-var LAYOUT_DIRECTION_IMAGE_FIRST = 0;
-var LAYOUT_DIRECTION_IMAGE_LAST = 1;
-
-var THUMBNAIL_SIZE_APP_STORE = 180;
-var THUMBNAIL_WIDTH_APP_STORE_LINK = 211;  // eslint-disable-line no-unused-vars
-var THUMBNAIL_SIZE_ARTICLE = 254;
-var THUMBNAIL_SIZE_NEWS = 322;  // eslint-disable-line no-unused-vars
-var THUMBNAIL_SIZE_ARTWORK = 400;
-
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppCardStore',
@@ -156,17 +147,17 @@ var DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                LAYOUT_DIRECTION_IMAGE_LAST,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST),
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST),
         'thumbnail-size': GObject.ParamSpec.int('thumbnail-size',
                                                 '',
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                THUMBNAIL_SIZE_APP_STORE,
-                                                THUMBNAIL_SIZE_ARTWORK,
-                                                THUMBNAIL_SIZE_ARTICLE)
+                                                EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE,
+                                                EosDiscoveryFeed.THUMBNAIL_SIZE_ARTWORK,
+                                                EosDiscoveryFeed.THUMBNAIL_SIZE_ARTICLE)
     },
 
     _init: function(params) {
@@ -272,9 +263,9 @@ var DiscoveryFeedAppStore = new Lang.Class({
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                LAYOUT_DIRECTION_IMAGE_LAST,
-                                                LAYOUT_DIRECTION_IMAGE_FIRST)
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST)
     }
 });
 
@@ -289,7 +280,7 @@ var DiscoveryFeedAppStoreLinkStore = new Lang.Class({
         params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null);
         params.app_id = 'org.gnome.Software';
         params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
-        params.layout_direction = LAYOUT_DIRECTION_IMAGE_LAST;
+        params.layout_direction = EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST;
         this.parent(params);
     }
 });
@@ -315,7 +306,7 @@ var DiscoveryFeedInstallableAppStore = new Lang.Class({
 
     _init: function(params) {
         params.type = DISCOVERY_FEED_APP_TYPE_DETAILED;
-        params.layout_direction = LAYOUT_DIRECTION_IMAGE_LAST;
+        params.layout_direction = EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST;
         this.parent(params);
     }
 });

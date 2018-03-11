@@ -841,9 +841,9 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                Stores.LAYOUT_DIRECTION_IMAGE_LAST,
-                                                Stores.LAYOUT_DIRECTION_IMAGE_FIRST)
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
+                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card-layout.ui',
 
@@ -853,7 +853,7 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
         this.add(this.description);
         // If this is an odd card, adjust the packing order of all widgets
         // in the box
-        if (this.layout_direction == Stores.LAYOUT_DIRECTION_IMAGE_LAST) {
+        if (this.layout_direction == EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST) {
             this.get_children().forEach(Lang.bind(this, function(child) {
                 this.child_set_property(child,
                                         'pack-type',
@@ -1096,8 +1096,8 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: Stores.THUMBNAIL_SIZE_APP_STORE,
-                    min_height: Stores.THUMBNAIL_SIZE_APP_STORE
+                    min_width: EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE,
+                    min_height: EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title,
@@ -1161,8 +1161,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: Stores.THUMBNAIL_WIDTH_APP_STORE_LINK,
-                    min_height: Stores.THUMBNAIL_SIZE_APP_STORE,
+                    min_width: EosDiscoveryFeed.THUMBNAIL_WIDTH_APP_STORE_LINK,
+                    min_height: EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE,
                     has_alpha: true
                 }),
                 description: new DiscoveryFeedAppStoreLink({
@@ -1429,7 +1429,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
                     knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
-                    layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                    layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
                     type: type,
                     thumbnail_size: thumbnailSize
                 })
@@ -1503,7 +1503,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                     knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
-                    layout_direction: direction || Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
+                    layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
                     type: type,
                     thumbnail_size: thumbnailSize
                 })
@@ -1543,8 +1543,8 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
-                                                              Stores.LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                              Stores.THUMBNAIL_SIZE_ARTICLE))
+                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
+                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_ARTICLE))
     .catch((e) => {
         throw new Error('Getting content failed: ' + e + '\n' + e.stack);
     });
@@ -1556,8 +1556,8 @@ function appendDiscoveryFeedArtworkFromProxy(proxy) {
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
-                                                              Stores.LAYOUT_DIRECTION_IMAGE_LAST,
-                                                              Stores.THUMBNAIL_SIZE_ARTWORK))
+                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
+                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_ARTWORK))
     .catch((e) => {
         throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
     });
@@ -1569,8 +1569,8 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               EosDiscoveryFeed.CardStoreType.NEWS_CARD,
-                                                              Stores.LAYOUT_DIRECTION_IMAGE_LAST,
-                                                              Stores.THUMBNAIL_SIZE_NEWS))
+                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
+                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_NEWS))
     .catch((e) => {
         throw new Error('Getting news failed: ' + e + '\n' + e.stack);
     });
