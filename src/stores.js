@@ -10,81 +10,9 @@ const GObject = imports.gi.GObject;
 
 const Lang = imports.lang; 
 
-// eslint-disable-next-line no-unused-vars
-var DiscoveryFeedKnowledgeAppCardStore = new Lang.Class({
-    Name: 'DiscoveryFeedKnowledgeAppCardStore',
-    Extends: EosDiscoveryFeed.AppCardStore,
-    Properties: {
-        title: GObject.ParamSpec.string('title',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        ''),
-        uri: GObject.ParamSpec.string('uri',
-                                      '',
-                                      '',
-                                      GObject.ParamFlags.READWRITE |
-                                      GObject.ParamFlags.CONSTRUCT_ONLY,
-                                      ''),
-        synopsis: GObject.ParamSpec.string('synopsis',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
-        thumbnail: GObject.ParamSpec.object('thumbnail',
-                                            '',
-                                            '',
-                                            GObject.ParamFlags.READWRITE |
-                                            GObject.ParamFlags.CONSTRUCT_ONLY,
-                                            Gio.InputStream),
-        bus_name: GObject.ParamSpec.string('bus-name',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
-        knowledge_search_object_path: GObject.ParamSpec.string('knowledge-search-object-path',
-                                                               '',
-                                                               '',
-                                                               GObject.ParamFlags.READWRITE |
-                                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                               ''),
-        knowledge_app_id: GObject.ParamSpec.string('knowledge-app-id',
-                                                     '',
-                                                     '',
-                                                     GObject.ParamFlags.READWRITE |
-                                                     GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                     ''),
-        layout_direction: GObject.ParamSpec.int('layout-direction',
-                                                '',
-                                                '',
-                                                GObject.ParamFlags.READWRITE |
-                                                GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST),
-        'thumbnail-size': GObject.ParamSpec.int('thumbnail-size',
-                                                '',
-                                                '',
-                                                GObject.ParamFlags.READWRITE |
-                                                GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE,
-                                                EosDiscoveryFeed.THUMBNAIL_SIZE_ARTWORK,
-                                                EosDiscoveryFeed.THUMBNAIL_SIZE_ARTICLE)
-    },
-
-    _init: function(params) {
-        params.type = params.type || EosDiscoveryFeed.CardStoreType.ARTICLE_CARD;
-        this.parent(params);
-    }
-});
-
-// eslint-disable-next-line no-unused-vars
 var DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeArtworkCardStore',
-    Extends: DiscoveryFeedKnowledgeAppCardStore,
+    Extends: EosDiscoveryFeed.KnowledgeAppCardStore,
     Properties: {
         author: GObject.ParamSpec.string('author',
                                          '',
@@ -109,7 +37,7 @@ var DiscoveryFeedKnowledgeArtworkCardStore = new Lang.Class({
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
     Name: 'DiscoveryFeedKnowledgeAppVideoCardStore',
-    Extends: DiscoveryFeedKnowledgeAppCardStore,
+    Extends: EosDiscoveryFeed.KnowledgeAppCardStore,
     Properties: {
         duration: GObject.ParamSpec.string('duration',
                                            '',

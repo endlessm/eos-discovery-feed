@@ -922,7 +922,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        Stores.DiscoveryFeedKnowledgeAppCardStore.$gtype)
+                                        EosDiscoveryFeed.KnowledgeAppCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -1421,7 +1421,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                model: new Stores.DiscoveryFeedKnowledgeAppCardStore({
+                model: new EosDiscoveryFeed.KnowledgeAppCardStore({
                     title: entry.title,
                     synopsis: TextSanitization.synopsis(entry.synopsis),
                     thumbnail: thumbnail,
