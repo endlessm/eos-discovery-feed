@@ -14,6 +14,7 @@ pkg.require({
     GLib: '2.0',
 });
 
+const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
 const EosShard = imports.gi.EosShard;
 const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
