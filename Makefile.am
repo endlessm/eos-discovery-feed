@@ -3,6 +3,60 @@ SUBDIRS = po
 # Our Autoconf macros are kept in the m4/ directory
 ACLOCAL_AMFLAGS = -I m4
 
+# Helper C library
+girdir = $(datadir)/gir-1.0
+typelibdir = $(libdir)/girepository-1.0
+
+lib_LTLIBRARIES =
+gir_DATA = 
+typelib_DATA = 
+
+CLEANFILES = 
+
+lib_LTLIBRARIES += \
+	libeos-discovery-feed-1.la \
+	$(NULL)
+
+libeos_discovery_feed_1_la_SOURCES = \
+	libfeed/feed-text-sanitization.c \
+	libfeed/feed-text-sanitization.h \
+	$(NULL)
+
+libeos_discovery_feed_1_la_CPPFLAGS = \
+	$(EOS_DISCOVERY_FEED_CFLAGS) \
+	-I$(abs_top_builddir)/libfeed \
+	$(NULL)
+
+libeos_discovery_feed_1_la_LIBADD = \
+	$(EOS_DISCOVERY_FEED_LIBS) \
+	$(NULL)
+
+# GObject-Introspection
+include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS = $(NULL)
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all
+INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
+
+if HAVE_INTROSPECTION
+introspection_sources = \
+	$(libeos_discovery_feed_1_la_SOURCES) \
+	$(NULL)
+
+EosDiscoveryFeed-1.0.gir: libeos-discovery-feed-1.la
+EosDiscoveryFeed_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 GLib-2.0
+EosDiscoveryFeed_1_0_gir_CFLAGS = $(EOS_DISCOVERY_FEED_CFLAGS)
+EosDiscoveryFeed_1_0_gir_LIBS = libeos-discovery-feed-1.la
+EosDiscoveryFeed_1_0_gir_FILES = $(introspection_sources)
+
+INTROSPECTION_GIRS += EosDiscoveryFeed-1.0.gir
+
+# Add GObject Introspection files to the build
+gir_DATA += $(INTROSPECTION_GIRS)
+typelib_DATA += $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+endif
+
 # Resources
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --generate-dependencies $(srcdir)/src/com.endlessm.DiscoveryFeed.src.gresource.xml)
 app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/data --generate-dependencies $(srcdir)/data/com.endlessm.DiscoveryFeed.data.gresource.xml)
@@ -78,7 +132,7 @@ src/com.endlessm.DiscoveryFeed: $(srcdir)/src/com.endlessm.DiscoveryFeed.in $(ma
 bin_SCRIPTS = src/com.endlessm.DiscoveryFeed
 
 # Distclean
-CLEANFILES = \
+CLEANFILES += \
 	$(resource_DATA) \
 	$(service_DATA) \
 	src/com.endlessm.DiscoveryFeed \
