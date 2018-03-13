@@ -39,6 +39,8 @@ libeos_discovery_feed_1_la_SOURCES = \
 	libfeed/feed-card-layout-direction.h \
 	libfeed/feed-knowledge-app-card-store.c \
 	libfeed/feed-knowledge-app-card-store.h \
+	libfeed/feed-knowledge-app-news-card-store.c \
+	libfeed/feed-knowledge-app-news-card-store.h \
 	libfeed/feed-quote-card-store.c \
 	libfeed/feed-quote-card-store.h \
 	libfeed/feed-sizes.h \
