@@ -227,7 +227,17 @@ function flatpakCompatibleDesktopInfo(desktopId) {
     keyfile.set_string(GLib.KEY_FILE_DESKTOP_GROUP,
                        GLib.KEY_FILE_DESKTOP_KEY_EXEC,
                        '/bin/true');
-    return Gio.DesktopAppInfo.new_from_keyfile(keyfile);
+
+    // Need to override the get_id function here - creating the desktop
+    // file with g_desktop_app_info_new_from_keyfile does not set
+    // the underlying desktop_id and there is no way to set it after
+    // construction.
+    let app_info = Gio.DesktopAppInfo.new_from_keyfile(keyfile);
+    app_info.get_id = function() {
+        return desktopId;
+    };
+
+    return app_info;
   };
 
   return null;
