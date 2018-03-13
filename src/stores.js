@@ -213,12 +213,24 @@ var DiscoveryFeedKnowledgeAppVideoCardStore = new Lang.Class({
 // eslint-disable-next-line no-unused-vars
 var DiscoveryFeedAvailableAppsStore = new Lang.Class({
     Name: 'DiscoveryFeedAvailableAppsStore',
-    Extends: EosDiscoveryFeed.BaseCardStore,
+    Extends: GObject.Object,
+    Implements: [EosDiscoveryFeed.BaseCardStore],
+    Properties: {
+        type: GObject.ParamSpec.enum('type',
+                                     '',
+                                     '',
+                                     GObject.ParamFlags.READABLE,
+                                     EosDiscoveryFeed.CardStoreType.$gtype,
+                                     EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS)
+    },
 
     _init: function(params, apps) {
-        params.type = EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS;
         this.parent(params);
         this.apps = apps;
+    },
+
+    get type() {
+        return EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS;
     }
 });
 
