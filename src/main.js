@@ -1413,7 +1413,13 @@ function normalize_ekn_id (ekn_id) {
     return ekn_id;
 }
 
-function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direction, thumbnailSize) {
+function appendArticleCardsFromShardsAndItems(shards,
+                                              items,
+                                              proxy,
+                                              type,
+                                              storeClass,
+                                              direction,
+                                              thumbnailSize) {
     return items.map(function(response) {
         return Array.prototype.slice.call(response).map(function(entry) {
             let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
@@ -1421,7 +1427,7 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
             return {
                 type: type,
                 source: proxy.desktopId,
-                model: new EosDiscoveryFeed.KnowledgeAppCardStore({
+                model: new storeClass({
                     title: entry.title,
                     synopsis: TextSanitization.synopsis(entry.synopsis),
                     thumbnail: thumbnail,
@@ -1431,7 +1437,6 @@ function appendArticleCardsFromShardsAndItems(shards, items, proxy, type, direct
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
                     layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                    type: type,
                     thumbnail_size: thumbnailSize
                 })
             };
@@ -1475,7 +1480,6 @@ function appendVideoCardsFromShardsAndItems(shards, items, proxy, type) {
                     knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
-                    type: type,
                     duration: parseDuration(entry.duration)
                 })
             };
@@ -1505,7 +1509,6 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
                     knowledge_app_id: proxy.knowledgeAppId,
                     uri: entry.ekn_id,
                     layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                    type: type,
                     thumbnail_size: thumbnailSize
                 })
             };
@@ -1544,6 +1547,7 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
+                                                              EosDiscoveryFeed.KnowledgeAppCardStore,
                                                               EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
                                                               EosDiscoveryFeed.THUMBNAIL_SIZE_ARTICLE))
     .catch((e) => {
@@ -1570,6 +1574,7 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
                                                               results.slice(1, results.length),
                                                               proxy,
                                                               EosDiscoveryFeed.CardStoreType.NEWS_CARD,
+                                                              EosDiscoveryFeed.KnowledgeAppNewsCardStore,
                                                               EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
                                                               EosDiscoveryFeed.THUMBNAIL_SIZE_NEWS))
     .catch((e) => {
