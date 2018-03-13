@@ -1301,7 +1301,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         });
         this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
-	// Translators: main date header (%B = month name, %e = day number)
+        // Translators: main date header (%B = month name, %e = day number)
         this.expanded_date.label = (new Date()).toLocaleFormat(_("%B %e")).toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
 
