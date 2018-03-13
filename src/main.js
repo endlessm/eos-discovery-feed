@@ -218,7 +218,8 @@ function readDiscoveryFeedProvidersInDirectory(directory) {
     let systemLanguages = GLib.get_language_names();
     let settings = new Gio.Settings({ schema_id: 'com.endlessm.DiscoveryFeed' });
     let contentLanguages = settings.get_strv('force-additional-languages');
-    let languages = systemLanguages.concat(contentLanguages);
+    let wildCardLanguages = ['*'];
+    let languages = systemLanguages.concat(contentLanguages, wildCardLanguages);
 
     try {
         enumerator = directory.enumerate_children('standard::name,standard::type',
