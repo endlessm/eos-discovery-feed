@@ -11,7 +11,10 @@ lib_LTLIBRARIES =
 gir_DATA = 
 typelib_DATA = 
 
+BUILT_SOURCES = 
 CLEANFILES = 
+DISTCLEANFILES = 
+EXTRA_DIST = 
 
 lib_LTLIBRARIES += \
 	libeos-discovery-feed-1.la \
@@ -97,7 +100,7 @@ all_js_files = \
 	$(NULL)
 
 # Set EXTRA_DIST and CLEANFILES initially
-EXTRA_DIST = \
+EXTRA_DIST += \
 	$(resource_files) \
 	$(javascript_tests) \
 	$(service_in_files) \
