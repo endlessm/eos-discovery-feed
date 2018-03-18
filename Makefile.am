@@ -20,7 +20,18 @@ lib_LTLIBRARIES += \
 	libeos-discovery-feed-1.la \
 	$(NULL)
 
+glib_enum_headers = \
+	libfeed/feed-base-card-store.h \
+	libfeed/feed-card-layout-direction.h \
+	$(NULL)
+
+glib_enum_h = libfeed/feed-enums.h
+glib_enum_c = libfeed/feed-enums.c
+include $(top_srcdir)/Makefile.am.enums
+
 libeos_discovery_feed_1_la_SOURCES = \
+	$(glib_enum_c) \
+	$(glib_enum_h) \
 	libfeed/feed-base-card-store.c \
 	libfeed/feed-base-card-store.h \
 	libfeed/feed-card-layout-direction.h \
