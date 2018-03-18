@@ -28,7 +28,8 @@ G_DECLARE_INTERFACE (EosDiscoveryFeedBaseCardStore,
                      BASE_CARD_STORE,
                      GObject)
 
-typedef enum _EosDiscoveryFeedCardStoreType {
+typedef enum
+{
   EOS_DISCOVERY_FEED_CARD_STORE_TYPE_UNSET,
   EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTICLE_CARD,
   EOS_DISCOVERY_FEED_CARD_STORE_TYPE_WORD_QUOTE_CARD,
