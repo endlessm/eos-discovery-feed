@@ -1,0 +1,46 @@
+{
+    "app-id": "com.endlessm.DiscoveryFeed",
+    "build-options": {
+        "cflags": "-O2 -g",
+        "cxxflags": "-O2 -g",
+        "env": {
+            "V": "1"
+        }
+    },
+    "command": "com.endlessm.DiscoveryFeed",
+    "finish-args": [
+        "--socket=x11",
+        "--share=ipc",
+        "--system-talk-name=com.endlessm.Metrics",
+        "--filesystem=xdg-run/dconf",
+        "--filesystem=~/.config/dconf:ro",
+        "--filesystem=/var/lib/flatpak:ro",
+        "--filesystem=/var/cache/gnome-software:ro",
+        "--filesystem=/var/endless-extra/flatpak:ro",
+        "--filesystem=host:ro",
+        "--own-name=com.endlessm.DiscoveryFeed",
+        "--talk-name=ca.desrt.dconf",
+        "--talk-name=com.endlessm.EknServices2.SearchProviderV2",
+        "--talk-name=com.endlessm.EknServices.SearchProviderV1",
+        "--talk-name=org.gnome.Software",
+        "--talk-name=org.gnome.Shell",
+        "--env=DCONF_USER_CONFIG_DIR=.config/dconf",
+        "--command=com.endlessm.DiscoveryFeed"
+    ],
+    "modules": [
+        {
+            "name": "eos-discovery-feed",
+            "run-tests": "@RUN_TESTS@",
+            "sources": [
+                {
+                    "branch": "@GIT_CLONE_BRANCH@",
+                    "path": ".",
+                    "type": "git"
+                }
+            ]
+        }
+    ],
+    "runtime": "com.endlessm.apps.Platform",
+    "runtime-version": "3",
+    "sdk": "com.endlessm.apps.Sdk"
+}
