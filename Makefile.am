@@ -51,6 +51,8 @@ introspection_sources = \
 	libfeed/feed-orderable-model.h \
 	libfeed/feed-provider-info.c \
 	libfeed/feed-provider-info.h \
+	libfeed/feed-provider-lookup.c \
+	libfeed/feed-provider-lookup.h \
 	libfeed/feed-quote-card-store.c \
 	libfeed/feed-quote-card-store.h \
 	libfeed/feed-sizes.h \
