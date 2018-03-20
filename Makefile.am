@@ -43,11 +43,17 @@ introspection_sources = \
 	libfeed/feed-knowledge-app-card-store.h \
 	libfeed/feed-knowledge-app-news-card-store.c \
 	libfeed/feed-knowledge-app-news-card-store.h \
+	libfeed/feed-knowledge-app-proxy.c \
+	libfeed/feed-knowledge-app-proxy.h \
 	libfeed/feed-knowledge-app-video-card-store.c \
 	libfeed/feed-knowledge-app-video-card-store.h \
+	libfeed/feed-orderable-model.c \
+	libfeed/feed-orderable-model.h \
 	libfeed/feed-quote-card-store.c \
 	libfeed/feed-quote-card-store.h \
 	libfeed/feed-sizes.h \
+	libfeed/feed-store-provider.c \
+	libfeed/feed-store-provider.h \
 	libfeed/feed-text-sanitization.c \
 	libfeed/feed-text-sanitization.h \
 	libfeed/feed-word-card-store.c \
