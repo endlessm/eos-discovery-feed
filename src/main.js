@@ -1542,7 +1542,8 @@ function discoveryFeedCardsFromQueries(proxies) {
         .reduce((a, b) => a.concat(b), []);
 
         return ModelOrdering.arrange(models);
-    }).catch(e => logError(e, 'Query failed'));
+    });
+
 }
 
 const AUTO_CLOSE_MILLISECONDS_TIMEOUT = 12000;
@@ -1724,7 +1725,7 @@ const DiscoveryFeedApplication = new Lang.Class({
                 return Promise.resolve();
 
             return this._window.updateContentFromProxies(proxies);
-        }));
+        })).catch(e => logError(e, 'Show failed'));
     },
 
     hide: function() {
