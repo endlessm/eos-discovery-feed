@@ -152,42 +152,6 @@ const DiscoveryFeedArtworkIface = '\
   </interface> \
 </node>';
 
-//
-// maybeGetKeyfileString
-//
-// Attempt to read a GKeyFile for a particular key in a given section
-// but return a default value if it wasn't found
-//
-// @param {object.Gio.KeyFile} keyFile - The key file to read.
-// @param {string} section - The section to read from.
-// @param {string} key - The key to read.
-// @param {string} defaultValue - The default value in case the key was not found.
-// @returns {string} the looked up string, or the default
-function maybeGetKeyfileString(keyFile, section, key, defaultValue) {
-    try {
-        return keyFile.get_string(section, key);
-    } catch (e) {
-        return defaultValue;
-    }
-}
-
-const DISCOVERY_FEED_SECTION_NAME = 'Discovery Feed Content Provider';
-const LOAD_ITEM_SECTION_NAME = 'Load Item Provider';
-
-//
-// languageCodeIsCompatible
-//
-// True if the provided language code is compatible with the provided
-// languages. We check both the locale variant and the actual language
-// code itself
-//
-// @param {string} language - The language code to check
-// @param {array.String} languages - The supported user languages
-// @returns {bool} - True if the language is supported
-function languageCodeIsCompatible(language, languages) {
-    let languageCode = language.split('_')[0];
-    return languages.some(l => l === languageCode);
-}
 
 function flatpakSystemDirs() {
   let env = GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIRS');
@@ -242,144 +206,6 @@ function flatpakCompatibleDesktopInfo(desktopId) {
     };
 
     return null;
-}
-
-//
-// appLanguage
-function appLanguage(desktopId) {
-    let appInfo = flatpakCompatibleDesktopInfo(desktopId);
-    if (!appInfo) {
-        // This case shouldn't happen - the app id passed must always
-        // be valid.
-        throw new Error('Could not create GDesktopAppInfo for ' + desktopId);
-    }
-
-    return appInfo.get_string('X-Endless-Content-Language');
-}
-
-//
-// readDiscoveryFeedProvidersInDirectory
-//
-// Read all the discovery feed providers in a directory, calling
-// done with an array of all providers when they have been read in.
-//
-// @param {object.Gio.File} directory - The directory to enumerate.
-// @param {function} done - The function to call with a list of providers
-//                          when done.
-function readDiscoveryFeedProvidersInDirectory(directory) {
-    let enumerator = null;
-    let info = null;
-    let providerBusDescriptors = [];
-
-    let systemLanguages = GLib.get_language_names();
-    let settings = new Gio.Settings({ schema_id: 'com.endlessm.DiscoveryFeed' });
-    let contentLanguages = settings.get_strv('force-additional-languages');
-    let wildCardLanguages = ['*'];
-    let languages = systemLanguages.concat(contentLanguages, wildCardLanguages);
-
-    try {
-        enumerator = directory.enumerate_children('standard::name,standard::type',
-                                                  Gio.FileQueryInfoFlags.NONE,
-                                                  null);
-    } catch (e) {
-        if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-            return providerBusDescriptors;
-        }
-
-        throw e;
-    }
-
-    while ((info = enumerator.next_file(null))) {
-        let file = Gio.File.new_for_path(GLib.build_filenamev([
-            directory.get_path(),
-            info.get_name()
-        ]));
-        let path = file.get_path();
-
-        let keyFile = new GLib.KeyFile();
-        try {
-            keyFile.load_from_file(path, GLib.KeyFileFlags.NONE);
-        } catch(e) {
-            logError(e, 'Key file ' + path + ' could not be loaded, ignored');
-        }
-
-        if (!keyFile.has_group(DISCOVERY_FEED_SECTION_NAME)) {
-            log('Key file ' + path + ' does not have a section called ' + DISCOVERY_FEED_SECTION_NAME + ', ignored');
-            continue;
-        }
-
-        let keys = keyFile.get_keys(DISCOVERY_FEED_SECTION_NAME)[0];
-        let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName', 'SupportedInterfaces'];
-
-        let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
-        if (notFoundKeys.length) {
-            log('Key file ' + path + ' does not have keys ' + notFoundKeys.join(', ') + ', ignoring');
-            continue;
-        }
-
-        let objectPath = null;
-        if (keyFile.has_group(LOAD_ITEM_SECTION_NAME)) {
-            log('Key file ' + path + ' does have a section called ' + LOAD_ITEM_SECTION_NAME + ', processing...');
-            try {
-                objectPath = keyFile.get_string(LOAD_ITEM_SECTION_NAME,
-                                                'ObjectPath');
-            } catch(e) {
-                log('Key file ' + path + ' does not have key \'ObjectPath\', ignoring');
-                continue;
-            }
-        }
-
-        let desktopId = maybeGetKeyfileString(keyFile,
-                                              DISCOVERY_FEED_SECTION_NAME,
-                                              'DesktopId',
-                                              null);
-
-        // Now, if we have a Desktop ID, we'll want to check it
-        // to see if there's an embedded language code in the
-        // desktop file. If so, filter out this application if it
-        // would not be compatible
-        if (desktopId) {
-            let providerLocale = appLanguage(desktopId);
-            if (providerLocale &&
-                !languageCodeIsCompatible(providerLocale, languages)) {
-                log('Language code ' + providerLocale + ' is not compatible ' +
-                    'with language codes ' + languages.join(' ') +
-                    ', skipping ' + path);
-                continue;
-            }
-        }
-
-        providerBusDescriptors.push({
-            path: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
-                                     'ObjectPath'),
-            name: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
-                                     'BusName'),
-            interfaces: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
-                                           'SupportedInterfaces').split(';'),
-            knowledgeAppId: maybeGetKeyfileString(keyFile,
-                                                  DISCOVERY_FEED_SECTION_NAME,
-                                                  'AppID',
-                                                  null),
-            desktopFileId: desktopId,
-            knowledgeSearchObjectPath: objectPath
-        });
-    }
-
-    return providerBusDescriptors;
-}
-
-function readDiscoveryFeedProvidersInDataDirectories() {
-    let dataDirectories = allRelevantDataDirs();
-    return dataDirectories.reduce((allProviders, directory) => {
-        let dir = Gio.File.new_for_path(GLib.build_filenamev([
-            directory,
-            'eos-discovery-feed',
-            'content-providers'
-        ]));
-        Array.prototype.push.apply(allProviders,
-                                   readDiscoveryFeedProvidersInDirectory(dir));
-        return allProviders;
-    }, []);
 }
 
 function allSettledPromises(promises) {
@@ -454,19 +280,19 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
             promisifyGBusProxyCallback(interfaceWrappers,
                                        interfaceName,
                                        connection,
-                                       provider.name,
-                                       provider.path,
+                                       provider.bus_name,
+                                       provider.object_path,
                                        null)
             .then(([proxy]) => ({
                 iface: proxy,
                 interfaceName: interfaceName,
-                desktopId: provider.desktopFileId,
-                knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
-                knowledgeAppId: provider.knowledgeAppId
+                desktopId: provider.desktop_id,
+                knowledgeSearchObjectPath: provider.knowledge_search_object_path,
+                knowledgeAppId: provider.knowledge_app_id
             }))
             .catch((e) => {
                 throw new Error('Initializing proxy for ' + interfaceName +
-                                ' at ' + provider.path + ' on bus name ' + provider.name +
+                                ' at ' + provider.object_path + ' on bus name ' + provider.bus_name +
                                 ' failed: ' + String(e) + ', stack:\n' + String(e.stack));
             })
         )
@@ -1584,10 +1410,12 @@ const DiscoveryFeedApplication = new Lang.Class({
     // caller. For convenience, the promise resolves with proxies.
     _refreshDiscoveryFeedProxies: function(connection) {
         // Remove all proxies and start over
-        let providers = readDiscoveryFeedProvidersInDataDirectories();
-        return instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                            providers)
-        .then(Lang.bind(this, function(promises) {
+        return promisifyGIO(EosDiscoveryFeed,
+                            'find_providers',
+                            'find_providers_finish',
+                            null).then(providers =>
+            instantiateObjectsFromDiscoveryFeedProviders(connection, providers)
+        ).then(Lang.bind(this, function(promises) {
             this._discoveryFeedProxies = promises.map(([error, proxy]) => {
                 if (error) {
                     logError(error, 'Could not create proxy');
