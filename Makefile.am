@@ -29,7 +29,7 @@ glib_enum_h = libfeed/feed-enums.h
 glib_enum_c = libfeed/feed-enums.c
 include $(top_srcdir)/Makefile.am.enums
 
-libeos_discovery_feed_1_la_SOURCES = \
+introspection_sources = \
 	$(glib_enum_c) \
 	$(glib_enum_h) \
 	libfeed/feed-app-card-store.c \
@@ -56,6 +56,16 @@ libeos_discovery_feed_1_la_SOURCES = \
 	libfeed/feed-word-quote-card-store.h \
 	$(NULL)
 
+nointrospection_sources = \
+	libfeed/feed-all-async-tasks-private.h \
+	libfeed/feed-all-async-tasks.c \
+	$(NULL)
+
+libeos_discovery_feed_1_la_SOURCES = \
+	$(introspection_sources) \
+	$(nointrospection_sources) \
+	$(NULL)
+
 libeos_discovery_feed_1_la_CPPFLAGS = \
 	$(EOS_DISCOVERY_FEED_CFLAGS) \
 	-I$(abs_top_builddir)/libfeed \
@@ -73,10 +83,6 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
-introspection_sources = \
-	$(libeos_discovery_feed_1_la_SOURCES) \
-	$(NULL)
-
 EosDiscoveryFeed-1.0.gir: libeos-discovery-feed-1.la
 EosDiscoveryFeed_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 GLib-2.0
 EosDiscoveryFeed_1_0_gir_CFLAGS = $(libeos_discovery_feed_1_la_CPPFLAGS)
