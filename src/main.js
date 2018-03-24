@@ -212,36 +212,36 @@ function allRelevantDataDirs() {
 // be in the exports directory but is not necessarily executable
 // because the binary was not mounted in the bwrap jail.
 function flatpakCompatibleDesktopInfo(desktopId) {
-  for (let directory of allRelevantDataDirs()) {
-    let path = GLib.build_filenamev([directory, 'applications', desktopId]);
-    let keyfile = new GLib.KeyFile();
+    for (let directory of allRelevantDataDirs()) {
+        let path = GLib.build_filenamev([directory, 'applications', desktopId]);
+        let keyfile = new GLib.KeyFile();
 
-    try {
-        keyfile.load_from_file(path, GLib.KeyFileFlags.NONE);
-    } catch(e) {
-        continue;
-    }
+        try {
+            keyfile.load_from_file(path, GLib.KeyFileFlags.NONE);
+        } catch(e) {
+            continue;
+        }
 
-    // Now that we have the keyfile, set the Exec line to some
-    // well-known binary, so that GDesktopAppInfo doesn't trip up
-    // when we try to read it.
-    keyfile.set_string(GLib.KEY_FILE_DESKTOP_GROUP,
-                       GLib.KEY_FILE_DESKTOP_KEY_EXEC,
-                       '/bin/true');
+        // Now that we have the keyfile, set the Exec line to some
+        // well-known binary, so that GDesktopAppInfo doesn't trip up
+        // when we try to read it.
+        keyfile.set_string(GLib.KEY_FILE_DESKTOP_GROUP,
+                           GLib.KEY_FILE_DESKTOP_KEY_EXEC,
+                           '/bin/true');
 
-    // Need to override the get_id function here - creating the desktop
-    // file with g_desktop_app_info_new_from_keyfile does not set
-    // the underlying desktop_id and there is no way to set it after
-    // construction.
-    let app_info = Gio.DesktopAppInfo.new_from_keyfile(keyfile);
-    app_info.get_id = function() {
-        return desktopId;
+        // Need to override the get_id function here - creating the desktop
+        // file with g_desktop_app_info_new_from_keyfile does not set
+        // the underlying desktop_id and there is no way to set it after
+        // construction.
+        let app_info = Gio.DesktopAppInfo.new_from_keyfile(keyfile);
+        app_info.get_id = function() {
+            return desktopId;
+        };
+
+        return app_info;
     };
 
-    return app_info;
-  };
-
-  return null;
+    return null;
 }
 
 //
