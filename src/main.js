@@ -399,6 +399,21 @@ function allSettledPromises(promises) {
     }));
 }
 
+function promisifyGIO(obj, funcName, finishName, ...args) {
+    return new Promise((resolve, reject) => {
+        try {
+            obj[funcName](...args, function(source, result) {
+                try {
+                    resolve(obj[finishName](result));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
 
 // Gio.js does things the wrong way around which trips up promisifyGBusProxyCallback,
 // so re-curry the arguments so that they make sense.
