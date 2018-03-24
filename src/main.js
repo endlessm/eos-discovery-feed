@@ -1254,7 +1254,21 @@ function promisifyGBusProxyCallback(obj, funcName, ...args) {
 const N_APPS_TO_DISPLAY = 5;
 
 function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
-    return promisifyGBusProxyCallback(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
+    return (new Promise((resolve, reject) => {
+        let callback = function(proxy, result) {
+            try {
+                resolve(proxy.call_finish(result));
+            } catch (e) {
+                reject(e);
+            }
+        };
+        proxy.dbus_proxy.call('GetInstallableApps',
+                              null,
+                              Gio.DBusCallFlags.NONE,
+                              -1,
+                              null,
+                              callback);
+    })).then(results => results.unpack()).then((results) =>
         results.map(response => ({
             type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
