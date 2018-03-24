@@ -26,7 +26,6 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
-const ModelOrdering = imports.modelOrdering;
 const Stores = imports.stores;
 const TextSanitization = imports.textSanitization;
 
@@ -1121,7 +1120,7 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
                         Gio.DBusCallFlags.NONE,
                         -1,
                         null).then(results => results.unpack()).then(results =>
-        results.map(response => ({
+        results.map(response => new EosDiscoveryFeed.OrderableModel({
             type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
             model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.unpack().slice(0, N_APPS_TO_DISPLAY).map(entry =>
@@ -1196,7 +1195,8 @@ function discoveryFeedCardsFromQueries(proxies) {
         // Flat map, since we get a list list from promise
         .reduce((a, b) => a.concat(b), []);
 
-        return ModelOrdering.arrange(models);
+        return EosDiscoveryFeed.arrange_orderable_models(models,
+                                                         EosDiscoveryFeed.ArrangeOrderableModelsFlags.ARRANGE_ORDERABLE_MODEL_FLAGS_INCLUDE_INSTALLABLE_APPS);
     });
 
 }
