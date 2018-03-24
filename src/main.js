@@ -400,7 +400,7 @@ function allSettledPromises(promises) {
 }
 
 
-// Gio.js does things the wrong way around which trips up promisifyGIO,
+// Gio.js does things the wrong way around which trips up promisifyGBusProxyCallback,
 // so re-curry the arguments so that they make sense.
 function makeCorrectlyOrderedProxyWrapper(iface) {
     let wrapper = Gio.DBusProxy.makeProxyWrapper(iface);
@@ -436,12 +436,12 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
             return true;
         })
         .map((interfaceName) =>
-            promisifyGIO(interfaceWrappers,
-                         interfaceName,
-                         connection,
-                         provider.name,
-                         provider.path,
-                         null)
+            promisifyGBusProxyCallback(interfaceWrappers,
+                                       interfaceName,
+                                       connection,
+                                       provider.name,
+                                       provider.path,
+                                       null)
             .then(([proxy]) => ({
                 iface: proxy,
                 interfaceName: interfaceName,
@@ -1517,7 +1517,7 @@ function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direct
     .reduce((list, incoming) => list.concat(incoming), []);
 }
 
-function promisifyGIO(obj, funcName, ...args) {
+function promisifyGBusProxyCallback(obj, funcName, ...args) {
     return new Promise((resolve, reject) => {
         try {
             obj[funcName](...args, function() {
@@ -1542,7 +1542,7 @@ function promisifyGIO(obj, funcName, ...args) {
 }
 
 function appendDiscoveryFeedContentFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
+    return promisifyGBusProxyCallback(proxy.iface, 'ArticleCardDescriptionsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
@@ -1556,7 +1556,7 @@ function appendDiscoveryFeedContentFromProxy(proxy) {
 }
 
 function appendDiscoveryFeedArtworkFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'ArtworkCardDescriptionsRemote')
+    return promisifyGBusProxyCallback(proxy.iface, 'ArtworkCardDescriptionsRemote')
     .then(([results]) => appendArtworkCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
@@ -1569,7 +1569,7 @@ function appendDiscoveryFeedArtworkFromProxy(proxy) {
 }
 
 function appendDiscoveryFeedNewsFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
+    return promisifyGBusProxyCallback(proxy.iface, 'GetRecentNewsRemote')
     .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
                                                               results.slice(1, results.length),
                                                               proxy,
@@ -1584,8 +1584,8 @@ function appendDiscoveryFeedNewsFromProxy(proxy) {
 
 function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
     return Promise.all([
-        promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
-        promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
+        promisifyGBusProxyCallback(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
+        promisifyGBusProxyCallback(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
     ])
     .then(([quote, word]) => ({
         type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD,
@@ -1609,7 +1609,7 @@ function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
 const N_APPS_TO_DISPLAY = 5;
 
 function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
+    return promisifyGBusProxyCallback(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
         results.map(response => ({
             type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
@@ -1629,7 +1629,7 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
 }
 
 function appendDiscoveryFeedVideoFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetVideosRemote')
+    return promisifyGBusProxyCallback(proxy.iface, 'GetVideosRemote')
     .then(([results]) => appendVideoCardsFromShardsAndItems(results[0],
                                                             results.slice(1, results.length),
                                                             proxy,
