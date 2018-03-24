@@ -53,6 +53,8 @@ introspection_sources = \
 	libfeed/feed-provider-info.h \
 	libfeed/feed-provider-lookup.c \
 	libfeed/feed-provider-lookup.h \
+	libfeed/feed-proxy-factory.c \
+	libfeed/feed-proxy-factory.h \
 	libfeed/feed-quote-card-store.c \
 	libfeed/feed-quote-card-store.h \
 	libfeed/feed-sizes.h \
