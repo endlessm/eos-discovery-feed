@@ -225,35 +225,6 @@ function allSettledPromises(promises) {
     }));
 }
 
-function promisifyGIO(obj, funcName, finishName, ...args) {
-    return new Promise((resolve, reject) => {
-        try {
-            obj[funcName](...args, function(source, result) {
-                try {
-                    resolve(obj[finishName](result));
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        } catch (e) {
-            reject(e);
-        }
-    });
-};
-
-// Gio.js does things the wrong way around which trips up promisifyGBusProxyCallback,
-// so re-curry the arguments so that they make sense.
-function makeCorrectlyOrderedProxyWrapper(iface) {
-    let wrapper = Gio.DBusProxy.makeProxyWrapper(iface);
-    return function(bus, name, object, cancellable, asyncCallback) {
-        return wrapper(bus,
-                       name,
-                       object,
-                       asyncCallback,
-                       cancellable);
-    };
-}
-
 function instantiateObjectsFromDiscoveryFeedProviders(connection, providers) {
     return promisifyGIO(EosDiscoveryFeed,
                         'instantiate_proxies_from_discovery_feed_providers',
@@ -1190,20 +1161,12 @@ function load_style_sheet(resourcePath) {
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-function promisifyGBusProxyCallback(obj, funcName, ...args) {
+function promisifyGIO(obj, funcName, finishName, ...args) {
     return new Promise((resolve, reject) => {
         try {
-            obj[funcName](...args, function() {
+            obj[funcName](...args, function(source, result) {
                 try {
-                    let error = Array.prototype.slice.call(arguments, -1)[0];
-                    let parameters = Array.prototype.slice.call(arguments,
-                                                                0,
-                                                                arguments.length - 1);
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(parameters);
-                    }
+                    resolve(obj[finishName](result));
                 } catch (e) {
                     reject(e);
                 }
@@ -1213,7 +1176,6 @@ function promisifyGBusProxyCallback(obj, funcName, ...args) {
         }
     });
 }
-
 
 const N_APPS_TO_DISPLAY = 5;
 
