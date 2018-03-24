@@ -47,6 +47,8 @@ introspection_sources = \
 	libfeed/feed-knowledge-app-proxy.h \
 	libfeed/feed-knowledge-app-video-card-store.c \
 	libfeed/feed-knowledge-app-video-card-store.h \
+	libfeed/feed-model-ordering.c \
+	libfeed/feed-model-ordering.h \
 	libfeed/feed-orderable-model.c \
 	libfeed/feed-orderable-model.h \
 	libfeed/feed-provider-info.c \
