@@ -1401,137 +1401,6 @@ function load_style_sheet(resourcePath) {
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-function find_thumbnail_in_shards (shards, thumbnail_uri) {
-    for (let i = 0; i < shards.length; i++) {
-        let shard_file = new EosShard.ShardFile({ path: shards[i] });
-        shard_file.init(null);
-        let record = shard_file.find_record_by_hex_name(normalize_ekn_id(thumbnail_uri));
-        if (record === null)
-            continue;
-        let data = record.data;
-        if (data === null)
-            continue;
-        let stream = data.get_stream();
-        if (stream === null)
-            continue;
-        return data.get_stream();
-    }
-    log('Thumbnail with uri ' +  thumbnail_uri + ' could not be found in shards.');
-    return null;
-}
-
-// from a famous frog
-function normalize_ekn_id (ekn_id) {
-    if (ekn_id.startsWith('ekn://')) {
-        return ekn_id.split('/').pop();
-    }
-    return ekn_id;
-}
-
-function appendArticleCardsFromShardsAndItems(shards,
-                                              items,
-                                              proxy,
-                                              type,
-                                              storeClass,
-                                              direction,
-                                              thumbnailSize) {
-    return items.map(function(response) {
-        return Array.prototype.slice.call(response).map(function(entry) {
-            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-            return {
-                type: type,
-                source: proxy.desktopId,
-                model: new storeClass({
-                    title: entry.title,
-                    synopsis: TextSanitization.synopsis(entry.synopsis),
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                    thumbnail_size: thumbnailSize
-                })
-            };
-        });
-    })
-    .reduce((list, incoming) => list.concat(incoming), []);
-}
-
-function withLeadingZero(value) {
-    if (value < 10)
-        return '0' + value;
-
-    return String(value);
-}
-
-function parseDuration(duration) {
-    let durationTotalSeconds = Number.parseInt(duration);
-    let durationHours = Math.floor(durationTotalSeconds / 3600);
-    let durationMinutes = Math.floor(durationTotalSeconds / 60) % 60;
-    let durationSeconds = durationTotalSeconds % 60;
-
-    if (durationHours > 0)
-        return durationHours + ':' + withLeadingZero(durationMinutes);
-
-    return durationMinutes + ':' + withLeadingZero(durationSeconds);
-}
-
-function appendVideoCardsFromShardsAndItems(shards, items, proxy, type) {
-    return items.map(function(response) {
-        return Array.prototype.slice.call(response).map(function(entry) {
-            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-            return {
-                type: type,
-                source: proxy.desktopId,
-                model: new EosDiscoveryFeed.KnowledgeAppVideoCardStore({
-                    title: entry.title,
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    duration: parseDuration(entry.duration)
-                })
-            };
-        });
-    })
-    .reduce((list, incoming) => list.concat(incoming), []);
-}
-
-function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direction, thumbnailSize) {
-    return items.map(function(response) {
-        return Array.prototype.slice.call(response).map(function(entry) {
-            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-            return {
-                type: type,
-                source: proxy.desktopId,
-                model: new EosDiscoveryFeed.KnowledgeAppArtworkCardStore({
-                    title: entry.title,
-                    author: entry.author,
-                    /* first_date is a new property, so defend against old
-                     * EknServices versions that may not have it. */
-                    first_date: entry.hasOwnProperty('first_date') ? entry.first_date: '',
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                    thumbnail_size: thumbnailSize
-                })
-            };
-        });
-    })
-    .reduce((list, incoming) => list.concat(incoming), []);
-}
-
 function promisifyGBusProxyCallback(obj, funcName, ...args) {
     return new Promise((resolve, reject) => {
         try {
@@ -1556,70 +1425,6 @@ function promisifyGBusProxyCallback(obj, funcName, ...args) {
     });
 }
 
-function appendDiscoveryFeedContentFromProxy(proxy) {
-    return promisifyGBusProxyCallback(proxy.iface, 'ArticleCardDescriptionsRemote')
-    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
-                                                              results.slice(1, results.length),
-                                                              proxy,
-                                                              EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
-                                                              EosDiscoveryFeed.KnowledgeAppCardStore,
-                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_ARTICLE))
-    .catch((e) => {
-        throw new Error('Getting content failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedArtworkFromProxy(proxy) {
-    return promisifyGBusProxyCallback(proxy.iface, 'ArtworkCardDescriptionsRemote')
-    .then(([results]) => appendArtworkCardsFromShardsAndItems(results[0],
-                                                              results.slice(1, results.length),
-                                                              proxy,
-                                                              EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
-                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_ARTWORK))
-    .catch((e) => {
-        throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedNewsFromProxy(proxy) {
-    return promisifyGBusProxyCallback(proxy.iface, 'GetRecentNewsRemote')
-    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
-                                                              results.slice(1, results.length),
-                                                              proxy,
-                                                              EosDiscoveryFeed.CardStoreType.NEWS_CARD,
-                                                              EosDiscoveryFeed.KnowledgeAppNewsCardStore,
-                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_NEWS))
-    .catch((e) => {
-        throw new Error('Getting news failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
-    return Promise.all([
-        promisifyGBusProxyCallback(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
-        promisifyGBusProxyCallback(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
-    ])
-    .then(([quote, word]) => ({
-        type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD,
-        source: 'word-quote',
-        model: new EosDiscoveryFeed.WordQuoteCardStore({
-            quote: new EosDiscoveryFeed.QuoteCardStore({
-                quote: TextSanitization.synopsis(quote.title),
-                author: quote.author
-            }),
-            word: new EosDiscoveryFeed.WordCardStore({
-                word: word.word,
-                part_of_speech: word.part_of_speech,
-                definition: TextSanitization.synopsis(word.definition)
-            })
-        })
-    })).catch((e) => {
-        throw new Error('Getting word/quote models failed: ' + e + '\n' + e.stack);
-    });
-}
 
 const N_APPS_TO_DISPLAY = 5;
 
@@ -1640,17 +1445,6 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
         }))
     ).catch((e) => {
         throw new Error('Getting installable apps failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedVideoFromProxy(proxy) {
-    return promisifyGBusProxyCallback(proxy.iface, 'GetVideosRemote')
-    .then(([results]) => appendVideoCardsFromShardsAndItems(results[0],
-                                                            results.slice(1, results.length),
-                                                            proxy,
-                                                            EosDiscoveryFeed.CardStoreType.VIDEO_CARD))
-    .catch((e) => {
-        throw new Error('Getting video card information failed: ' + e + '\n' + e.stack);
     });
 }
 
@@ -1693,45 +1487,41 @@ function zipArraysInObject(object) {
 }
 
 function discoveryFeedCardsFromQueries(proxies) {
-    let wordQuoteProxies = {
-        word: [],
-        quote: []
-    };
-
     let pendingPromises = [];
+    let libfeedProxies = [];
 
     proxies.forEach(function(proxy) {
         switch (proxy.interfaceName) {
-        case 'com.endlessm.DiscoveryFeedContent':
-            pendingPromises.push(appendDiscoveryFeedContentFromProxy(proxy));
-            break;
-        case 'com.endlessm.DiscoveryFeedNews':
-            pendingPromises.push(appendDiscoveryFeedNewsFromProxy(proxy));
-            break;
         case 'com.endlessm.DiscoveryFeedInstallableApps':
             pendingPromises.push(appendDiscoveryFeedInstallableAppsFromProxy(proxy));
             break;
+
+        // All of these are now handled by EosDiscoveryFeed.unordered_results_from_queries
+        case 'com.endlessm.DiscoveryFeedContent':
+        case 'com.endlessm.DiscoveryFeedNews':
         case 'com.endlessm.DiscoveryFeedVideo':
-            pendingPromises.push(appendDiscoveryFeedVideoFromProxy(proxy));
-            break;
         case 'com.endlessm.DiscoveryFeedQuote':
-            wordQuoteProxies.quote.push(proxy);
-            break;
         case 'com.endlessm.DiscoveryFeedWord':
-            wordQuoteProxies.word.push(proxy);
-            break;
         case 'com.endlessm.DiscoveryFeedArtwork':
-            pendingPromises.push(appendDiscoveryFeedArtworkFromProxy(proxy));
+            libfeedProxies.push(proxy);
             break;
         default:
             throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
         }
     });
 
-    // Note that zipArraysInObject here will zip to the shortest length
-    // which means that we may not execute all proxies if there was a
-    // mismatch in cardinality.
-    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWordFromProxy));
+    pendingPromises.push(promisifyGIO(EosDiscoveryFeed,
+                                      'unordered_results_from_queries',
+                                      'unordered_results_from_queries_finish',
+                                      libfeedProxies.map(proxy =>
+                                          new EosDiscoveryFeed.KnowledgeAppProxy({
+                                              'dbus-proxy': proxy.dbus_proxy,
+                                              'desktop-id': proxy.desktopId,
+                                              'bus-name': proxy.busName,
+                                              'knowledge-search-object-path': proxy.knowledgeSearchObjectPath,
+                                              'knowledge-app-id': proxy.knowledgeAppId
+                                          })
+                                      ), null));
 
     // Okay, now wait for all proxies to execute. allSettledPromises will
     // return tuples of errors and models depending on whether
