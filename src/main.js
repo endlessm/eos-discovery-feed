@@ -254,49 +254,13 @@ function makeCorrectlyOrderedProxyWrapper(iface) {
     };
 }
 
-function instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                      providers) {
-    let interfaceWrappers = {
-        'com.endlessm.DiscoveryFeedContent': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedNews': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedNewsIface),
-        'com.endlessm.DiscoveryFeedInstallableApps': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedInstallableAppsIface),
-        'com.endlessm.DiscoveryFeedVideo': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedVideoIface),
-        'com.endlessm.DiscoveryFeedQuote': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedQuoteIface),
-        'com.endlessm.DiscoveryFeedWord': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedWordIface),
-        'com.endlessm.DiscoveryFeedArtwork': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedArtworkIface)
-    };
-
-    // Map to promises and then flat map promises
-    return allSettledPromises(providers.map(provider =>
-        provider.interfaces.filter(interfaceName => {
-            if (Object.keys(interfaceWrappers).indexOf(interfaceName) === -1) {
-                log('Filtering out unrecognised interface ' + interfaceName);
-                return false;
-            }
-
-            return true;
-        })
-        .map((interfaceName) =>
-            promisifyGBusProxyCallback(interfaceWrappers,
-                                       interfaceName,
-                                       connection,
-                                       provider.bus_name,
-                                       provider.object_path,
-                                       null)
-            .then(([proxy]) => ({
-                iface: proxy,
-                interfaceName: interfaceName,
-                desktopId: provider.desktop_id,
-                knowledgeSearchObjectPath: provider.knowledge_search_object_path,
-                knowledgeAppId: provider.knowledge_app_id
-            }))
-            .catch((e) => {
-                throw new Error('Initializing proxy for ' + interfaceName +
-                                ' at ' + provider.object_path + ' on bus name ' + provider.bus_name +
-                                ' failed: ' + String(e) + ', stack:\n' + String(e.stack));
-            })
-        )
-    ).reduce((list, incoming) => list.concat(incoming), []));
+function instantiateObjectsFromDiscoveryFeedProviders(connection, providers) {
+    return promisifyGIO(EosDiscoveryFeed,
+                        'instantiate_proxies_from_discovery_feed_providers',
+                        'instantiate_proxies_from_discovery_feed_providers_finish',
+                        connection,
+                        providers,
+                        null);
 }
 
 
@@ -1272,7 +1236,7 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
         results.map(response => ({
             type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
-            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
+            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.unpack().slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
                     app_id: entry.id.get_string()[0],
                     title: entry.name.get_string()[0],
@@ -1330,7 +1294,8 @@ function discoveryFeedCardsFromQueries(proxies) {
     let libfeedProxies = [];
 
     proxies.forEach(function(proxy) {
-        switch (proxy.interfaceName) {
+        let interfaceName = proxy.dbus_proxy.get_interface_name();
+        switch (interfaceName) {
         case 'com.endlessm.DiscoveryFeedInstallableApps':
             pendingPromises.push(appendDiscoveryFeedInstallableAppsFromProxy(proxy));
             break;
@@ -1345,7 +1310,7 @@ function discoveryFeedCardsFromQueries(proxies) {
             libfeedProxies.push(proxy);
             break;
         default:
-            throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
+            throw new Error('Don\'t know how to handle interface ' + interfaceName);
         }
     });
 
@@ -1429,15 +1394,8 @@ const DiscoveryFeedApplication = new Lang.Class({
                             'find_providers_finish',
                             null).then(providers =>
             instantiateObjectsFromDiscoveryFeedProviders(connection, providers)
-        ).then(Lang.bind(this, function(promises) {
-            this._discoveryFeedProxies = promises.map(([error, proxy]) => {
-                if (error) {
-                    logError(error, 'Could not create proxy');
-                    return null;
-                }
-
-                return proxy;
-            }).filter(proxy => proxy);
+        ).then(Lang.bind(this, function(proxies) {
+            this._discoveryFeedProxies = proxies;
             return this._discoveryFeedProxies;
         }));
     },
