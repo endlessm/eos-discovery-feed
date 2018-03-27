@@ -11,20 +11,55 @@ lib_LTLIBRARIES =
 gir_DATA = 
 typelib_DATA = 
 
+BUILT_SOURCES = 
 CLEANFILES = 
+DISTCLEANFILES = 
+EXTRA_DIST = 
 
 lib_LTLIBRARIES += \
 	libeos-discovery-feed-1.la \
 	$(NULL)
 
+glib_enum_headers = \
+	libfeed/feed-base-card-store.h \
+	libfeed/feed-card-layout-direction.h \
+	$(NULL)
+
+glib_enum_h = libfeed/feed-enums.h
+glib_enum_c = libfeed/feed-enums.c
+include $(top_srcdir)/Makefile.am.enums
+
 libeos_discovery_feed_1_la_SOURCES = \
+	$(glib_enum_c) \
+	$(glib_enum_h) \
+	libfeed/feed-app-card-store.c \
+	libfeed/feed-app-card-store.h \
+	libfeed/feed-base-card-store.c \
+	libfeed/feed-base-card-store.h \
+	libfeed/feed-card-layout-direction.h \
+	libfeed/feed-knowledge-app-artwork-card-store.c \
+	libfeed/feed-knowledge-app-artwork-card-store.h \
+	libfeed/feed-knowledge-app-card-store.c \
+	libfeed/feed-knowledge-app-card-store.h \
+	libfeed/feed-knowledge-app-news-card-store.c \
+	libfeed/feed-knowledge-app-news-card-store.h \
+	libfeed/feed-knowledge-app-video-card-store.c \
+	libfeed/feed-knowledge-app-video-card-store.h \
+	libfeed/feed-quote-card-store.c \
+	libfeed/feed-quote-card-store.h \
+	libfeed/feed-sizes.h \
 	libfeed/feed-text-sanitization.c \
 	libfeed/feed-text-sanitization.h \
+	libfeed/feed-word-card-store.c \
+	libfeed/feed-word-card-store.h \
+	libfeed/feed-word-quote-card-store.c \
+	libfeed/feed-word-quote-card-store.h \
 	$(NULL)
 
 libeos_discovery_feed_1_la_CPPFLAGS = \
 	$(EOS_DISCOVERY_FEED_CFLAGS) \
 	-I$(abs_top_builddir)/libfeed \
+	-I$(abs_top_srcdir)/libfeed \
 	$(NULL)
 
 libeos_discovery_feed_1_la_LIBADD = \
@@ -44,7 +79,7 @@ introspection_sources = \
 
 EosDiscoveryFeed-1.0.gir: libeos-discovery-feed-1.la
 EosDiscoveryFeed_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 GLib-2.0
-EosDiscoveryFeed_1_0_gir_CFLAGS = $(EOS_DISCOVERY_FEED_CFLAGS)
+EosDiscoveryFeed_1_0_gir_CFLAGS = $(libeos_discovery_feed_1_la_CPPFLAGS)
 EosDiscoveryFeed_1_0_gir_LIBS = libeos-discovery-feed-1.la
 EosDiscoveryFeed_1_0_gir_FILES = $(introspection_sources)
 
@@ -93,7 +128,7 @@ all_js_files = \
 	$(NULL)
 
 # Set EXTRA_DIST and CLEANFILES initially
-EXTRA_DIST = \
+EXTRA_DIST += \
 	$(resource_files) \
 	$(javascript_tests) \
 	$(service_in_files) \

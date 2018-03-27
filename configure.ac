@@ -32,6 +32,9 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 AC_PROG_AWK  # needed for TAP driver
 AC_PROG_SED  # needed for finding files for coverage
 AC_REQUIRE_AUX_FILE([tap-driver.sh])
+AC_PATH_PROG([GLIB_MKENUMS], [glib-mkenums], [notfound])
+AS_IF([test x$GLIB_MKENUMS = xnotfound], [AC_MSG_ERROR([glib-mkenums not found.
+Try installing the glib development package.])])
 
 # Checks for programs.
 GLIB_COMPILE_RESOURCES=`$PKG_CONFIG --variable glib_compile_resources gio-2.0`

@@ -4,7 +4,7 @@
 //
 // Contains the logic used to determine model ordering in the feed.
 
-const Stores = imports.stores;
+const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
 
 // Returns true if some interface type, somewhere, has an app remaining
 // for this app index
@@ -53,25 +53,25 @@ function arrangeDescriptorsIntoMap(descriptors) {
 // be the third card.
 const CARD_TYPE_INDICES_ORDERING = [
     [
-        Stores.CARD_STORE_TYPE_NEWS_CARD,
-        Stores.CARD_STORE_TYPE_ARTICLE_CARD,
-        Stores.CARD_STORE_TYPE_VIDEO_CARD,
-        Stores.CARD_STORE_TYPE_ARTWORK_CARD
+        EosDiscoveryFeed.CardStoreType.NEWS_CARD,
+        EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
+        EosDiscoveryFeed.CardStoreType.VIDEO_CARD,
+        EosDiscoveryFeed.CardStoreType.ARTWORK_CARD
     ],
     [
-        Stores.CARD_STORE_TYPE_NEWS_CARD,
-        Stores.CARD_STORE_TYPE_VIDEO_CARD,
-        Stores.CARD_STORE_TYPE_ARTICLE_CARD,
-        Stores.CARD_STORE_TYPE_ARTWORK_CARD
+        EosDiscoveryFeed.CardStoreType.NEWS_CARD,
+        EosDiscoveryFeed.CardStoreType.VIDEO_CARD,
+        EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
+        EosDiscoveryFeed.CardStoreType.ARTWORK_CARD
     ]
 ];
 
 const CARD_TYPE_APP_LIMITS = (function() {
     let limits = {};
-    limits[Stores.CARD_STORE_TYPE_NEWS_CARD] = 5;
-    limits[Stores.CARD_STORE_TYPE_ARTICLE_CARD] = 1;
-    limits[Stores.CARD_STORE_TYPE_VIDEO_CARD] = 1;
-    limits[Stores.CARD_STORE_TYPE_ARTWORK_CARD] = 1;
+    limits[EosDiscoveryFeed.CardStoreType.NEWS_CARD] = 5;
+    limits[EosDiscoveryFeed.CardStoreType.ARTICLE_CARD] = 1;
+    limits[EosDiscoveryFeed.CardStoreType.VIDEO_CARD] = 1;
+    limits[EosDiscoveryFeed.CardStoreType.ARTWORK_CARD] = 1;
     return limits;
 })();
 
@@ -109,10 +109,10 @@ function arrange(descriptors) {
     let arrangedDescriptors = [];
 
     let appIndicesForCardType = [
-        Stores.CARD_STORE_TYPE_NEWS_CARD,
-        Stores.CARD_STORE_TYPE_ARTICLE_CARD,
-        Stores.CARD_STORE_TYPE_ARTWORK_CARD,
-        Stores.CARD_STORE_TYPE_VIDEO_CARD
+        EosDiscoveryFeed.CardStoreType.NEWS_CARD,
+        EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
+        EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
+        EosDiscoveryFeed.CardStoreType.VIDEO_CARD
     ].reduce((map, type) => {
         map[type] = 0;
         return map;
@@ -121,10 +121,10 @@ function arrange(descriptors) {
     while (overallIndex < CARDS_LIMIT && modelsRemaining(descriptorMap, appIndicesForCardType)) {
         if (overallIndex === 2) {
             // If we have a word/quote card, append that now
-            if (descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD]) {
+            if (descriptorMap[EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD]) {
                 // For the word/quote card, we really only want to take the
                 // first entry.
-                arrangedDescriptors.push(descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD][0].model[0]);
+                arrangedDescriptors.push(descriptorMap[EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD][0].model[0]);
                 overallIndex++;
                 evergreenCardAdded = true;
                 continue;
@@ -181,13 +181,13 @@ function arrange(descriptors) {
     }
 
     // We have less than 3 apps, add word/quote card neverless
-    if (!evergreenCardAdded && descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD])
-        arrangedDescriptors.push(descriptorMap[Stores.CARD_STORE_TYPE_WORD_QUOTE_CARD][0].model[0]);
+    if (!evergreenCardAdded && descriptorMap[EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD])
+        arrangedDescriptors.push(descriptorMap[EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD][0].model[0]);
 
     // Okay, now that we're at the end, add installable apps, again, only
     // taking the first descriptor
-    if (descriptorMap[Stores.CARD_STORE_TYPE_AVAILABLE_APPS])
-        arrangedDescriptors.push(descriptorMap[Stores.CARD_STORE_TYPE_AVAILABLE_APPS][0].model[0]);
+    if (descriptorMap[EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS])
+        arrangedDescriptors.push(descriptorMap[EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS][0].model[0]);
 
     return arrangedDescriptors;
 }
