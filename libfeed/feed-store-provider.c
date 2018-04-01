@@ -676,7 +676,7 @@ flat_map_ptr_arrays (GPtrArray       *ptr_arrays,
 
   concatenated = g_ptr_array_new_full (len, element_free_func);
 
-  /* O(N) copying of elements */
+  /* O(NM) copying of elements */
   for (i = 0; i < ptr_arrays->len; ++i)
     {
       GPtrArray *ptr_array = g_ptr_array_index (ptr_arrays, i);
