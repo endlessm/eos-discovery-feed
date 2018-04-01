@@ -410,18 +410,6 @@ parse_int64_with_limits (const gchar  *str,
   return TRUE;
 }
 
-static gint64
-parse_base10_int64_with_limits (const gchar  *str,
-                                gint64        min,
-                                gint64        max,
-                                gint64       *out,
-                                GError      **error)
-{
-  g_return_val_if_fail (out != NULL, FALSE);
-
-  return parse_int64_with_limits (str, 10, min, max, out, error);
-}
-
 static char *
 parse_duration (const gchar  *duration,
                 GError      **error)
@@ -431,11 +419,12 @@ parse_duration (const gchar  *duration,
   gint64 minutes = 0;
   gint64 seconds = 0;
 
-  if (!parse_base10_int64_with_limits (duration,
-                                       G_MININT64,
-                                       G_MAXINT64,
-                                       &total_seconds,
-                                       error))
+  if (!parse_int64_with_limits (duration,
+                                10,
+                                G_MININT64,
+                                G_MAXINT64,
+                                &total_seconds,
+                                error))
     return NULL;
 
   hours = floor (total_seconds / 3600);
