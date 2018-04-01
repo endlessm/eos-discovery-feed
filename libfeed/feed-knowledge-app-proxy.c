@@ -217,7 +217,7 @@ eos_discovery_feed_knowledge_app_proxy_class_init (EosDiscoveryFeedKnowledgeAppP
   eos_discovery_feed_knowledge_app_proxy_props[PROP_KNOWLEDGE_APP_ID] =
     g_param_spec_string ("knowledge-app-id",
                          "Knowledge App ID",
-                         "The object path to access the knowledge-search interface",
+                         "The App ID for the corresponding knowledge-app, if any",
                          "",
                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 
