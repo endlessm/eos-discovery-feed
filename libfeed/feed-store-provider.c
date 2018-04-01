@@ -749,7 +749,7 @@ marshal_word_quote_into_store (GObject      *source,
 
   store = eos_discovery_feed_word_quote_card_store_new (word_store, quote_store);
 
-  /* Return an array with one element for consistency withe everything else,
+  /* Return an array with one element for consistency with everything else,
    * so that we can flat-map everything together in the end */
   g_ptr_array_add (word_quote_card_results,
                    eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
