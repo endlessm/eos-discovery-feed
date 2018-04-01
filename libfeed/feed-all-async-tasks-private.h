@@ -92,13 +92,11 @@ G_BEGIN_DECLS
  *
  *      launch_some_task (cancellable,
  *                        individual_task_result_completed,
- *                        individual_task_result_closure_new (all_tasks_results_closure_allocate_new_result_slot (all_tasks_closure),
- *                                                            all_tasks_closure));
+ *                        individual_task_result_closure_new (all_tasks_closure));
  *
  *      launch_other_some_task (cancellable,
  *                              individual_task_result_completed,
- *                              individual_task_result_closure_new (all_tasks_results_closure_allocate_new_result_slot (all_tasks_closure),
- *                                                                  all_tasks_closure));
+ *                              individual_task_result_closure_new (all_tasks_closure));
  *    }
  *
  * }}}
@@ -110,10 +108,7 @@ AllTasksResultsClosure * all_tasks_results_closure_new (GDestroyNotify      resu
                                                         GAsyncReadyCallback callback,
                                                         gpointer            user_data);
 
-guint all_tasks_results_closure_allocate_new_result_slot (AllTasksResultsClosure *closure);
-
-IndividualTaskResultClosure * individual_task_result_closure_new (guint                   index,
-                                                                  AllTasksResultsClosure *all_tasks_closure);
+IndividualTaskResultClosure * individual_task_result_closure_new (AllTasksResultsClosure *all_tasks_closure);
 
 void individual_task_result_completed (GObject      *source,
                                        GAsyncResult *result,

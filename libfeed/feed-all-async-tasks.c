@@ -86,13 +86,12 @@ typedef struct _IndividualTaskResultClosure
 } IndividualTaskResultClosure;
 
 IndividualTaskResultClosure *
-individual_task_result_closure_new (guint                   index,
-                                    AllTasksResultsClosure *all_tasks_closure)
+individual_task_result_closure_new (AllTasksResultsClosure *all_tasks_closure)
 {
   IndividualTaskResultClosure *closure = g_new0 (IndividualTaskResultClosure, 1);
 
   closure->all_tasks_closure = all_tasks_closure;
-  closure->index = index;
+  closure->index = all_tasks_results_closure_allocate_new_result_slot (all_tasks_closure);
 
   return closure;
 }
