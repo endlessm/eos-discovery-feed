@@ -655,12 +655,20 @@ append_stores_task_from_proxy (EosDiscoveryFeedKnowledgeAppProxy *ka_proxy,
   g_task_run_in_thread (task, append_stores_task_from_proxy_thread);
 }
 
-typedef gpointer (*ElementCopyFunc) (gpointer element);
+static gpointer
+ref_object_copy_func (gconstpointer src,
+                      gpointer      user_data)
+{
+  /* Need to cast back to gpointer as our way of "copying" is to increment
+   * the ref-count */
+  return g_object_ref ((gpointer) src);
+}
 
 static GPtrArray *
-flat_map_ptr_arrays (GPtrArray       *ptr_arrays,
-                     ElementCopyFunc  element_copy_func,
-                     GDestroyNotify   element_free_func)
+flat_map_ptr_arrays (GPtrArray      *ptr_arrays,
+                     GCopyFunc       element_copy_func,
+                     gpointer        element_copy_data,
+                     GDestroyNotify  element_free_func)
 {
   g_autoptr(GPtrArray) concatenated = NULL;
   guint len = 0;
@@ -683,7 +691,8 @@ flat_map_ptr_arrays (GPtrArray       *ptr_arrays,
 
       for (j = 0; j < ptr_array->len; ++j)
         g_ptr_array_add (concatenated,
-                         element_copy_func (g_ptr_array_index (ptr_array, j)));
+                         element_copy_func (g_ptr_array_index (ptr_array, j),
+                                            element_copy_data));
     }
 
   return g_steal_pointer (&concatenated);
@@ -1004,7 +1013,8 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
     }
 
   flat_mapped_array = flat_map_ptr_arrays (result_arrays,
-                                           (ElementCopyFunc) g_object_ref,
+                                           ref_object_copy_func,
+                                           NULL,
                                            g_object_unref);
   g_task_return_pointer (task,
                          g_steal_pointer (&flat_mapped_array),
