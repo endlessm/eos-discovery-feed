@@ -42,31 +42,10 @@
 #include "feed-word-quote-card-store.h"
 
 typedef GPtrArray * (*ModelsFromResultsAndShardsFunc) (const char * const *shards,
-                                                       GPtrArray          *model_hts,
+                                                       GPtrArray          *model_props_variants,
                                                        gpointer            user_data);
-typedef GObject * (*ModelFromResultFunc) (GHashTable *model_ht,
-                                          gpointer    user_data);
-
-static GHashTable *
-hashtable_from_variant (GVariant *variant)
-{
-  GVariantIter iter;
-  gchar *key = NULL;
-  gchar *value = NULL;
-  g_autoptr(GHashTable) table = g_hash_table_new_full (g_str_hash,
-                                                       g_str_equal,
-                                                       g_free,
-                                                       g_free);
-
-  g_variant_iter_init (&iter, variant);
-
-  /* Since g_variant_iter_next allocates, we can pass the pointers
-   * directly to g_hash_table_insert without copying their contents */
-  while (g_variant_iter_next (&iter, "{ss}", &key, &value))
-    g_hash_table_insert (table, key, value);
-
-  return g_steal_pointer (&table);
-}
+typedef GObject * (*ModelFromResultFunc) (GVariant *model_variant,
+                                          gpointer  user_data);
 
 static GPtrArray *
 call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                      *proxy,
@@ -88,7 +67,7 @@ call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                
   g_autoptr(GVariant) shards_variant = NULL;
   g_autoptr(GVariant) models_variant = NULL;
   g_auto(GStrv) shards_strv = NULL;
-  g_autoptr(GPtrArray) model_hts = NULL;
+  g_autoptr(GPtrArray) model_props_variants = NULL;
   GVariantIter iter;
   GVariant *model_variant = NULL;
 
@@ -97,18 +76,18 @@ call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                
 
   g_variant_get (result, "(^as@aa{ss})", &shards_strv, &models_variant);
 
-  model_hts = g_ptr_array_new_full (g_variant_n_children (models_variant),
-                                    (GDestroyNotify) g_hash_table_unref);
+  model_props_variants = g_ptr_array_new_full (g_variant_n_children (models_variant),
+                                               (GDestroyNotify) g_variant_unref);
 
   g_variant_iter_init (&iter, models_variant);
   while (g_variant_iter_loop (&iter, "@a{ss}", &model_variant))
-    g_ptr_array_add (model_hts,
-                     hashtable_from_variant (model_variant));
+    g_ptr_array_add (model_props_variants,
+                     g_variant_ref (model_variant));
 
   /* Now that we have the models and shards, we can marshal them into
    * a GPtrArray containing the discovery-feed models */
   model_data_array = marshal_func ((const gchar * const *) shards_strv,
-                                   model_hts,
+                                   model_props_variants,
                                    marshal_data);
 
   return g_steal_pointer (&model_data_array);
@@ -132,17 +111,15 @@ call_dbus_proxy_and_construct_from_model (GDBusProxy           *proxy,
                                                        cancellable,
                                                        error);
   g_autoptr(GVariant) model_variant = NULL;
-  g_autoptr(GHashTable) model_ht = NULL;
 
   if (result == NULL)
     return NULL;
 
   g_variant_get (result, "(@a{ss})", &model_variant);
-  model_ht = hashtable_from_variant (model_variant);
 
   /* Now that we have the model, we can marshal it into a
    * GObject */
-  return marshal_func (model_ht, marshal_data);
+  return marshal_func (model_variant, marshal_data);
 }
 
 static gchar *
@@ -239,29 +216,46 @@ article_cards_from_shards_and_items_data_free (ArticleCardsFromShardsAndItemsDat
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ArticleCardsFromShardsAndItemsData,
                                article_cards_from_shards_and_items_data_free);
 
+/* Given a variant of type a{ss}, look up a string for a corresponding key,
+ * note that this is currently done with a linear scan and is transfer-full */
+static gchar *
+lookup_string_in_dict_variant (GVariant *variant, const gchar *key)
+{
+  gchar *str;
+
+  if (!g_variant_lookup (variant, key, "s", &str, NULL))
+    str = NULL;
+
+  return str;
+}
+
 static GPtrArray *
 article_cards_from_shards_and_items (const char * const *shards_strv,
-                                     GPtrArray          *model_hts,
+                                     GPtrArray          *model_props_variants,
                                      gpointer            user_data)
 {
   ArticleCardsFromShardsAndItemsData *data = (ArticleCardsFromShardsAndItemsData *) user_data;
-  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_hts->len,
+  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
                                                                 g_object_unref);
   guint i = 0;
 
-  for (; i < model_hts->len; ++i)
+  for (; i < model_props_variants->len; ++i)
     {
-      GHashTable *table = g_ptr_array_index (model_hts, i);
-      g_autofree char *synopsis = eos_discovery_feed_sanitize_synopsis (g_hash_table_lookup (table,
-                                                                                             "synopsis"));
+      GVariant *model_props = g_ptr_array_index (model_props_variants, i);
+      g_autofree char *unsanitized_snopsis = lookup_string_in_dict_variant (model_props,
+                                                                            "synopsis");
+      g_autofree char *synopsis = eos_discovery_feed_sanitize_synopsis (unsanitized_snopsis);
+      g_autofree char *title = lookup_string_in_dict_variant (model_props, "title");
+      g_autofree char *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
+      g_autofree char *thumbnail_uri = lookup_string_in_dict_variant (model_props,
+                                                                      "thumbnail_uri");
       g_autoptr(GInputStream) thumbnail_stream =
-        find_thumbnail_stream_in_shards (shards_strv,
-                                         g_hash_table_lookup (table, "thumbnail_uri"));
+        find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
       GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (data->ka_proxy);
 
       EosDiscoveryFeedKnowledgeAppCardStore *store
-        = data->factory (g_hash_table_lookup (table, "title"),
-                         g_hash_table_lookup (table, "ekn_id"),
+        = data->factory (title,
+                         ekn_id,
                          synopsis,
                          thumbnail_stream,
                          eos_discovery_feed_knowledge_app_proxy_get_desktop_id (data->ka_proxy),
@@ -414,19 +408,24 @@ parse_duration (const gchar  *duration,
 
 static GPtrArray *
 video_cards_from_shards_and_items (const char * const *shards_strv,
-                                   GPtrArray          *model_hts,
+                                   GPtrArray          *model_props_variants,
                                    gpointer            user_data)
 {
   EosDiscoveryFeedKnowledgeAppProxy *ka_proxy = user_data;
-  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_hts->len,
+  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
                                                                 g_object_unref);
   guint i = 0;
 
-  for (; i < model_hts->len; ++i)
+  for (; i < model_props_variants->len; ++i)
     {
-      GHashTable *table = model_hts->pdata[i];
+      GVariant *model_props = g_ptr_array_index (model_props_variants, i);
       g_autoptr(GError) local_error = NULL;
-      const gchar *in_duration = g_hash_table_lookup (table, "duration");
+      g_autofree gchar *in_duration = lookup_string_in_dict_variant (model_props,
+                                                                     "duration");
+      g_autofree gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props,
+                                                                       "thumbnail_uri");
+      g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
+      g_autofree gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
       g_autofree gchar *duration = parse_duration (in_duration, &local_error);
       g_autoptr(GInputStream) thumbnail_stream = NULL;
       EosDiscoveryFeedKnowledgeAppVideoCardStore *store = NULL;
@@ -440,12 +439,10 @@ video_cards_from_shards_and_items (const char * const *shards_strv,
           continue;
         }
 
-      thumbnail_stream = find_thumbnail_stream_in_shards (shards_strv,
-                                                          g_hash_table_lookup (table,
-                                                                               "thumbnail_uri"));
+      thumbnail_stream = find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
 
-      store = eos_discovery_feed_knowledge_app_video_card_store_new (g_hash_table_lookup (table, "title"),
-                                                                     g_hash_table_lookup (table, "ekn_id"),
+      store = eos_discovery_feed_knowledge_app_video_card_store_new (title,
+                                                                     ekn_id,
                                                                      duration,
                                                                      thumbnail_stream,
                                                                      eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
@@ -481,26 +478,30 @@ append_discovery_feed_video_from_proxy (EosDiscoveryFeedKnowledgeAppProxy  *ka_p
 
 static GPtrArray *
 artwork_cards_from_shards_and_items (const char * const *shards_strv,
-                                     GPtrArray          *model_hts,
+                                     GPtrArray          *model_props_variants,
                                      gpointer            user_data)
 {
   EosDiscoveryFeedKnowledgeAppProxy *ka_proxy = user_data;
-  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_hts->len,
+  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
                                                                 g_object_unref);
   guint i = 0;
 
-  for (; i < model_hts->len; ++i)
+  for (; i < model_props_variants->len; ++i)
     {
-      GHashTable *table = model_hts->pdata[i];
-      const gchar *first_date = g_hash_table_lookup (table, "first_date");
+      GVariant *model_props = g_ptr_array_index (model_props_variants, i);
+      g_autofree gchar *first_date = lookup_string_in_dict_variant (model_props, "first_date");
+      g_autofree gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props, "thumbnail_uri");
+      g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
+      g_autofree gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
+      g_autofree gchar *author = lookup_string_in_dict_variant (model_props, "author");
       g_autoptr(GInputStream) thumbnail_stream =
-        find_thumbnail_stream_in_shards (shards_strv, g_hash_table_lookup (table, "thumbnail_uri"));
+        find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
       GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (ka_proxy);
 
       EosDiscoveryFeedKnowledgeAppArtworkCardStore *store
-        = eos_discovery_feed_knowledge_app_artwork_card_store_new (g_hash_table_lookup (table, "title"),
-                                                                   g_hash_table_lookup (table, "ekn_id"),
-                                                                   g_hash_table_lookup (table, "author"),
+        = eos_discovery_feed_knowledge_app_artwork_card_store_new (title,
+                                                                   ekn_id,
+                                                                   author,
                                                                    first_date != NULL ? first_date : "",
                                                                    thumbnail_stream,
                                                                    eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
@@ -728,12 +729,16 @@ marshal_word_quote_into_store (GObject      *source,
 }
 
 static GObject *
-word_card_from_item (GHashTable *table,
-                     gpointer    user_data)
+word_card_from_item (GVariant *model_props,
+                     gpointer  user_data)
 {
-  return G_OBJECT (eos_discovery_feed_word_card_store_new (g_hash_table_lookup (table, "word"),
-                                                           g_hash_table_lookup (table, "part_of_speech"),
-                                                           g_hash_table_lookup (table, "definition")));
+  g_autofree gchar *word = lookup_string_in_dict_variant (model_props, "word");
+  g_autofree gchar *part_of_speech = lookup_string_in_dict_variant (model_props, "part_of_speech");
+  g_autofree gchar *definition = lookup_string_in_dict_variant (model_props, "definition");
+
+  return G_OBJECT (eos_discovery_feed_word_card_store_new (word,
+                                                           part_of_speech,
+                                                           definition));
 }
 
 static gpointer
@@ -755,11 +760,13 @@ append_discovery_feed_word_from_proxy (EosDiscoveryFeedKnowledgeAppProxy  *ka_pr
 }
 
 static GObject *
-quote_card_from_item (GHashTable *table,
-                      gpointer    user_data)
+quote_card_from_item (GVariant *model_props,
+                      gpointer  user_data)
 {
-  return G_OBJECT (eos_discovery_feed_quote_card_store_new (g_hash_table_lookup (table, "title"),
-                                                            g_hash_table_lookup (table, "author")));
+  g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
+  g_autofree gchar *author = lookup_string_in_dict_variant (model_props, "author");
+
+  return G_OBJECT (eos_discovery_feed_quote_card_store_new (title, author));
 }
 
 static gpointer
