@@ -277,7 +277,6 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
   for (; i < model_hts->len; ++i)
     {
       GHashTable *table = g_ptr_array_index (model_hts, i);
-      g_autoptr(GError) local_error = NULL;
       g_autofree char *synopsis = eos_discovery_feed_sanitize_synopsis (g_hash_table_lookup (table,
                                                                                              "synopsis"));
       g_autoptr(GInputStream) thumbnail_stream =
