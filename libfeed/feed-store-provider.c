@@ -1011,18 +1011,6 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
                          (GDestroyNotify) g_ptr_array_unref);
 }
 
-static GPtrArray *
-pointerv_to_g_ptr_array (gpointer *pointerv)
-{
-  gpointer *iter = pointerv;
-  GPtrArray *ptr_array = g_ptr_array_new ();
-
-  for (; *iter != NULL; ++iter)
-    g_ptr_array_add (ptr_array, *iter);
-
-  return ptr_array;
-}
-
 /**
  * eos_discovery_feed_unordered_results_from_queries_finish:
  * @result: A #GAsyncResult
