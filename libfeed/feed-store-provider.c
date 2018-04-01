@@ -282,6 +282,7 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
       g_autoptr(GInputStream) thumbnail_stream =
         find_thumbnail_stream_in_shards (shards_strv,
                                          g_hash_table_lookup (table, "thumbnail_uri"));
+      GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (data->ka_proxy);
 
       EosDiscoveryFeedKnowledgeAppCardStore *store
         = data->factory (g_hash_table_lookup (table, "title"),
@@ -289,7 +290,7 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
                          synopsis,
                          thumbnail_stream,
                          eos_discovery_feed_knowledge_app_proxy_get_desktop_id (data->ka_proxy),
-                         eos_discovery_feed_knowledge_app_proxy_get_bus_name (data->ka_proxy),
+                         g_dbus_proxy_get_name (dbus_proxy),
                          eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (data->ka_proxy),
                          eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (data->ka_proxy),
                          data->direction ? data->direction : EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
@@ -454,6 +455,7 @@ video_cards_from_shards_and_items (const char * const *shards_strv,
       g_autofree gchar *duration = parse_duration (in_duration, &local_error);
       g_autoptr(GInputStream) thumbnail_stream = NULL;
       EosDiscoveryFeedKnowledgeAppVideoCardStore *store = NULL;
+      GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (ka_proxy);
 
       if (duration == NULL)
         {
@@ -472,7 +474,7 @@ video_cards_from_shards_and_items (const char * const *shards_strv,
                                                                      duration,
                                                                      thumbnail_stream,
                                                                      eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
-                                                                     eos_discovery_feed_knowledge_app_proxy_get_bus_name (ka_proxy),
+                                                                     g_dbus_proxy_get_name (dbus_proxy),
                                                                      eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
                                                                      eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy));
       g_ptr_array_add (orderable_stores,
@@ -518,6 +520,7 @@ artwork_cards_from_shards_and_items (const char * const *shards_strv,
       const gchar *first_date = g_hash_table_lookup (table, "first_date");
       g_autoptr(GInputStream) thumbnail_stream =
         find_thumbnail_stream_in_shards (shards_strv, g_hash_table_lookup (table, "thumbnail_uri"));
+      GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (ka_proxy);
 
       EosDiscoveryFeedKnowledgeAppArtworkCardStore *store
         = eos_discovery_feed_knowledge_app_artwork_card_store_new (g_hash_table_lookup (table, "title"),
@@ -526,7 +529,7 @@ artwork_cards_from_shards_and_items (const char * const *shards_strv,
                                                                    first_date != NULL ? first_date : "",
                                                                    thumbnail_stream,
                                                                    eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
-                                                                   eos_discovery_feed_knowledge_app_proxy_get_bus_name (ka_proxy),
+                                                                   g_dbus_proxy_get_name (dbus_proxy),
                                                                    eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
                                                                    eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy),
                                                                    EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,

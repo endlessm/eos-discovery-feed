@@ -28,14 +28,12 @@ G_DECLARE_FINAL_TYPE (EosDiscoveryFeedKnowledgeAppProxy, eos_discovery_feed_know
 
 EosDiscoveryFeedKnowledgeAppProxy * eos_discovery_feed_knowledge_app_proxy_new (GDBusProxy  *dbus_proxy,
                                                                                 const gchar *desktop_id,
-                                                                                const gchar *bus_name,
                                                                                 const gchar *knowledge_search_object_path,
                                                                                 const gchar *knowledge_app_id);
 
 GDBusProxy * eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (EosDiscoveryFeedKnowledgeAppProxy *proxy);
 
 const gchar * eos_discovery_feed_knowledge_app_proxy_get_desktop_id (EosDiscoveryFeedKnowledgeAppProxy *proxy);
-const gchar * eos_discovery_feed_knowledge_app_proxy_get_bus_name (EosDiscoveryFeedKnowledgeAppProxy *proxy);
 const gchar * eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (EosDiscoveryFeedKnowledgeAppProxy *proxy);
 const gchar * eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (EosDiscoveryFeedKnowledgeAppProxy *proxy);
 

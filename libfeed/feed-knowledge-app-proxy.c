@@ -26,7 +26,6 @@ typedef struct _EosDiscoveryFeedKnowledgeAppProxyPrivate
 {
   GDBusProxy *dbus_proxy;
   gchar      *desktop_id;
-  gchar      *bus_name;
   gchar      *knowledge_search_object_path;
   gchar      *knowledge_app_id;
 } EosDiscoveryFeedKnowledgeAppProxyPrivate;
@@ -39,7 +38,6 @@ enum {
   PROP_0,
   PROP_DBUS_PROXY,
   PROP_DESKTOP_ID,
-  PROP_BUS_NAME,
   PROP_KNOWLEDGE_SEARCH_OBJECT_PATH,
   PROP_KNOWLEDGE_APP_ID,
   NPROPS
@@ -69,14 +67,6 @@ eos_discovery_feed_knowledge_app_proxy_get_desktop_id (EosDiscoveryFeedKnowledge
   EosDiscoveryFeedKnowledgeAppProxyPrivate *priv = eos_discovery_feed_knowledge_app_proxy_get_instance_private (proxy);
 
   return priv->desktop_id;
-}
-
-const gchar *
-eos_discovery_feed_knowledge_app_proxy_get_bus_name (EosDiscoveryFeedKnowledgeAppProxy *proxy)
-{
-  EosDiscoveryFeedKnowledgeAppProxyPrivate *priv = eos_discovery_feed_knowledge_app_proxy_get_instance_private (proxy);
-
-  return priv->bus_name;
 }
 
 const gchar *
@@ -117,9 +107,6 @@ eos_discovery_feed_knowledge_app_proxy_set_property (GObject      *object,
     case PROP_DESKTOP_ID:
       priv->desktop_id = g_value_dup_string (value);
       break;
-    case PROP_BUS_NAME:
-      priv->bus_name = g_value_dup_string (value);
-      break;
     case PROP_KNOWLEDGE_SEARCH_OBJECT_PATH:
       priv->knowledge_search_object_path = g_value_dup_string (value);
       break;
@@ -148,9 +135,6 @@ eos_discovery_feed_knowledge_app_proxy_get_property (GObject    *object,
     case PROP_DESKTOP_ID:
       g_value_set_string (value, priv->desktop_id);
       break;
-    case PROP_BUS_NAME:
-      g_value_set_string (value, priv->bus_name);
-      break;
     case PROP_KNOWLEDGE_SEARCH_OBJECT_PATH:
       g_value_set_string (value, priv->knowledge_search_object_path);
       break;
@@ -170,7 +154,6 @@ eos_discovery_feed_knowledge_app_proxy_finalize (GObject *object)
 
   g_clear_object (&priv->dbus_proxy);
   g_clear_pointer (&priv->desktop_id, g_free);
-  g_clear_pointer (&priv->bus_name, g_free);
   g_clear_pointer (&priv->knowledge_search_object_path, g_free);
   g_clear_pointer (&priv->knowledge_app_id, g_free);
 
@@ -200,13 +183,6 @@ eos_discovery_feed_knowledge_app_proxy_class_init (EosDiscoveryFeedKnowledgeAppP
                          "",
                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 
-  eos_discovery_feed_knowledge_app_proxy_props[PROP_BUS_NAME] =
-    g_param_spec_string ("bus-name",
-                         "Bus Name",
-                         "The DBus Bus name for this proxy",
-                         "",
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
-
   eos_discovery_feed_knowledge_app_proxy_props[PROP_KNOWLEDGE_SEARCH_OBJECT_PATH] =
     g_param_spec_string ("knowledge-search-object-path",
                          "Knowledge Search Object Path",
@@ -230,7 +206,6 @@ eos_discovery_feed_knowledge_app_proxy_class_init (EosDiscoveryFeedKnowledgeAppP
  * eos_discovery_feed_knowledge_app_proxy_new:
  * @dbus_proxy: A #GDBusProxy connected to the provider
  * @desktop_id: The desktop-id uniquely identifying the source of this provider
- * @bus_name: Which bus name the app runs on
  * @knowledge_search_object_path: (nullable): The object path for the knowledge-search interface
  * @knowledge_app_id: (nullable): The App ID for the corresponding knowledge-app, if any
  *
@@ -241,14 +216,12 @@ eos_discovery_feed_knowledge_app_proxy_class_init (EosDiscoveryFeedKnowledgeAppP
 EosDiscoveryFeedKnowledgeAppProxy *
 eos_discovery_feed_knowledge_app_proxy_new (GDBusProxy  *dbus_proxy,
                                             const gchar *desktop_id,
-                                            const gchar *bus_name,
                                             const gchar *knowledge_search_object_path,
                                             const gchar *knowledge_app_id)
 {
   return g_object_new (EOS_DISCOVERY_FEED_TYPE_KNOWLEDGE_APP_PROXY,
                        "dbus-proxy", dbus_proxy,
                        "desktop-id", desktop_id,
-                       "bus-name", bus_name,
                        "knowledge-search-object-path", knowledge_search_object_path,
                        "knowledge-app-id", knowledge_app_id,
                        NULL);
