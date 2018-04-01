@@ -461,7 +461,6 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
                 iface: proxy,
                 interfaceName: interfaceName,
                 desktopId: provider.desktopFileId,
-                busName: provider.name,
                 knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
                 knowledgeAppId: provider.knowledgeAppId
             }))
@@ -1517,7 +1516,6 @@ function discoveryFeedCardsFromQueries(proxies) {
                                           new EosDiscoveryFeed.KnowledgeAppProxy({
                                               'dbus-proxy': proxy.dbus_proxy,
                                               'desktop-id': proxy.desktopId,
-                                              'bus-name': proxy.busName,
                                               'knowledge-search-object-path': proxy.knowledgeSearchObjectPath,
                                               'knowledge-app-id': proxy.knowledgeAppId
                                           })
