@@ -962,7 +962,7 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
   if (results == NULL)
     {
       g_message ("Error getting all unordered card results: %s", local_error->message);
-      g_task_return_error (task, local_error);
+      g_task_return_error (task, g_steal_pointer (&local_error));
       return;
     }
 
