@@ -68,11 +68,9 @@ uniquify_string_lists (GStrv *strvs)
         {
           const gchar *str = *strv_iter;
 
-          if (!g_hash_table_contains (set, str))
-            {
-              g_hash_table_insert (set, (gpointer) str, NULL);
-              g_ptr_array_add (array, g_strdup (str));
-            }
+          /* TRUE if the key did not exist yet */
+          if (g_hash_table_insert (set, str))
+            g_ptr_array_add (array, g_strdup (str));
         }
     }
 
