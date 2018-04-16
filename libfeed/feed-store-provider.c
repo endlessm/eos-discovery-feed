@@ -233,7 +233,7 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
                                      GPtrArray          *model_props_variants,
                                      gpointer            user_data)
 {
-  ArticleCardsFromShardsAndItemsData *data = (ArticleCardsFromShardsAndItemsData *) user_data;
+  ArticleCardsFromShardsAndItemsData *data = user_data;
   g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
                                                                 g_object_unref);
   guint i = 0;
