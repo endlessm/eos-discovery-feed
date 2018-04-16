@@ -318,7 +318,6 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
       g_autofree gchar *desktop_id = NULL;
       g_autofree gchar *provider_object_path = NULL;
       g_autofree gchar *provider_bus_name = NULL;
-      g_autofree gchar *provider_supported_interfaces_str = NULL;
       g_auto(GStrv) provider_supported_interfaces = NULL;
       g_autoptr(GFile) candidate_provider_file = NULL;
       g_autoptr(GKeyFile) key_file = NULL;
