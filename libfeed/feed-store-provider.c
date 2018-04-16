@@ -834,7 +834,6 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
   guint i = 0;
   g_autoptr(GPtrArray) word_proxies = g_ptr_array_new ();
   g_autoptr(GPtrArray) quote_proxies = g_ptr_array_new ();
-  g_autoptr(GPtrArray) zipped_word_quote_proxies = NULL;
 
   for (i = 0; i < ka_proxies->len; ++i)
     {
