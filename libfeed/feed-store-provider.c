@@ -77,12 +77,12 @@ call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                
   g_variant_get (result, "(^as@aa{ss})", &shards_strv, &models_variant);
 
   model_props_variants = g_ptr_array_new_full (g_variant_n_children (models_variant),
-                                               (GDestroyNotify) g_variant_unref);
+                                               NULL);
 
   g_variant_iter_init (&iter, models_variant);
   while (g_variant_iter_loop (&iter, "@a{ss}", &model_variant))
     g_ptr_array_add (model_props_variants,
-                     g_variant_ref (model_variant));
+                     model_variant);
 
   /* Now that we have the models and shards, we can marshal them into
    * a GPtrArray containing the discovery-feed models */
