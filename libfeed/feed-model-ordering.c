@@ -174,16 +174,16 @@ make_app_indices_for_card_type (void)
                                                                             NULL,
                                                                             NULL);
 
-  g_hash_table_insert (app_indices_for_card_type,
+  g_hash_table_insert (app_indices_for_card_types,
                        GINT_TO_POINTER (EOS_DISCOVERY_FEED_CARD_STORE_TYPE_NEWS_CARD),
                        0);
-  g_hash_table_insert (app_indices_for_card_type,
+  g_hash_table_insert (app_indices_for_card_types,
                        GINT_TO_POINTER (EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTICLE_CARD),
                        0);
-  g_hash_table_insert (app_indices_for_card_type,
+  g_hash_table_insert (app_indices_for_card_types,
                        GINT_TO_POINTER (EOS_DISCOVERY_FEED_CARD_STORE_TYPE_VIDEO_CARD),
                        0);
-  g_hash_table_insert (app_indices_for_card_type,
+  g_hash_table_insert (app_indices_for_card_types,
                        GINT_TO_POINTER (EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTWORK_CARD),
                        0);
 
