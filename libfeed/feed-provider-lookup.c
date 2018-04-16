@@ -41,7 +41,7 @@ static GStrv
 append_suffix_to_each_path (const gchar * const *paths,
                             const gchar         *suffix)
 {
-  GPtrArray *array = g_ptr_array_new_with_free_func (g_free);
+  GPtrArray *array = g_ptr_array_new ();
   const gchar * const *iter = paths;
 
   for (; *iter != NULL; ++iter)
