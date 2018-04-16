@@ -221,7 +221,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (ArticleCardsFromShardsAndItemsData,
                                article_cards_from_shards_and_items_data_free)
 
 /* Given a variant of type a{ss}, look up a string for a corresponding key,
- * note that this is currently done with a linear scan and is transfer-full */
+ * note that this is currently done with a linear scan and is transfer-none */
 static const gchar *
 lookup_string_in_dict_variant (GVariant *variant, const gchar *key)
 {
