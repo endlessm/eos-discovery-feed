@@ -19,8 +19,8 @@
 #include <gio/gio.h>
 
 #include "feed-all-async-tasks-private.h"
-#include "feed-provider-info.h"
 #include "feed-knowledge-app-proxy.h"
+#include "feed-provider-info.h"
 #include "feed-proxy-factory.h"
 
 #define DISCOVERY_FEED_CONTENT_IFACE \
