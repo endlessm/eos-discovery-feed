@@ -683,7 +683,6 @@ marshal_word_quote_into_store (GObject      *source,
   EosDiscoveryFeedQuoteCardStore *quote_store = NULL;
   EosDiscoveryFeedWordQuoteCardStore *store = NULL;
 
-
   if (word_quote_results == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&local_error));
