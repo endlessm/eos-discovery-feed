@@ -150,6 +150,7 @@ eos_discovery_feed_orderable_model_finalize (GObject *object)
   EosDiscoveryFeedOrderableModelPrivate *priv = eos_discovery_feed_orderable_model_get_instance_private (store);
 
   g_clear_pointer (&priv->source, g_free);
+  g_clear_object (&priv->model);
 
   G_OBJECT_CLASS (eos_discovery_feed_orderable_model_parent_class)->finalize (object);
 }
