@@ -691,7 +691,7 @@ marshal_word_quote_into_store (GObject      *source,
       g_task_return_new_error (task,
                                G_IO_ERROR,
                                G_IO_ERROR_FAILED,
-                               "Expected exactly two results for word/quote query."));
+                               "Expected exactly two results for word/quote query.");
       return;
     }
 
