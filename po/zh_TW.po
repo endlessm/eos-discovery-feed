@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
 "POT-Creation-Date: 2017-09-07 22:49-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Roddy Shuler <roddy@endlessm.com>, 2017\n"
-"Language-Team: Chinese (Taiwan) (https://www.transifex.com/endless-mobile-inc/teams/9016/zh_TW/)\n"
+"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>, 2017\n"
+"Language-Team: Chinese (Taiwan) (https://www.transifex.com/endless-os/teams/9016/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,35 +20,35 @@ msgstr ""
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr "安裝一些 app 來探索絕佳內容！"
+msgstr "安裝一些程式來探索絕佳內容！"
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr "推薦文章"
+msgstr "推薦故事"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
-msgstr "本日一語"
+msgstr "每日一句"
 
 #: ../data/word-quote-pair.ui.h:2
 msgid "WORD OF THE DAY"
-msgstr "本日一字"
+msgstr "每日一字"
 
 #. Translators: main date header (%B = month name, %e = day number)
 #: ../src/main.js:1178
 msgid "%B %e"
-msgstr "月 日"
+msgstr "%b%e日"
 
 #. Translators: scrolled date header (%B = month name, %e = day number, %Y =
 #. year)
 #: ../src/main.js:1182
 msgid "today is %B %e, %Y"
-msgstr "今天是 年 月 日"
+msgstr "今天是%Y年%b%e日"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
-msgstr "探索新聞來源"
+msgstr "探索消息來源"
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
-msgstr "探索 App Center"
+msgstr "探索應用程式中心"
