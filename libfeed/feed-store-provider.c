@@ -626,15 +626,6 @@ append_stores_task_from_proxy (EosDiscoveryFeedKnowledgeAppProxy *ka_proxy,
   g_task_run_in_thread (task, append_stores_task_from_proxy_thread);
 }
 
-static gpointer
-ref_object_copy_func (gconstpointer src,
-                      gpointer      user_data)
-{
-  /* Need to cast back to gpointer as our way of "copying" is to increment
-   * the ref-count */
-  return g_object_ref ((gpointer) src);
-}
-
 static GPtrArray *
 flat_map_ptr_arrays (GPtrArray      *ptr_arrays,
                      GCopyFunc       element_copy_func,
