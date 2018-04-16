@@ -350,14 +350,6 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
           continue;
         }
 
-      if (!g_key_file_has_group (key_file, DISCOVERY_FEED_SECTION_NAME))
-        {
-          g_message ("Key file %s does not have a section called %s (ignoring)",
-                     provider_file_path,
-                     DISCOVERY_FEED_SECTION_NAME);
-          continue;
-        }
-
       if (!key_file_has_specified_keys_in_section (key_file,
                                                    provider_file_path,
                                                    DISCOVERY_FEED_SECTION_NAME,
