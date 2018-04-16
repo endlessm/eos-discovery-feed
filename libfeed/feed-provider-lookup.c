@@ -205,7 +205,6 @@ flatpak_compatible_desktop_app_info (const gchar  *desktop_id,
                                                  NULL);
       g_autoptr(GKeyFile) key_file = g_key_file_new ();
       g_autoptr(GError) local_error = NULL;
-      g_autoptr(GDesktopAppInfo) info = NULL;
 
       if (!g_key_file_load_from_file (key_file,
                                       path,
