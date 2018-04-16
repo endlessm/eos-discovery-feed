@@ -536,8 +536,8 @@ lookup_providers_thread (GTask        *task,
  * Complete a call to eos_discovery_feed_find_providers.
  *
  * Returns: (transfer none) (element-type EosDiscoveryFeedProviderInfo): A
- * #GPtrArray of #EosDiscoveryFeedProviderInfo with information about each
- * provider file, or %NULL on error.
+ *          #GPtrArray of #EosDiscoveryFeedProviderInfo with information
+ *          about each provider file, or %NULL on error.
  */
 GPtrArray *
 eos_discovery_feed_find_providers_finish (GAsyncResult  *result,
