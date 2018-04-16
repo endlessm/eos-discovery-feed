@@ -325,8 +325,7 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
       if (child == NULL || info == NULL)
         break;
 
-      candidate_provider_file = g_file_get_child (directory,
-                                                  g_file_info_get_name (info));
+      candidate_provider_file = g_file_enumerator_get_child (enumerator, info);
       provider_file_path = g_file_get_path (candidate_provider_file);
       key_file = g_key_file_new ();
 
