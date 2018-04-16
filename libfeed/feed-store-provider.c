@@ -41,13 +41,13 @@
 #include "feed-word-card-store.h"
 #include "feed-word-quote-card-store.h"
 
-typedef GPtrArray * (*ModelsFromResultsAndShardsFunc) (const char * const *shards,
-                                                       GPtrArray          *model_props_variants,
-                                                       gpointer            user_data);
+typedef GSList * (*ModelsFromResultsAndShardsFunc) (const char * const *shards,
+                                                    GPtrArray          *model_props_variants,
+                                                    gpointer            user_data);
 typedef GObject * (*ModelFromResultFunc) (GVariant *model_variant,
                                           gpointer  user_data);
 
-static GPtrArray *
+static GSList *
 call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                      *proxy,
                                                       const gchar                     *method_name,
                                                       const gchar                     *source_name,
@@ -56,7 +56,6 @@ call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                
                                                       GCancellable                    *cancellable,
                                                       GError                         **error)
 {
-  g_autoptr(GPtrArray) model_data_array = NULL;
   g_autoptr(GVariant) result = g_dbus_proxy_call_sync (proxy,
                                                        method_name,
                                                        NULL,
@@ -86,11 +85,9 @@ call_dbus_proxy_and_construct_from_models_and_shards (GDBusProxy                
 
   /* Now that we have the models and shards, we can marshal them into
    * a GPtrArray containing the discovery-feed models */
-  model_data_array = marshal_func ((const gchar * const *) shards_strv,
-                                   model_props_variants,
-                                   marshal_data);
-
-  return g_steal_pointer (&model_data_array);
+  return marshal_func ((const gchar * const *) shards_strv,
+                       model_props_variants,
+                       marshal_data);
 }
 
 static GObject *
@@ -233,14 +230,13 @@ lookup_string_in_dict_variant (GVariant *variant, const gchar *key)
   return str;
 }
 
-static GPtrArray *
+static GSList *
 article_cards_from_shards_and_items (const char * const *shards_strv,
                                      GPtrArray          *model_props_variants,
                                      gpointer            user_data)
 {
   ArticleCardsFromShardsAndItemsData *data = user_data;
-  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
-                                                                g_object_unref);
+  GSList *orderable_stores = NULL;
   guint i = 0;
 
   for (; i < model_props_variants->len; ++i)
@@ -268,10 +264,10 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
                        eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (data->ka_proxy),
                        data->direction ? data->direction : EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
                        data->thumbnail_size);
-      g_ptr_array_add (orderable_stores,
-                       eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
-                                                               data->type,
-                                                               eos_discovery_feed_knowledge_app_proxy_get_desktop_id (data->ka_proxy)));
+      orderable_stores = g_slist_prepend (orderable_stores,
+                                          eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
+                                                                                  data->type,
+                                                                                  eos_discovery_feed_knowledge_app_proxy_get_desktop_id (data->ka_proxy)));
     }
 
     return g_steal_pointer (&orderable_stores);
@@ -410,14 +406,13 @@ parse_duration (const gchar  *duration,
   return g_strdup_printf ("%lli:%02lli", minutes, seconds);
 }
 
-static GPtrArray *
+static GSList *
 video_cards_from_shards_and_items (const char * const *shards_strv,
                                    GPtrArray          *model_props_variants,
                                    gpointer            user_data)
 {
   EosDiscoveryFeedKnowledgeAppProxy *ka_proxy = user_data;
-  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
-                                                                g_object_unref);
+  GSList *orderable_stores = NULL;
   guint i = 0;
 
   for (; i < model_props_variants->len; ++i)
@@ -453,10 +448,10 @@ video_cards_from_shards_and_items (const char * const *shards_strv,
                                                                      g_dbus_proxy_get_name (dbus_proxy),
                                                                      eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
                                                                      eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy));
-      g_ptr_array_add (orderable_stores,
-                       eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
-                                                               EOS_DISCOVERY_FEED_CARD_STORE_TYPE_VIDEO_CARD,
-                                                               eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy)));
+      orderable_stores = g_slist_prepend (orderable_stores,
+                                          eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
+                                                                                  EOS_DISCOVERY_FEED_CARD_STORE_TYPE_VIDEO_CARD,
+                                                                                  eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy)));
     }
 
     return g_steal_pointer (&orderable_stores);
@@ -480,14 +475,13 @@ append_discovery_feed_video_from_proxy (EosDiscoveryFeedKnowledgeAppProxy  *ka_p
                                                                error);
 }
 
-static GPtrArray *
+static GSList *
 artwork_cards_from_shards_and_items (const char * const *shards_strv,
                                      GPtrArray          *model_props_variants,
                                      gpointer            user_data)
 {
   EosDiscoveryFeedKnowledgeAppProxy *ka_proxy = user_data;
-  g_autoptr(GPtrArray) orderable_stores = g_ptr_array_new_full (model_props_variants->len,
-                                                                g_object_unref);
+  GSList *orderable_stores = NULL;
   guint i = 0;
 
   for (; i < model_props_variants->len; ++i)
@@ -514,10 +508,10 @@ artwork_cards_from_shards_and_items (const char * const *shards_strv,
                                                                  eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy),
                                                                  EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
                                                                  EOS_DISCOVERY_FEED_THUMBNAIL_SIZE_ARTWORK);
-      g_ptr_array_add (orderable_stores,
-                       eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
-                                                               EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTWORK_CARD,
-                                                               eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy)));
+      orderable_stores = g_slist_prepend (orderable_stores,
+                                          eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
+                                                                                  EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTWORK_CARD,
+                                                                                  eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy)));
     }
 
     return g_steal_pointer (&orderable_stores);
@@ -626,38 +620,10 @@ append_stores_task_from_proxy (EosDiscoveryFeedKnowledgeAppProxy *ka_proxy,
   g_task_run_in_thread (task, append_stores_task_from_proxy_thread);
 }
 
-static GPtrArray *
-flat_map_ptr_arrays (GPtrArray      *ptr_arrays,
-                     GCopyFunc       element_copy_func,
-                     gpointer        element_copy_data,
-                     GDestroyNotify  element_free_func)
+static void
+object_slist_free (GSList *slist)
 {
-  g_autoptr(GPtrArray) concatenated = NULL;
-  guint len = 0;
-  guint i = 0;
-  guint j = 0;
-
-  /* O(N) count up of all pointer array lengths */
-  for (i = 0; i < ptr_arrays->len; ++i)
-    {
-      GPtrArray *ptr_array = g_ptr_array_index (ptr_arrays, i);
-      len += ptr_array->len;
-    }
-
-  concatenated = g_ptr_array_new_full (len, element_free_func);
-
-  /* O(NM) copying of elements */
-  for (i = 0; i < ptr_arrays->len; ++i)
-    {
-      GPtrArray *ptr_array = g_ptr_array_index (ptr_arrays, i);
-
-      for (j = 0; j < ptr_array->len; ++j)
-        g_ptr_array_add (concatenated,
-                         element_copy_func (g_ptr_array_index (ptr_array, j),
-                                            element_copy_data));
-    }
-
-  return g_steal_pointer (&concatenated);
+  g_slist_free_full (slist, g_object_unref);
 }
 
 static void
@@ -669,7 +635,7 @@ marshal_word_quote_into_store (GObject      *source,
   g_autoptr(GError) local_error = NULL;
   g_autoptr(GPtrArray) word_quote_results = g_task_propagate_pointer (G_TASK (result),
                                                                       &local_error);
-  g_autoptr(GPtrArray) word_quote_card_results = g_ptr_array_new_with_free_func (g_object_unref);
+  GSList *word_quote_card_results = NULL;
   EosDiscoveryFeedWordCardStore *word_store = NULL;
   EosDiscoveryFeedQuoteCardStore *quote_store = NULL;
   EosDiscoveryFeedWordQuoteCardStore *store = NULL;
@@ -712,14 +678,14 @@ marshal_word_quote_into_store (GObject      *source,
 
   /* Return a list with one element for consistency with everything else,
    * so that we can flat-map everything together in the end */
-  g_ptr_array_add (word_quote_card_results,
-                   eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
-                                                           EOS_DISCOVERY_FEED_CARD_STORE_TYPE_WORD_QUOTE_CARD,
-                                                           "word-quote"));
+  word_quote_card_results = g_slist_prepend (word_quote_card_results,
+                                             eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
+                                                                                     EOS_DISCOVERY_FEED_CARD_STORE_TYPE_WORD_QUOTE_CARD,
+                                                                                     "word-quote"));
 
   g_task_return_pointer (task,
                          g_steal_pointer (&word_quote_card_results),
-                         (GDestroyNotify) g_ptr_array_unref);
+                         (GDestroyNotify) object_slist_free);
 }
 
 static GObject *
@@ -834,7 +800,7 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
       if (g_strcmp0 (interface_name, "com.endlessm.DiscoveryFeedContent") == 0)
         append_stores_task_from_proxy (ka_proxy,
                                        append_discovery_feed_content_from_proxy,
-                                       (GDestroyNotify) g_ptr_array_unref,
+                                       (GDestroyNotify) object_slist_free,
                                        append_discovery_feed_content_from_proxy_data_new ("ArticleCardDescriptions",
                                                                                           EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTICLE_CARD,
                                                                                           EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
@@ -846,7 +812,7 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
       else if (g_strcmp0 (interface_name, "com.endlessm.DiscoveryFeedNews") == 0)
         append_stores_task_from_proxy (ka_proxy,
                                        append_discovery_feed_content_from_proxy,
-                                       (GDestroyNotify) g_ptr_array_unref,
+                                       (GDestroyNotify) object_slist_free,
                                        append_discovery_feed_content_from_proxy_data_new ("GetRecentNews",
                                                                                           EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTICLE_CARD,
                                                                                           EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_LAST,
@@ -858,7 +824,7 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
       else if (g_strcmp0 (interface_name, "com.endlessm.DiscoveryFeedVideo") == 0)
         append_stores_task_from_proxy (ka_proxy,
                                        append_discovery_feed_video_from_proxy,
-                                       (GDestroyNotify) g_ptr_array_unref,
+                                       (GDestroyNotify) object_slist_free,
                                        NULL,
                                        cancellable,
                                        individual_task_result_completed,
@@ -866,7 +832,7 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
       else if (g_strcmp0 (interface_name, "com.endlessm.DiscoveryFeedArtwork") == 0)
         append_stores_task_from_proxy (ka_proxy,
                                        append_discovery_feed_artwork_from_proxy,
-                                       (GDestroyNotify) g_ptr_array_unref,
+                                       (GDestroyNotify) object_slist_free,
                                        NULL,
                                        cancellable,
                                        individual_task_result_completed,
@@ -895,8 +861,7 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
   g_autoptr(GError) local_error = NULL;
   g_autoptr(GPtrArray) results = g_task_propagate_pointer (G_TASK (result),
                                                            &local_error);
-  g_autoptr(GPtrArray) result_arrays = g_ptr_array_new_with_free_func ((GDestroyNotify) g_ptr_array_unref);
-  g_autoptr(GPtrArray) flat_mapped_array = NULL;
+  GSList *all_unordered_elements = NULL;
   g_autoptr(GTask) task = user_data;
   guint i = 0;
 
@@ -913,26 +878,22 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
    * together later */
   for (i = 0; i < results->len; ++i)
     {
-      g_autoptr(GPtrArray) result_array = g_task_propagate_pointer (g_ptr_array_index (results, i),
-                                                                    &local_error);
+      GSList *result_list = g_task_propagate_pointer (g_ptr_array_index (results, i),
+                                                      &local_error);
 
-      if (result_array == NULL)
+      if (result_list == NULL)
         {
           g_message ("Query failed: %s", local_error->message);
           g_clear_error (&local_error);
           continue;
         }
 
-      g_ptr_array_add (result_arrays, g_steal_pointer (&result_array));
+      all_unordered_elements = g_slist_concat (all_unordered_elements, result_list);
     }
 
-  flat_mapped_array = flat_map_ptr_arrays (result_arrays,
-                                           ref_object_copy_func,
-                                           NULL,
-                                           g_object_unref);
   g_task_return_pointer (task,
-                         g_steal_pointer (&flat_mapped_array),
-                         (GDestroyNotify) g_ptr_array_unref);
+                         all_unordered_elements,
+                         (GDestroyNotify) object_slist_free);
 }
 
 /**
@@ -943,9 +904,13 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
  * Complete the call to eos_discovery_feed_unordered_results_from_queries.
  *
  * Returns: (transfer container) (element-type EosDiscoveryFeedBaseCardStore):
- *          A #GPtrArray of #EosDiscoveryFeedBaseCardStore.
+ *          A #GSList of #EosDiscoveryFeedBaseCardStore. Note that the list will
+ *          be in reversed order internally for efficiency but in any event
+ *          are not guaranteed to be in a user-friendly order. You should
+ *          use eos_discovery_feed_arrange_orderable_models to ensure that the
+ *          models are in the correct order for presentation to the user.
  */
-GPtrArray *
+GSList *
 eos_discovery_feed_unordered_results_from_queries_finish (GAsyncResult  *result,
                                                           GError       **error)
 {

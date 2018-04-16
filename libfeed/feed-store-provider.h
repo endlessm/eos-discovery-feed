@@ -21,8 +21,8 @@
 
 G_BEGIN_DECLS
 
-GPtrArray * eos_discovery_feed_unordered_results_from_queries_finish (GAsyncResult  *result,
-                                                                      GError       **error);
+GSList * eos_discovery_feed_unordered_results_from_queries_finish (GAsyncResult  *result,
+                                                                   GError       **error);
 
 
 void eos_discovery_feed_unordered_results_from_queries (GPtrArray           *ka_proxies,
