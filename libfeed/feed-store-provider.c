@@ -145,46 +145,21 @@ call_dbus_proxy_and_construct_from_model (GDBusProxy           *proxy,
   return marshal_func (model_ht, marshal_data);
 }
 
-/* Quite surprising that I could not find an alternative to this in Gio */
 static gchar *
-remove_uri_prefix (const gchar  *uri,
-                   GError      **error)
+remove_uri_prefix (const gchar *uri, const gchar *prefix)
 {
-  g_autoptr(GError) local_error = NULL;
-  g_autoptr(GRegex) regex = g_regex_new ("[a-z]+:\\/+(\\w+)", 0, 0, &local_error);
-  g_autoptr(GMatchInfo) match_info = NULL;
+  g_autoptr(GFile) uri_parent = g_file_new_for_uri (prefix);
+  g_autoptr(GFile) uri_file = g_file_new_for_uri (uri);
 
-  if (regex == NULL)
-    {
-      g_error ("Failed to compile regex: %s", local_error->message);
-      return NULL;
-    }
-
-  if (g_regex_match (regex, uri, 0, &match_info))
-    {
-      return g_match_info_fetch (match_info, 1);
-    }
-
-  g_set_error (error,
-               G_IO_ERROR,
-               G_IO_ERROR_FAILED,
-               "Failed to parse URI %s", uri);
-  return NULL;
+  return g_file_get_relative_path (uri_parent, uri_file);
 }
 
 static GInputStream *
 find_thumbnail_stream_in_shards (const gchar * const  *shards_strv,
                                  const gchar          *thumbnail_uri)
 {
-  g_autoptr(GError) local_error = NULL;
   const gchar * const *iter = shards_strv;
-  g_autofree gchar *normalized = remove_uri_prefix (thumbnail_uri, &local_error);
-
-  if (normalized == NULL)
-    {
-      g_message ("Can't load thumbnail: %s", local_error->message);
-      return NULL;
-    }
+  g_autofree gchar *normalized = remove_uri_prefix (thumbnail_uri, "ekn://");
 
   for (; *iter != NULL; ++iter) {
     g_autoptr(EosShardShardFile) shard_file = g_object_new (EOS_SHARD_TYPE_SHARD_FILE,
