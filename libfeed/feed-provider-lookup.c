@@ -161,31 +161,24 @@ optional_get_key_file_string (GKeyFile     *key_file,
                               gchar       **value_out,
                               GError      **error)
 {
+  g_autofree gchar *value = NULL;
   g_autoptr(GError) local_error = NULL;
-  gboolean has_key = FALSE;
 
-  has_key = g_key_file_has_key (key_file, section, key, &local_error);
+  value = g_key_file_get_string (key_file, section, key, &local_error);
 
   if (local_error != NULL)
     {
+      if (g_error_matches (local_error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_KEY_NOT_FOUND))
+        {
+          *value_out = g_strdup (default_value);
+          return TRUE;
+        }
+
       g_propagate_error (error, g_steal_pointer (&local_error));
       return FALSE;
     }
 
-  if (!has_key)
-    {
-      *value_out = g_strdup (default_value);
-      return TRUE;
-    }
-
-  *value_out = g_key_file_get_string (key_file, section, key, &local_error);
-
-  if (local_error != NULL)
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return FALSE;
-    }
-
+  *value_out = g_steal_pointer (&value);
   return TRUE;
 }
 
