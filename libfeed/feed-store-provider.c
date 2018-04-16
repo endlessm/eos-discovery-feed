@@ -817,52 +817,6 @@ append_discovery_feed_word_quote_from_proxies (EosDiscoveryFeedKnowledgeAppProxy
                                  individual_task_result_closure_new (all_tasks_closure));
 }
 
-typedef gpointer (*PtrArrayZipElementFactory) (gpointer first, gpointer second);
-
-static GPtrArray *
-zip_two_ptr_arrays (GPtrArray                 *first,
-                    GPtrArray                 *second,
-                    PtrArrayZipElementFactory  factory,
-                    GDestroyNotify             element_destroy_func)
-{
-  guint len = MIN (first->len, second->len);
-  guint i = 0;
-  GPtrArray *zipped = g_ptr_array_new_full (len, element_destroy_func);
-
-  for (; i < len; ++i)
-    g_ptr_array_add (zipped, factory (g_ptr_array_index (first, i),
-                                      g_ptr_array_index (second, i)));
-
-  return zipped;
-}
-
-typedef struct _WordQuoteProxyBundle
-{
-  EosDiscoveryFeedKnowledgeAppProxy *word_proxy;
-  EosDiscoveryFeedKnowledgeAppProxy *quote_proxy;
-} WordQuoteProxyBundle;
-
-static WordQuoteProxyBundle *
-word_quote_proxy_bundle_new (gpointer word_proxy,
-                             gpointer quote_proxy)
-{
-  WordQuoteProxyBundle *bundle = g_new0 (WordQuoteProxyBundle, 1);
-
-  bundle->word_proxy = g_object_ref (word_proxy);
-  bundle->quote_proxy = g_object_ref (quote_proxy);
-
-  return bundle;
-}
-
-static void
-word_quote_proxy_bundle_free (WordQuoteProxyBundle *bundle)
-{
-  g_clear_object (&bundle->word_proxy);
-  g_clear_object (&bundle->quote_proxy);
-
-  g_free (bundle);
-}
-
 static void
 unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
                                     GCancellable        *cancellable,
@@ -929,16 +883,10 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
         g_ptr_array_add (quote_proxies, ka_proxy);
     }
 
-  zipped_word_quote_proxies = zip_two_ptr_arrays (word_proxies,
-                                                  quote_proxies,
-                                                  (PtrArrayZipElementFactory) word_quote_proxy_bundle_new,
-                                                  (GDestroyNotify) word_quote_proxy_bundle_free);
-
-  for (i = 0; i < zipped_word_quote_proxies->len; ++i)
+  for (i = 0; i < MIN (word_proxies->len, quote_proxies->len); ++i)
     {
-      WordQuoteProxyBundle *bundle = g_ptr_array_index (zipped_word_quote_proxies, i);
-      append_discovery_feed_word_quote_from_proxies (bundle->word_proxy,
-                                                     bundle->quote_proxy,
+      append_discovery_feed_word_quote_from_proxies (g_ptr_array_index (word_proxies, i),
+                                                     g_ptr_array_index (quote_proxies, i),
                                                      cancellable,
                                                      individual_task_result_completed,
                                                      individual_task_result_closure_new (all_tasks_closure));
