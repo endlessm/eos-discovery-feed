@@ -330,7 +330,7 @@ eos_discovery_feed_instantiate_proxies_from_discovery_feed_providers_finish (GAs
 /**
  * eos_discovery_feed_instantiate_proxies_from_discovery_feed_providers:
  * @connection: A #GDBusConnection
- * @providers:(element-type EosDiscoveryFeedProviderInfo): A #GPtrArray of
+ * @providers: (element-type EosDiscoveryFeedProviderInfo): A #GPtrArray of
  * #EosDiscoveryFeedProviderInfo objects, used to construct all the relevant proxies
  * @cancellable: A #GCancellable
  * @callback: A #GAsyncReadyCallback which will be invoked with a #GPtrArray
