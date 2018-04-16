@@ -222,7 +222,7 @@ add_first_item_from_first_source (GPtrArray *sources,
  * be inserted and the pattern will repeat itself. There is a limit of one card
  * per app, except for news cards where there is a limit of 5 cards.
  *
- * Returns: (transfer none) (element-type EosDiscoveryFeedOrderableModel): The
+ * Returns: (transfer container) (element-type EosDiscoveryFeedOrderableModel): The
  *          correctly ordered models.
  */
 GPtrArray *
