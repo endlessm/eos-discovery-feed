@@ -138,14 +138,19 @@ find_thumbnail_stream_in_shards (const gchar * const  *shards_strv,
   g_autofree gchar *normalized = remove_uri_prefix (thumbnail_uri, "ekn://");
 
   for (; *iter != NULL; ++iter) {
-    g_autoptr(EosShardShardFile) shard_file = g_object_new (EOS_SHARD_TYPE_SHARD_FILE,
-                                                            "path", *iter,
-                                                            NULL);
+    g_autoptr(EosShardShardFile) shard_file = NULL;
     g_autoptr(EosShardRecord) record = NULL;
     g_autoptr(GError) local_error = NULL;
 
     /* XXX: This should probably be done asynchronously if possible */
-    if (!g_initable_init (G_INITABLE (shard_file), NULL, &local_error))
+    shard_file = g_initable_new (EOS_SHARD_TYPE_SHARD_FILE,
+                                 NULL,
+                                 &local_error,
+                                 "path",
+                                 *iter,
+                                 NULL);
+
+    if (shard_file == NULL)
       {
         g_message ("Failed to load shard file %s: %s. Skipping.",
                    *iter,
