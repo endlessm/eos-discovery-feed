@@ -63,9 +63,8 @@ eos_discovery_feed_orderable_model_get_source (EosDiscoveryFeedOrderableModel *m
  * eos_discovery_feed_orderable_model_get_card_store_type:
  * @model: An #EosDiscoveryFeedOrderableModel
  *
- * Returns: (transfer none): The #EosDiscoveryFeedCardStoreType of this model
- *                           or %NULL if no source was registered at
- *                           construction.
+ * Returns: The #EosDiscoveryFeedCardStoreType of this model or %NULL if no source
+ *          was registered at construction.
  */
 EosDiscoveryFeedCardStoreType
 eos_discovery_feed_orderable_model_get_card_store_type (EosDiscoveryFeedOrderableModel *model)
