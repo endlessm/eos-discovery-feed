@@ -796,7 +796,7 @@ append_discovery_feed_word_quote_from_proxies (EosDiscoveryFeedKnowledgeAppProxy
   g_autoptr(GTask) task = g_task_new (NULL, cancellable, callback, user_data);
   AllTasksResultsClosure *all_tasks_closure = all_tasks_results_closure_new (g_object_unref,
                                                                              marshal_word_quote_into_store,
-                                                                             g_object_ref (task));
+                                                                             g_steal_pointer (&task));
 
   /* Ignoring the return values here, recall that the task's lifecycle owns
    * the task */
