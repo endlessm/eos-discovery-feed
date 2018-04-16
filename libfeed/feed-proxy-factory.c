@@ -188,6 +188,19 @@ instantiate_proxy_for_interface_sync (GDBusConnection               *connection,
   knowledge_search_object_path = eos_discovery_feed_provider_info_get_knowledge_search_object_path (provider_info);
   knowledge_app_id = eos_discovery_feed_provider_info_get_knowledge_app_id (provider_info);
 
+  /* Make sure that the object path is valid. If it is not, return an error. This
+   * will cause the current feed provider to not load with a warning but it is
+   * better than hitting an assertion in g_dbus_proxy_new_sync */
+  if (!g_variant_is_object_path (object_path))
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "Object path %s is not valid",
+                   object_path);
+      return NULL;
+    }
+
   proxy = g_dbus_proxy_new_sync (connection,
                                  G_DBUS_PROXY_FLAGS_NONE,
                                  interface_info,
