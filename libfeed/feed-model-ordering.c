@@ -209,7 +209,7 @@ add_first_card_from_first_source (GPtrArray *sources,
 /**
  * eos_discovery_feed_arrange_orderable_models:
  * @unordered_orderable_models: (element-type EosDiscoveryFeedOrderableModel): The
- *                              models to to order. The output list may be truncated
+ *                              models to order. The output list may be truncated
  *                              as a result of the reordering operation.
  *
  * Reorder the models in the order that they should be displayed in the feed.
@@ -314,7 +314,7 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
 
           /* Increment the card type. If that wraps around, increment the
            * inner_outer_index. We'll be done once models_remaining returns
-           * fals and we have nothing else left to add. */
+           * false and we have nothing else left to add. */
           card_type_index = (card_type_index + 1) % INNER_TYPES_LENGTH;
 
           if (card_type_index == 0)
