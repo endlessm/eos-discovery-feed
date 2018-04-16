@@ -193,7 +193,7 @@ make_app_indices_for_card_type (void)
 #define CARDS_LIMIT 14
 
 static void
-add_first_card_from_first_source (GPtrArray *sources,
+add_first_item_from_first_source (GPtrArray *sources,
                                   GPtrArray *arranged_descriptors)
 {
   GPtrArray *source = NULL;
@@ -258,7 +258,7 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
       /* If we have a word/quote card, append that now */
       if (overall_index == 2 && word_quote_card_sources != NULL)
         {
-          add_first_card_from_first_source (word_quote_card_sources,
+          add_first_item_from_first_source (word_quote_card_sources,
                                             arranged_descriptors);
           ++overall_index;
           evergreen_card_added = TRUE;
@@ -349,7 +349,7 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
 
   /* We have less than 3 cards, add the word/quote card nonetheless */
   if (!evergreen_card_added && word_quote_card_sources != NULL)
-    add_first_card_from_first_source (word_quote_card_sources,
+    add_first_item_from_first_source (word_quote_card_sources,
                                       arranged_descriptors);
 
   /* Now that we're at the end, add installable apps, if requested */
@@ -360,7 +360,7 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
                              GINT_TO_POINTER (EOS_DISCOVERY_FEED_CARD_STORE_TYPE_AVAILABLE_APPS));
 
       if (installable_apps_card_sources != NULL)
-        add_first_card_from_first_source (installable_apps_card_sources,
+        add_first_item_from_first_source (installable_apps_card_sources,
                                           arranged_descriptors);
     }
 
