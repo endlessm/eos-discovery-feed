@@ -314,7 +314,7 @@ append_discovery_feed_content_from_proxy_data_free (AppendDiscoveryFeedContentFr
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (AppendDiscoveryFeedContentFromProxyData,
-                               append_discovery_feed_content_from_proxy_data_free);
+                               append_discovery_feed_content_from_proxy_data_free)
 
 static gpointer
 append_discovery_feed_content_from_proxy (EosDiscoveryFeedKnowledgeAppProxy  *ka_proxy,
@@ -579,7 +579,7 @@ append_stores_task_data_free (AppendStoresTaskData *data)
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (AppendStoresTaskData,
-                               append_stores_task_data_free);
+                               append_stores_task_data_free)
 
 static void
 append_stores_task_from_proxy_thread (GTask        *task,
