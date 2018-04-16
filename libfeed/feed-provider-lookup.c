@@ -73,7 +73,7 @@ uniquify_string_lists (GStrv *strvs)
 
           if (!g_hash_table_contains (set, str))
             {
-              g_hash_table_insert (set, str, NULL);
+              g_hash_table_insert (set, (gpointer) str, NULL);
               g_ptr_array_add (array, g_strdup (str));
             }
         }
@@ -101,7 +101,7 @@ all_relevant_data_dirs (void)
 
   const gchar * const * const all_data_dirs_strvs[] = {
     system_data_dirs,
-    flatpak_exports_dirs,
+    (const gchar * const *) flatpak_exports_dirs,
     host_data_dirs,
     NULL
   };
