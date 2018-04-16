@@ -159,7 +159,7 @@ find_thumbnail_stream_in_shards (const gchar * const  *shards_strv,
     if (record == NULL || record->data == NULL)
       continue;
 
-     return eos_shard_blob_get_stream (record->data);
+    return eos_shard_blob_get_stream (record->data);
   }
 
   return NULL;
