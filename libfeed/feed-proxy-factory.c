@@ -311,7 +311,7 @@ on_received_all_instantiation_results (GObject      *source,
  * @result: A #GAsyncResult
  * @error: A #GError
  *
- * Complete a call to eos_discovery_feed_instantiate_proxies_from_discovery_feed_provider_info
+ * Complete a call to eos_discovery_feed_instantiate_proxies_from_discovery_feed_providers
  * and get a #GPtrArray of #EosDiscoveryFeedKnowledgeAppProxy that were
  * successfully created as a result of this call. Failures are logged
  * to the standard error.
