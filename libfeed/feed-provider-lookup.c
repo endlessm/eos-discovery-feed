@@ -54,10 +54,7 @@ append_suffix_to_each_path (const gchar * const *paths,
 static GStrv
 uniquify_string_lists (GStrv *strvs)
 {
-  g_autoptr(GHashTable) set = g_hash_table_new_full (g_str_hash,
-                                                     g_str_equal,
-                                                     NULL,
-                                                     NULL);
+  g_autoptr(GHashTable) set = g_hash_table_new (g_str_hash, g_str_equal);
   g_autoptr(GPtrArray) array = g_ptr_array_new_with_free_func (g_free);
   GStrv *strvs_iter = strvs;
 
