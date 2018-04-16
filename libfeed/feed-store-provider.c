@@ -102,7 +102,6 @@ call_dbus_proxy_and_construct_from_model (GDBusProxy           *proxy,
                                           GCancellable         *cancellable,
                                           GError              **error)
 {
-  g_autoptr(GPtrArray) model_data_array = NULL;
   g_autoptr(GVariant) result = g_dbus_proxy_call_sync (proxy,
                                                        method_name,
                                                        NULL,
