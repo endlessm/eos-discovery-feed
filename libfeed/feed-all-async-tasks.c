@@ -49,7 +49,7 @@ all_tasks_results_closure_free (AllTasksResultsClosure *closure)
   g_free (closure);
 }
 
-guint
+static guint
 all_tasks_results_closure_allocate_new_result_slot (AllTasksResultsClosure *closure)
 {
   guint last_len = closure->results->len;
