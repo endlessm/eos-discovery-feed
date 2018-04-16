@@ -1000,7 +1000,7 @@ received_all_unordered_card_array_results_from_queries (GObject      *source,
  *
  * Complete the call to eos_discovery_feed_unordered_results_from_queries.
  *
- * Returns: (transfer none) (element-type EosDiscoveryFeedBaseCardStore):
+ * Returns: (transfer container) (element-type EosDiscoveryFeedBaseCardStore):
  *          A #GPtrArray of #EosDiscoveryFeedBaseCardStore.
  */
 GPtrArray *
