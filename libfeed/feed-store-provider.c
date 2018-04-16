@@ -252,17 +252,17 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
         find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
       GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (data->ka_proxy);
 
-      EosDiscoveryFeedKnowledgeAppCardStore *store
-        = data->factory (title,
-                         ekn_id,
-                         synopsis,
-                         thumbnail_stream,
-                         eos_discovery_feed_knowledge_app_proxy_get_desktop_id (data->ka_proxy),
-                         g_dbus_proxy_get_name (dbus_proxy),
-                         eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (data->ka_proxy),
-                         eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (data->ka_proxy),
-                         data->direction ? data->direction : EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
-                         data->thumbnail_size);
+      EosDiscoveryFeedKnowledgeAppCardStore *store =
+        data->factory (title,
+                       ekn_id,
+                       synopsis,
+                       thumbnail_stream,
+                       eos_discovery_feed_knowledge_app_proxy_get_desktop_id (data->ka_proxy),
+                       g_dbus_proxy_get_name (dbus_proxy),
+                       eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (data->ka_proxy),
+                       eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (data->ka_proxy),
+                       data->direction ? data->direction : EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
+                       data->thumbnail_size);
       g_ptr_array_add (orderable_stores,
                        eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
                                                                data->type,
