@@ -103,7 +103,7 @@ individual_task_result_closure_free (IndividualTaskResultClosure *closure)
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (IndividualTaskResultClosure,
-                               individual_task_result_closure_free);
+                               individual_task_result_closure_free)
 
 void
 individual_task_result_completed (GObject      *source,
