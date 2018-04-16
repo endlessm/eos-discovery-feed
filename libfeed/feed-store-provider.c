@@ -497,18 +497,18 @@ artwork_cards_from_shards_and_items (const char * const *shards_strv,
         find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
       GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (ka_proxy);
 
-      EosDiscoveryFeedKnowledgeAppArtworkCardStore *store
-        = eos_discovery_feed_knowledge_app_artwork_card_store_new (title,
-                                                                   ekn_id,
-                                                                   author,
-                                                                   first_date != NULL ? first_date : "",
-                                                                   thumbnail_stream,
-                                                                   eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
-                                                                   g_dbus_proxy_get_name (dbus_proxy),
-                                                                   eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
-                                                                   eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy),
-                                                                   EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                                   EOS_DISCOVERY_FEED_THUMBNAIL_SIZE_ARTWORK);
+      EosDiscoveryFeedKnowledgeAppArtworkCardStore *store =
+        eos_discovery_feed_knowledge_app_artwork_card_store_new (title,
+                                                                 ekn_id,
+                                                                 author,
+                                                                 first_date != NULL ? first_date : "",
+                                                                 thumbnail_stream,
+                                                                 eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
+                                                                 g_dbus_proxy_get_name (dbus_proxy),
+                                                                 eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
+                                                                 eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy),
+                                                                 EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
+                                                                 EOS_DISCOVERY_FEED_THUMBNAIL_SIZE_ARTWORK);
       g_ptr_array_add (orderable_stores,
                        eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
                                                                EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTWORK_CARD,
