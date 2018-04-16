@@ -688,10 +688,10 @@ marshal_word_quote_into_store (GObject      *source,
   /* Unpack the word/quote results and concatenate the pointer arrays */
   if (word_quote_results->len != 2)
     {
-      g_task_return_error (task,
-                           g_error_new (G_IO_ERROR,
-                                        G_IO_ERROR_FAILED,
-                                        "Expected exactly two results for word/quote query."));
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "Expected exactly two results for word/quote query."));
       return;
     }
 
