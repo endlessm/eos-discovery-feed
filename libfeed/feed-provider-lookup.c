@@ -37,38 +37,11 @@ determine_flatpak_system_dirs (void)
   return g_strdupv ((GStrv) default_system_dirs);
 }
 
-/* XXX: I am not sure if this maintains the insert-order */
-static void
-consume_strv_into_hashset (const gchar * const *strv,
-                           GHashTable          *set)
-{
-  const gchar * const *iter = strv;
-
-  for (; *iter != NULL; ++iter)
-    g_hash_table_insert (set, g_strdup (*iter), NULL);
-}
-
-static GStrv
-hashset_to_strv (GHashTable *set)
-{
-  GHashTableIter iter;
-  GPtrArray *all_data_dirs = g_ptr_array_new_full (g_hash_table_size (set),
-                                                   g_free);
-  gchar *key;
-
-  g_hash_table_iter_init (&iter, set);
-  while (g_hash_table_iter_next (&iter, (gpointer*) &key, NULL))
-    g_ptr_array_add (all_data_dirs, g_strdup (key));
-
-  g_ptr_array_add (all_data_dirs, NULL);
-  return (GStrv) g_ptr_array_free (all_data_dirs, FALSE);
-}
-
 static GStrv
 append_suffix_to_each_path (const gchar * const *paths,
                             const gchar         *suffix)
 {
-  GPtrArray *array = g_ptr_array_new_with_free_func (g_free);
+  GPtrArray *array = g_ptr_array_new ();
   const gchar * const *iter = paths;
 
   for (; *iter != NULL; ++iter)
@@ -79,23 +52,52 @@ append_suffix_to_each_path (const gchar * const *paths,
 }
 
 static GStrv
+uniquify_string_lists (GStrv *strvs)
+{
+  g_autoptr(GHashTable) set = g_hash_table_new (g_str_hash, g_str_equal);
+  g_autoptr(GPtrArray) array = g_ptr_array_new_with_free_func (g_free);
+  GStrv *strvs_iter = strvs;
+
+  /* Pick from each element in the strvs, checking if the string
+   * is in the hash set already */
+  for (; *strvs_iter != NULL; ++strvs_iter)
+    {
+      GStrv strv_iter = *strvs_iter;
+
+      for (; *strv_iter != NULL; ++strv_iter)
+        {
+          const gchar *str = *strv_iter;
+
+          /* TRUE if the key did not exist yet */
+          if (g_hash_table_insert (set, (gpointer) str, NULL))
+            g_ptr_array_add (array, g_strdup (str));
+        }
+    }
+
+  g_ptr_array_add (array, NULL);
+  return (GStrv) g_ptr_array_free (g_steal_pointer (&array), FALSE);
+}
+
+static GStrv
 all_relevant_data_dirs (void)
 {
-  g_autoptr(GHashTable) set = g_hash_table_new_full (g_str_hash,
-                                                     g_str_equal,
-                                                     g_free,
-                                                     NULL);
+  const gchar * const host_data_dirs[] = {
+    "/run/host/usr/share",
+    NULL
+  };
   const gchar * const *system_data_dirs = g_get_system_data_dirs ();
   g_auto(GStrv) flatpak_system_dirs = determine_flatpak_system_dirs ();
   g_auto(GStrv) flatpak_exports_dirs = append_suffix_to_each_path ((const gchar * const *) flatpak_system_dirs,
                                                                    "exports/share");
 
-  consume_strv_into_hashset ((const gchar * const *) system_data_dirs, set);
-  consume_strv_into_hashset ((const gchar * const *) flatpak_exports_dirs, set);
+  const gchar * const * const all_data_dirs_strvs[] = {
+    system_data_dirs,
+    (const gchar * const *) flatpak_exports_dirs,
+    host_data_dirs,
+    NULL
+  };
 
-  g_hash_table_insert (set, g_strdup ("/run/host/usr/share"), NULL);
-
-  return hashset_to_strv (set);
+  return uniquify_string_lists ((GStrv *) all_data_dirs_strvs);
 }
 
 #define DISCOVERY_FEED_SECTION_NAME "Discovery Feed Content Provider"
@@ -205,7 +207,6 @@ flatpak_compatible_desktop_app_info (const gchar  *desktop_id,
                                                  NULL);
       g_autoptr(GKeyFile) key_file = g_key_file_new ();
       g_autoptr(GError) local_error = NULL;
-      g_autoptr(GDesktopAppInfo) info = NULL;
 
       if (!g_key_file_load_from_file (key_file,
                                       path,
@@ -318,7 +319,6 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
       g_autofree gchar *desktop_id = NULL;
       g_autofree gchar *provider_object_path = NULL;
       g_autofree gchar *provider_bus_name = NULL;
-      g_autofree gchar *provider_supported_interfaces_str = NULL;
       g_auto(GStrv) provider_supported_interfaces = NULL;
       g_autoptr(GFile) candidate_provider_file = NULL;
       g_autoptr(GKeyFile) key_file = NULL;
@@ -327,8 +327,7 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
       if (child == NULL || info == NULL)
         break;
 
-      candidate_provider_file = g_file_get_child (directory,
-                                                  g_file_info_get_name (info));
+      candidate_provider_file = g_file_enumerator_get_child (enumerator, info);
       provider_file_path = g_file_get_path (candidate_provider_file);
       key_file = g_key_file_new ();
 
@@ -340,14 +339,6 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
           g_message ("Key file %s could not be loaded: %s (ignoring)",
                      provider_file_path,
                      enumerate_provider_error->message);
-          continue;
-        }
-
-      if (!g_key_file_has_group (key_file, DISCOVERY_FEED_SECTION_NAME))
-        {
-          g_message ("Key file %s does not have a section called %s (ignoring)",
-                     provider_file_path,
-                     DISCOVERY_FEED_SECTION_NAME);
           continue;
         }
 
@@ -431,13 +422,12 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
                                                  NULL);
       g_assert (provider_bus_name != NULL);
 
-      provider_supported_interfaces_str = g_key_file_get_string (key_file,
-                                                                 DISCOVERY_FEED_SECTION_NAME,
-                                                                 "SupportedInterfaces",
-                                                                 NULL);
-      g_assert (provider_supported_interfaces_str);
-
-      provider_supported_interfaces = g_strsplit (provider_supported_interfaces_str, ";", -1);
+      provider_supported_interfaces = g_key_file_get_string_list (key_file,
+                                                                  DISCOVERY_FEED_SECTION_NAME,
+                                                                  "SupportedInterfaces",
+                                                                  NULL,
+                                                                  NULL);
+      g_assert (provider_supported_interfaces != NULL);
 
       if (!optional_get_key_file_string (key_file,
                                          DISCOVERY_FEED_SECTION_NAME,
@@ -486,6 +476,7 @@ lookup_providers (GCancellable  *cancellable,
                   GError       **error)
 {
   g_auto(GStrv) data_directories = all_relevant_data_dirs ();
+  g_auto(GStrv) languages = supported_languages ();
   g_autoptr(GPtrArray) providers = g_ptr_array_new_with_free_func (g_object_unref);
   GStrv iter = data_directories;
 
@@ -495,7 +486,6 @@ lookup_providers (GCancellable  *cancellable,
                                                  "eos-discovery-feed",
                                                  "content-providers",
                                                  NULL);
-      g_auto(GStrv) languages = supported_languages ();
       g_autoptr(GFile) directory = g_file_new_for_path (path);
 
       if (!append_providers_in_directory_to_ptr_array (directory,
@@ -528,7 +518,6 @@ lookup_providers_thread (GTask        *task,
                          g_steal_pointer (&array),
                          (GDestroyNotify) g_ptr_array_unref);
 }
-            
 
 /**
  * eos_discovery_feed_find_providers_finish:
@@ -537,12 +526,9 @@ lookup_providers_thread (GTask        *task,
  *
  * Complete a call to eos_discovery_feed_find_providers.
  *
- * XXX: It also seems that like pygi, using transfer full here causes
- * a double-free. Using transfer-none for now.
- *
  * Returns: (transfer none) (element-type EosDiscoveryFeedProviderInfo): A
- * #GPtrArray of #EosDiscoveryFeedProviderInfo with information about each
- * provider file, or %NULL on error.
+ *          #GPtrArray of #EosDiscoveryFeedProviderInfo with information
+ *          about each provider file, or %NULL on error.
  */
 GPtrArray *
 eos_discovery_feed_find_providers_finish (GAsyncResult  *result,
@@ -559,7 +545,7 @@ eos_discovery_feed_find_providers_finish (GAsyncResult  *result,
  * @user_data: Closure for @callback
  *
  * Lookup all provider files on the filesystem and return a #GPtrArray
- * to the GAsyncReadyCallback provided. Use eos_discovery_feed_find_providers
+ * to the GAsyncReadyCallback provided. Use eos_discovery_feed_find_providers_finish
  * to complete the call.
  */
 void
@@ -570,9 +556,6 @@ eos_discovery_feed_find_providers (GCancellable        *cancellable,
   g_autoptr(GTask) task = g_task_new (NULL, cancellable, callback, user_data);
 
   g_task_set_return_on_cancel (task, TRUE);
-  g_task_set_task_data (task,
-                        NULL,
-                        NULL);
   g_task_run_in_thread (task, lookup_providers_thread);
 }
 
