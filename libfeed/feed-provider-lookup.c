@@ -565,9 +565,6 @@ eos_discovery_feed_find_providers (GCancellable        *cancellable,
   g_autoptr(GTask) task = g_task_new (NULL, cancellable, callback, user_data);
 
   g_task_set_return_on_cancel (task, TRUE);
-  g_task_set_task_data (task,
-                        NULL,
-                        NULL);
   g_task_run_in_thread (task, lookup_providers_thread);
 }
 
