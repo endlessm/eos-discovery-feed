@@ -45,7 +45,7 @@ strv_into_hashset_no_copy (const gchar * const *strv,
   const gchar * const *iter = strv;
 
   for (; *iter != NULL; ++iter)
-    g_hash_table_insert (set, *iter, NULL);
+    g_hash_table_insert (set, (gpointer) *iter, NULL);
 }
 
 static GStrv
