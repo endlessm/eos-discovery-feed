@@ -80,7 +80,7 @@ uniquify_string_lists (GStrv *strvs)
     }
 
   g_ptr_array_add (array, NULL);
-  return g_ptr_array_free (g_steal_pointer (&array), FALSE);
+  return (GStrv) g_ptr_array_free (g_steal_pointer (&array), FALSE);
 }
 
 static GStrv
