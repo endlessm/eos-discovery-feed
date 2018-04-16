@@ -37,33 +37,6 @@ determine_flatpak_system_dirs (void)
   return g_strdupv ((GStrv) default_system_dirs);
 }
 
-/* XXX: I am not sure if this maintains the insert-order */
-static void
-strv_into_hashset_no_copy (const gchar * const *strv,
-                           GHashTable          *set)
-{
-  const gchar * const *iter = strv;
-
-  for (; *iter != NULL; ++iter)
-    g_hash_table_insert (set, (gpointer) *iter, NULL);
-}
-
-static GStrv
-hashset_to_strv (GHashTable *set)
-{
-  GHashTableIter iter;
-  GPtrArray *all_data_dirs = g_ptr_array_new_full (g_hash_table_size (set),
-                                                   g_free);
-  gchar *key;
-
-  g_hash_table_iter_init (&iter, set);
-  while (g_hash_table_iter_next (&iter, (gpointer*) &key, NULL))
-    g_ptr_array_add (all_data_dirs, g_strdup (key));
-
-  g_ptr_array_add (all_data_dirs, NULL);
-  return (GStrv) g_ptr_array_free (all_data_dirs, FALSE);
-}
-
 static GStrv
 append_suffix_to_each_path (const gchar * const *paths,
                             const gchar         *suffix)
@@ -79,23 +52,61 @@ append_suffix_to_each_path (const gchar * const *paths,
 }
 
 static GStrv
+uniquify_string_lists (GStrv *strvs)
+{
+  g_autoptr(GHashTable) set = g_hash_table_new_full (g_str_hash,
+                                                     g_str_equal,
+                                                     NULL,
+                                                     NULL);
+  g_autoptr(GPtrArray) array = g_ptr_array_new_with_free_func (g_free);
+  GStrv *strvs_iter = strvs;
+
+  /* Pick from each element in the strvs, checking if the string
+   * is in the hash set already */
+  for (; *strvs_iter != NULL; ++strvs_iter)
+    {
+      GStrv strv_iter = *strvs_iter;
+
+      for (; *strv_iter != NULL; ++strv_iter)
+        {
+          const gchar *str = *strv_iter;
+
+          if (!g_hash_table_contains (set, str))
+            {
+              g_hash_table_insert (set, str, NULL);
+              g_ptr_array_add (array, g_strdup (str));
+            }
+        }
+    }
+
+  g_ptr_array_add (array, NULL);
+  return g_ptr_array_free (g_steal_pointer (&array), FALSE);
+}
+
+static GStrv
 all_relevant_data_dirs (void)
 {
   g_autoptr(GHashTable) set = g_hash_table_new_full (g_str_hash,
                                                      g_str_equal,
                                                      NULL,
                                                      NULL);
+  const gchar * const host_data_dirs[] = {
+    "/run/host/usr/share",
+    NULL
+  };
   const gchar * const *system_data_dirs = g_get_system_data_dirs ();
   g_auto(GStrv) flatpak_system_dirs = determine_flatpak_system_dirs ();
   g_auto(GStrv) flatpak_exports_dirs = append_suffix_to_each_path ((const gchar * const *) flatpak_system_dirs,
                                                                    "exports/share");
 
-  strv_into_hashset_no_copy ((const gchar * const *) system_data_dirs, set);
-  strv_into_hashset_no_copy ((const gchar * const *) flatpak_exports_dirs, set);
+  const gchar * const * const all_data_dirs_strvs[] = {
+    system_data_dirs,
+    flatpak_exports_dirs,
+    host_data_dirs,
+    NULL
+  };
 
-  g_hash_table_insert (set, g_strdup ("/run/host/usr/share"), NULL);
-
-  return hashset_to_strv (set);
+  return uniquify_string_lists ((GStrv *) all_data_dirs_strvs);
 }
 
 #define DISCOVERY_FEED_SECTION_NAME "Discovery Feed Content Provider"
