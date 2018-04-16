@@ -516,7 +516,6 @@ lookup_providers_thread (GTask        *task,
                          g_steal_pointer (&array),
                          (GDestroyNotify) g_ptr_array_unref);
 }
-            
 
 /**
  * eos_discovery_feed_find_providers_finish:
