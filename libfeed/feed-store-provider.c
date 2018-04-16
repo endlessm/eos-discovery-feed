@@ -378,7 +378,7 @@ parse_int64_with_limits (const gchar  *str,
   return TRUE;
 }
 
-static char *
+static gchar *
 parse_duration (const gchar  *duration,
                 GError      **error)
 {
