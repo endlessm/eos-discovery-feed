@@ -554,7 +554,7 @@ eos_discovery_feed_find_providers_finish (GAsyncResult  *result,
  * @user_data: Closure for @callback
  *
  * Lookup all provider files on the filesystem and return a #GPtrArray
- * to the GAsyncReadyCallback provided. Use eos_discovery_feed_find_providers
+ * to the GAsyncReadyCallback provided. Use eos_discovery_feed_find_providers_finish
  * to complete the call.
  */
 void
