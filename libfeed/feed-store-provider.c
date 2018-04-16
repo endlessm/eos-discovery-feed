@@ -241,12 +241,12 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
   for (; i < model_props_variants->len; ++i)
     {
       GVariant *model_props = g_ptr_array_index (model_props_variants, i);
-      g_autofree char *unsanitized_snopsis = lookup_string_in_dict_variant (model_props,
-                                                                            "synopsis");
-      g_autofree char *synopsis = eos_discovery_feed_sanitize_synopsis (unsanitized_snopsis);
-      g_autofree char *title = lookup_string_in_dict_variant (model_props, "title");
-      g_autofree char *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
-      g_autofree char *thumbnail_uri = lookup_string_in_dict_variant (model_props,
+      g_autofree gchar *unsanitized_snopsis = lookup_string_in_dict_variant (model_props,
+                                                                             "synopsis");
+      g_autofree gchar *synopsis = eos_discovery_feed_sanitize_synopsis (unsanitized_snopsis);
+      g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
+      g_autofree gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
+      g_autofree gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props,
                                                                       "thumbnail_uri");
       g_autoptr(GInputStream) thumbnail_stream =
         find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
