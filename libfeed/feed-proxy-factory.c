@@ -329,10 +329,9 @@ eos_discovery_feed_instantiate_proxies_from_discovery_feed_providers_finish (GAs
 
 /**
  * eos_discovery_feed_instantiate_proxies_from_discovery_feed_providers:
- * @connection: (transfer none): A #GDBusConnection
- * @providers: (transfer none) (element-type EosDiscoveryFeedProviderInfo): A
- *             #GPtrArray of #EosDiscoveryFeedProviderInfo objects, used to
- *             construct all the relevant proxies
+ * @connection: A #GDBusConnection
+ * @providers:(element-type EosDiscoveryFeedProviderInfo): A #GPtrArray of
+ * #EosDiscoveryFeedProviderInfo objects, used to construct all the relevant proxies
  * @cancellable: A #GCancellable
  * @callback: A #GAsyncReadyCallback which will be invoked with a #GPtrArray
  *            of #GAsyncResult, indicating the result of construction each
@@ -354,7 +353,7 @@ eos_discovery_feed_instantiate_proxies_from_discovery_feed_providers (GDBusConne
   g_autoptr(GTask) task = g_task_new (NULL, cancellable, callback, user_data);
   AllTasksResultsClosure *all_tasks_closure = all_tasks_results_closure_new (g_object_unref,
                                                                              on_received_all_instantiation_results,
-                                                                             g_object_ref (task));
+                                                                             g_steal_pointer (&task));
   guint i = 0;
 
   for (; i < providers->len; ++i)
