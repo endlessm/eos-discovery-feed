@@ -176,19 +176,11 @@ instantiate_proxy_for_interface_sync (GDBusConnection               *connection,
   if (node_info == NULL)
     return NULL;
 
+  /* This will be NULL in the event that interface_name could
+   * not be found in node_info. The worst that will happen in that
+   * case is that we do not get any validation that the proxy supports
+   * the methods that we would like it to support. */
   interface_info = g_dbus_node_info_lookup_interface (node_info, interface_name);
-
-  if (interface_info == NULL)
-    {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_FAILED,
-                   "Could not find %s in interface info for node at %s %s",
-                   interface_name,
-                   bus_name,
-                   object_path);
-      return NULL;
-    }
 
   bus_name = eos_discovery_feed_provider_info_get_bus_name (provider_info);
   object_path = eos_discovery_feed_provider_info_get_object_path (provider_info);
