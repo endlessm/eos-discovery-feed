@@ -476,6 +476,7 @@ lookup_providers (GCancellable  *cancellable,
                   GError       **error)
 {
   g_auto(GStrv) data_directories = all_relevant_data_dirs ();
+  g_auto(GStrv) languages = supported_languages ();
   g_autoptr(GPtrArray) providers = g_ptr_array_new_with_free_func (g_object_unref);
   GStrv iter = data_directories;
 
@@ -485,7 +486,6 @@ lookup_providers (GCancellable  *cancellable,
                                                  "eos-discovery-feed",
                                                  "content-providers",
                                                  NULL);
-      g_auto(GStrv) languages = supported_languages ();
       g_autoptr(GFile) directory = g_file_new_for_path (path);
 
       if (!append_providers_in_directory_to_ptr_array (directory,
