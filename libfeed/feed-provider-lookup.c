@@ -32,7 +32,7 @@ determine_flatpak_system_dirs (void)
   const gchar *flatpak_system_dirs_env = g_getenv ("EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIRS");
 
   if (flatpak_system_dirs_env != NULL)
-    return g_strsplit (flatpak_system_dirs_env, ";", -1);
+    return g_strsplit (flatpak_system_dirs_env, ":", -1);
 
   return g_strdupv ((GStrv) default_system_dirs);
 }
