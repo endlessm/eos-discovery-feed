@@ -217,12 +217,12 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (ArticleCardsFromShardsAndItemsData,
 
 /* Given a variant of type a{ss}, look up a string for a corresponding key,
  * note that this is currently done with a linear scan and is transfer-full */
-static gchar *
+static const gchar *
 lookup_string_in_dict_variant (GVariant *variant, const gchar *key)
 {
-  gchar *str;
+  const gchar *str;
 
-  if (!g_variant_lookup (variant, key, "s", &str, NULL))
+  if (!g_variant_lookup (variant, key, "&s", &str, NULL))
     str = NULL;
 
   return str;
@@ -241,13 +241,13 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
   for (; i < model_props_variants->len; ++i)
     {
       GVariant *model_props = g_ptr_array_index (model_props_variants, i);
-      g_autofree gchar *unsanitized_snopsis = lookup_string_in_dict_variant (model_props,
-                                                                             "synopsis");
-      g_autofree gchar *synopsis = eos_discovery_feed_sanitize_synopsis (unsanitized_snopsis);
-      g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
-      g_autofree gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
-      g_autofree gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props,
-                                                                      "thumbnail_uri");
+      const gchar *unsanitized_snopsis = lookup_string_in_dict_variant (model_props,
+                                                                        "synopsis");
+      const gchar *synopsis = eos_discovery_feed_sanitize_synopsis (unsanitized_snopsis);
+      const gchar *title = lookup_string_in_dict_variant (model_props, "title");
+      const gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
+      const gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props,
+                                                                  "thumbnail_uri");
       g_autoptr(GInputStream) thumbnail_stream =
         find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
       GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (data->ka_proxy);
@@ -419,12 +419,12 @@ video_cards_from_shards_and_items (const char * const *shards_strv,
     {
       GVariant *model_props = g_ptr_array_index (model_props_variants, i);
       g_autoptr(GError) local_error = NULL;
-      g_autofree gchar *in_duration = lookup_string_in_dict_variant (model_props,
-                                                                     "duration");
-      g_autofree gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props,
-                                                                       "thumbnail_uri");
-      g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
-      g_autofree gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
+      const gchar *in_duration = lookup_string_in_dict_variant (model_props,
+                                                                "duration");
+      const gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props,
+                                                                  "thumbnail_uri");
+      const gchar *title = lookup_string_in_dict_variant (model_props, "title");
+      const gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
       g_autofree gchar *duration = parse_duration (in_duration, &local_error);
       g_autoptr(GInputStream) thumbnail_stream = NULL;
       EosDiscoveryFeedKnowledgeAppVideoCardStore *store = NULL;
@@ -488,11 +488,11 @@ artwork_cards_from_shards_and_items (const char * const *shards_strv,
   for (; i < model_props_variants->len; ++i)
     {
       GVariant *model_props = g_ptr_array_index (model_props_variants, i);
-      g_autofree gchar *first_date = lookup_string_in_dict_variant (model_props, "first_date");
-      g_autofree gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props, "thumbnail_uri");
-      g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
-      g_autofree gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
-      g_autofree gchar *author = lookup_string_in_dict_variant (model_props, "author");
+      const gchar *first_date = lookup_string_in_dict_variant (model_props, "first_date");
+      const gchar *thumbnail_uri = lookup_string_in_dict_variant (model_props, "thumbnail_uri");
+      const gchar *title = lookup_string_in_dict_variant (model_props, "title");
+      const gchar *ekn_id = lookup_string_in_dict_variant (model_props, "ekn_id");
+      const gchar *author = lookup_string_in_dict_variant (model_props, "author");
       g_autoptr(GInputStream) thumbnail_stream =
         find_thumbnail_stream_in_shards (shards_strv, thumbnail_uri);
       GDBusProxy *dbus_proxy = eos_discovery_feed_knowledge_app_proxy_get_dbus_proxy (ka_proxy);
@@ -731,9 +731,9 @@ static GObject *
 word_card_from_item (GVariant *model_props,
                      gpointer  user_data)
 {
-  g_autofree gchar *word = lookup_string_in_dict_variant (model_props, "word");
-  g_autofree gchar *part_of_speech = lookup_string_in_dict_variant (model_props, "part_of_speech");
-  g_autofree gchar *definition = lookup_string_in_dict_variant (model_props, "definition");
+  const gchar *word = lookup_string_in_dict_variant (model_props, "word");
+  const gchar *part_of_speech = lookup_string_in_dict_variant (model_props, "part_of_speech");
+  const gchar *definition = lookup_string_in_dict_variant (model_props, "definition");
 
   return G_OBJECT (eos_discovery_feed_word_card_store_new (word,
                                                            part_of_speech,
@@ -762,8 +762,8 @@ static GObject *
 quote_card_from_item (GVariant *model_props,
                       gpointer  user_data)
 {
-  g_autofree gchar *title = lookup_string_in_dict_variant (model_props, "title");
-  g_autofree gchar *author = lookup_string_in_dict_variant (model_props, "author");
+  const gchar *title = lookup_string_in_dict_variant (model_props, "title");
+  const gchar *author = lookup_string_in_dict_variant (model_props, "author");
 
   return G_OBJECT (eos_discovery_feed_quote_card_store_new (title, author));
 }
