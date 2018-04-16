@@ -39,13 +39,13 @@ determine_flatpak_system_dirs (void)
 
 /* XXX: I am not sure if this maintains the insert-order */
 static void
-consume_strv_into_hashset (const gchar * const *strv,
+strv_into_hashset_no_copy (const gchar * const *strv,
                            GHashTable          *set)
 {
   const gchar * const *iter = strv;
 
   for (; *iter != NULL; ++iter)
-    g_hash_table_insert (set, g_strdup (*iter), NULL);
+    g_hash_table_insert (set, *iter, NULL);
 }
 
 static GStrv
@@ -83,15 +83,15 @@ all_relevant_data_dirs (void)
 {
   g_autoptr(GHashTable) set = g_hash_table_new_full (g_str_hash,
                                                      g_str_equal,
-                                                     g_free,
+                                                     NULL,
                                                      NULL);
   const gchar * const *system_data_dirs = g_get_system_data_dirs ();
   g_auto(GStrv) flatpak_system_dirs = determine_flatpak_system_dirs ();
   g_auto(GStrv) flatpak_exports_dirs = append_suffix_to_each_path ((const gchar * const *) flatpak_system_dirs,
                                                                    "exports/share");
 
-  consume_strv_into_hashset ((const gchar * const *) system_data_dirs, set);
-  consume_strv_into_hashset ((const gchar * const *) flatpak_exports_dirs, set);
+  strv_into_hashset_no_copy ((const gchar * const *) system_data_dirs, set);
+  strv_into_hashset_no_copy ((const gchar * const *) flatpak_exports_dirs, set);
 
   g_hash_table_insert (set, g_strdup ("/run/host/usr/share"), NULL);
 
