@@ -524,9 +524,6 @@ lookup_providers_thread (GTask        *task,
  *
  * Complete a call to eos_discovery_feed_find_providers.
  *
- * XXX: It also seems that like pygi, using transfer full here causes
- * a double-free. Using transfer-none for now.
- *
  * Returns: (transfer none) (element-type EosDiscoveryFeedProviderInfo): A
  * #GPtrArray of #EosDiscoveryFeedProviderInfo with information about each
  * provider file, or %NULL on error.
