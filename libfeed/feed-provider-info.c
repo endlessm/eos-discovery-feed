@@ -72,7 +72,7 @@ eos_discovery_feed_provider_info_get_object_path (EosDiscoveryFeedProviderInfo *
  * eos_discovery_feed_provider_info_get_bus_name:
  * @provider_info: A #EosDiscoveryFeedProviderInfo
  *
- * Returns: The DBus bus name path for this provider.
+ * Returns: The DBus name path for this provider.
  */
 const gchar *
 eos_discovery_feed_provider_info_get_bus_name (EosDiscoveryFeedProviderInfo *provider_info)
