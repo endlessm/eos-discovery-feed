@@ -184,7 +184,7 @@ optional_get_key_file_string (GKeyFile     *key_file,
 
 /**
  * flatpak_compatible_desktop_app_info:
- * @param desktop_id: The Desktop ID to create a GDesktopAppInfo for.
+ * @desktop_id: The Desktop ID to create a GDesktopAppInfo for.
  *
  * Build a GDesktopAppInfo for a .desktop file that might be in the exports
  * directory but is not necessarily executable because the binary was
@@ -263,8 +263,8 @@ app_language (const gchar  *desktop_id,
 
 /**
  * lanugage_code_is_compatible:
- * @param language: The language code to check.
- * @param languages: The supported user languages.
+ * @language: The language code to check.
+ * @languages: The supported user languages.
  *
  * True if the provided language code is compatible with the provided
  * languages. We check both the locale variant and the actual language
