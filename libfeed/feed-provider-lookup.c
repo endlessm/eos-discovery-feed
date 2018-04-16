@@ -422,13 +422,10 @@ append_providers_in_directory_to_ptr_array (GFile                *directory,
                                                  NULL);
       g_assert (provider_bus_name != NULL);
 
-      provider_supported_interfaces_str = g_key_file_get_string (key_file,
-                                                                 DISCOVERY_FEED_SECTION_NAME,
-                                                                 "SupportedInterfaces",
-                                                                 NULL);
-      g_assert (provider_supported_interfaces_str);
-
-      provider_supported_interfaces = g_strsplit (provider_supported_interfaces_str, ";", -1);
+      provider_supported_interfaces = g_key_file_get_string_list (key_file,
+                                                                  DISCOVERY_FEED_SECTION_NAME,
+                                                                  "SupportedInterfaces",
+                                                                  NULL);
 
       if (!optional_get_key_file_string (key_file,
                                          DISCOVERY_FEED_SECTION_NAME,
