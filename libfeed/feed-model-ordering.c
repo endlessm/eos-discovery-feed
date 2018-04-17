@@ -206,6 +206,172 @@ add_first_item_from_first_source (GPtrArray *sources,
                    g_object_ref (g_ptr_array_index (source, 0)));
 }
 
+typedef struct {
+  /* The index which indicates whether we are on the inner or outer part
+   * of the card types array. We alternate between the two. */
+  guint inner_outer_index;
+
+  /* The index which indicates which type of card we are currently picking.
+   * We take as many cards from the type that we are allowed to until
+   * we have to move on to the next type. This gets updated when we
+   * need to move to a new type. */
+  guint card_type_index;
+
+  /* The number of cards taken from the currently considered app. This gets
+   * reset to zero once we have taken too many cards from the app for the
+   * current card type. */
+  guint cards_taken_from_app;
+
+  /* The number of cards taken from the currently considered type. This
+   * gets reset to zero once we have taken too many cards from the
+   * current card type. */
+  guint cards_taken_from_type;
+
+  /* The number of cards that can be taken from each type. This increases
+   * as the algorithm runs, we want to appear to take more cards from
+   * each type as time goes on. */
+  guint n_cards_to_take;
+
+  /* The "app index" for each card type. Each card type has a number of
+   * apps that it can take cards from. Once we have exhausted the number of
+   * cards that we can take from an app for a given card type, we move on
+   * to the next app for that card type (or the next card type, if we can't
+   * pick any more from that card type either). This hash table gets updated
+   * when we need to move to a new app. */
+  GHashTable *app_indices_for_card_type;
+} CardEmitterState;
+
+static CardEmitterState *
+card_emitter_state_new (void)
+{
+  CardEmitterState *state = g_new0 (CardEmitterState, 1);
+
+  /* Starts out as 1 */
+  state->n_cards_to_take = 1;
+  state->app_indices_for_card_type = make_app_indices_for_card_type ();
+
+  return state;
+};
+
+static void
+card_emitter_state_free (CardEmitterState *state)
+{
+  g_clear_pointer (&state->app_indices_for_card_type, g_hash_table_unref);
+
+  g_free (state);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (CardEmitterState, card_emitter_state_free)
+
+static EosDiscoveryFeedOrderableModel *
+pick_model_for_position_if_possible (CardEmitterState *state,
+                                     GHashTable       *descriptor_map)
+{
+  /* Figure out what card type we're picking from */
+  EosDiscoveryFeedCardStoreType card_type =
+    card_type_indices_ordering[state->inner_outer_index][state->card_type_index];
+
+  /* Pick the source, then the card for that type */
+  GPtrArray *card_sources_for_type = g_hash_table_lookup (descriptor_map,
+                                                          GINT_TO_POINTER (card_type));
+  guint index_for_card_type = GPOINTER_TO_INT (g_hash_table_lookup (state->app_indices_for_card_type,
+                                                                    GINT_TO_POINTER (card_type)));
+
+  /* Do we have any cards sources for this type, and can we still add
+   * cards for this type? */
+  if (card_sources_for_type != NULL &&
+      index_for_card_type < card_sources_for_type->len)
+    {
+      GPtrArray *cards_source = g_ptr_array_index (card_sources_for_type,
+                                                   index_for_card_type);
+
+      /* Can we still add cards for this source? */
+      if (state->cards_taken_from_app < cards_source->len)
+        return g_ptr_array_index (cards_source, state->cards_taken_from_app);
+    }
+
+  return NULL;
+}
+
+static void
+move_to_next_source_and_type_index (CardEmitterState *state,
+                                    GHashTable       *descriptor_map)
+{
+  /* The card type that we were picking from */
+  EosDiscoveryFeedCardStoreType card_type =
+    card_type_indices_ordering[state->inner_outer_index][state->card_type_index];
+
+  /* The card sources for that type */
+  GPtrArray *card_sources_for_type = g_hash_table_lookup (descriptor_map,
+                                                          GINT_TO_POINTER (card_type));
+
+  /* What source index we are using for this card type */
+  guint index_for_card_type = GPOINTER_TO_INT (g_hash_table_lookup (state->app_indices_for_card_type,
+                                                                    GINT_TO_POINTER (card_type)));
+
+  /* If we can pick more cards from the given app then just increment
+   * cards_taken_from_app. Otherwise, reset cards_taken_from_app back to zero
+   * and increment app_indices_for_card_type[card_type] if we've exceeded
+   * the card limit for that app. If we can't do either, reset all the
+   * counters back to zero and start over from the next card. */
+  ++state->cards_taken_from_app;
+  ++state->cards_taken_from_type;
+
+  /* We've taken as many cards as we can for this type. Reset the limit and
+   * go to the next type (and thus app). */
+  if (card_sources_for_type == NULL ||
+      state->cards_taken_from_type >= state->n_cards_to_take ||
+      index_for_card_type >= card_sources_for_type->len)
+    {
+      state->cards_taken_from_type = 0;
+      state->cards_taken_from_app = 0;
+
+      g_hash_table_replace (state->app_indices_for_card_type,
+                            GINT_TO_POINTER (card_type),
+                            GINT_TO_POINTER (index_for_card_type + 1));
+
+      /* Increment the card type. If that wraps around, increment the
+       * inner_outer_index. We'll be done once models_remaining returns
+       * false and we have nothing else left to add. */
+      state->card_type_index = (state->card_type_index + 1) % INNER_TYPES_LENGTH;
+
+      /* If we exhausted all of the types to use and went back to the beginning
+       * then update the inner_outer_index. */
+      if (state->card_type_index == 0)
+        {
+          state->inner_outer_index = (state->inner_outer_index + 1) % INNER_OUTER_LENGTH;
+
+          /* If we wrapped around on the inner_outer_index then increase the
+           * number of cards to take from each type. This will make the number
+           * of cards on each type appear to increase as the feed scrolls down. */
+          if (state->inner_outer_index == 0)
+            ++state->n_cards_to_take;
+        }
+    }
+  else
+    {
+      /* Haven't taken too many cards for this type yet. But we might
+       * have taken the limit of cards that we can take per app for
+       * this type. If that is the case, then we'll need to move to
+       * the next app for this card type. */
+      GPtrArray *cards_source = g_ptr_array_index (card_sources_for_type,
+                                                   index_for_card_type);
+      guint card_limit_for_app = MIN (lookup_card_limit (card_type),
+                                      cards_source->len);
+
+      if (state->cards_taken_from_app >= card_limit_for_app)
+        {
+          /* We've taken as many as we can for this app, but we still
+           * have cards left to take from this type. Go to the next app
+           * index. */
+          state->cards_taken_from_app = 0;
+          g_hash_table_replace (state->app_indices_for_card_type,
+                                GINT_TO_POINTER (card_type),
+                                GINT_TO_POINTER (index_for_card_type + 1));
+        }
+    }
+}
+
 /**
  * eos_discovery_feed_arrange_orderable_models:
  * @unordered_orderable_models: (element-type EosDiscoveryFeedOrderableModel): The
@@ -230,15 +396,11 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
                                              EosDiscoveryFeedArrangeOrderableModelsFlags  flags)
 {
   g_autoptr(GHashTable) descriptor_map = arrange_descriptors_into_map (unordered_orderable_models);
-  guint card_type_index = 0;
-  guint inner_outer_index = 0;
-  guint n_cards_to_take = 1;
   guint overall_index = 0;
   gboolean evergreen_card_added = FALSE;
-  guint cards_taken_from_app = 0;
-  guint cards_taken_from_type = 0;
-  
-  g_autoptr(GHashTable) app_indices_for_card_type = make_app_indices_for_card_type ();
+
+  g_autoptr(CardEmitterState) state = card_emitter_state_new ();
+
   g_autoptr(GPtrArray) arranged_descriptors = g_ptr_array_new_with_free_func (g_object_unref);
   GPtrArray *word_quote_card_sources = g_hash_table_lookup (descriptor_map,
                                                             GINT_TO_POINTER (EOS_DISCOVERY_FEED_CARD_STORE_TYPE_WORD_QUOTE_CARD));
@@ -246,14 +408,9 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
   /* Keep running until we either hit the card limit or
    * we run out of models that we can use */
   while (overall_index < CARDS_LIMIT &&
-         models_remaining (descriptor_map, app_indices_for_card_type))
+         models_remaining (descriptor_map, state->app_indices_for_card_type))
     {
-      EosDiscoveryFeedCardStoreType card_type =
-        card_type_indices_ordering[inner_outer_index][card_type_index];
-      GPtrArray *card_sources_for_type = NULL;
-      GPtrArray *cards_source = NULL;
-      EosDiscoveryFeedBaseCardStore *model = NULL;
-      gint index_for_card_type = -1;
+      EosDiscoveryFeedOrderableModel *model = NULL;
 
       /* If we have a word/quote card, append that now */
       if (overall_index == 2 && word_quote_card_sources != NULL)
@@ -265,86 +422,16 @@ eos_discovery_feed_arrange_orderable_models (GPtrArray                          
           continue;
         }
 
-      /* First, pick a card from the current card type */
-      card_sources_for_type = g_hash_table_lookup (descriptor_map,
-                                                   GINT_TO_POINTER (card_type));
-      index_for_card_type = GPOINTER_TO_INT (g_hash_table_lookup (app_indices_for_card_type,
-                                                                  GINT_TO_POINTER (card_type)));
+      model = pick_model_for_position_if_possible (state, descriptor_map);
 
-      /* Then add the card to the list if we can still add cards */
-      if (card_sources_for_type != NULL &&
-          index_for_card_type < card_sources_for_type->len)
+      if (model != NULL)
         {
-          cards_source = g_ptr_array_index (card_sources_for_type,
-                                            index_for_card_type);
-
-          if (cards_taken_from_app < cards_source->len)
-            {
-              g_ptr_array_add (arranged_descriptors,
-                               g_object_ref (g_ptr_array_index (cards_source,
-                                                                cards_taken_from_app)));
-              ++overall_index;
-
-              /* We don't necessarily continue the loop here, we might still
-               * have some more work to do below */
-            }
+          ++overall_index;
+          g_ptr_array_add (arranged_descriptors, g_object_ref (model));
         }
 
-      /* Okay, now figure out what to do. If we can pick more cards from the
-       * given app then just increment cards_taken_from_app. Otherwise, reset
-       * cards_taken_from_app back to zero and
-       * increment app_indices_for_card_type[card_type] if we've exceeded the card
-       * limit for that app. If we can't do either, reset all the counters back
-       * to zero and start over from the next card. */
-      ++cards_taken_from_app;
-      ++cards_taken_from_type;
-
-      /* We've taken as many cards as we can for this type. Reset the limit and
-       * go to the next card (and thus app). */
-      if (card_sources_for_type == NULL ||
-          cards_taken_from_type >= n_cards_to_take ||
-          index_for_card_type >= card_sources_for_type->len)
-        {
-          cards_taken_from_type = 0;
-          cards_taken_from_app = 0;
-
-          g_hash_table_replace (app_indices_for_card_type,
-                                GINT_TO_POINTER (card_type),
-                                GINT_TO_POINTER (index_for_card_type + 1));
-
-          /* Increment the card type. If that wraps around, increment the
-           * inner_outer_index. We'll be done once models_remaining returns
-           * false and we have nothing else left to add. */
-          card_type_index = (card_type_index + 1) % INNER_TYPES_LENGTH;
-
-          if (card_type_index == 0)
-            {
-              inner_outer_index = (inner_outer_index + 1) % INNER_OUTER_LENGTH;
-
-              if (inner_outer_index == 0)
-                ++n_cards_to_take;
-            }
-        }
-      else
-        {
-          guint card_limit_for_app = 0;
-
-          cards_source = g_ptr_array_index (card_sources_for_type,
-                                            index_for_card_type);
-          card_limit_for_app = MIN (lookup_card_limit (card_type),
-                                    cards_source->len);
-
-          if (cards_taken_from_app >= card_limit_for_app)
-            {
-              /* We've taken as many as we can for this app, but we still
-               * have cards left to take from this type. Go to the next app
-               * index. */
-              cards_taken_from_app = 0;
-              g_hash_table_replace (app_indices_for_card_type,
-                                    GINT_TO_POINTER (card_type),
-                                    GINT_TO_POINTER (index_for_card_type + 1));
-            }
-        }
+      /* Now move to the next type/source index if we need to */
+      move_to_next_source_and_type_index (state, descriptor_map);
     }
 
   /* We have less than 3 cards, add the word/quote card nonetheless */
