@@ -29,7 +29,7 @@ glib_enum_h = libfeed/feed-enums.h
 glib_enum_c = libfeed/feed-enums.c
 include $(top_srcdir)/Makefile.am.enums
 
-libeos_discovery_feed_1_la_SOURCES = \
+introspection_sources = \
 	$(glib_enum_c) \
 	$(glib_enum_h) \
 	libfeed/feed-app-card-store.c \
@@ -43,17 +43,41 @@ libeos_discovery_feed_1_la_SOURCES = \
 	libfeed/feed-knowledge-app-card-store.h \
 	libfeed/feed-knowledge-app-news-card-store.c \
 	libfeed/feed-knowledge-app-news-card-store.h \
+	libfeed/feed-knowledge-app-proxy.c \
+	libfeed/feed-knowledge-app-proxy.h \
 	libfeed/feed-knowledge-app-video-card-store.c \
 	libfeed/feed-knowledge-app-video-card-store.h \
+	libfeed/feed-model-ordering.c \
+	libfeed/feed-model-ordering.h \
+	libfeed/feed-orderable-model.c \
+	libfeed/feed-orderable-model.h \
+	libfeed/feed-provider-info.c \
+	libfeed/feed-provider-info.h \
+	libfeed/feed-provider-lookup.c \
+	libfeed/feed-provider-lookup.h \
+	libfeed/feed-proxy-factory.c \
+	libfeed/feed-proxy-factory.h \
 	libfeed/feed-quote-card-store.c \
 	libfeed/feed-quote-card-store.h \
 	libfeed/feed-sizes.h \
+	libfeed/feed-store-provider.c \
+	libfeed/feed-store-provider.h \
 	libfeed/feed-text-sanitization.c \
 	libfeed/feed-text-sanitization.h \
 	libfeed/feed-word-card-store.c \
 	libfeed/feed-word-card-store.h \
 	libfeed/feed-word-quote-card-store.c \
 	libfeed/feed-word-quote-card-store.h \
+	$(NULL)
+
+nointrospection_sources = \
+	libfeed/feed-all-async-tasks-private.h \
+	libfeed/feed-all-async-tasks.c \
+	$(NULL)
+
+libeos_discovery_feed_1_la_SOURCES = \
+	$(introspection_sources) \
+	$(nointrospection_sources) \
 	$(NULL)
 
 libeos_discovery_feed_1_la_CPPFLAGS = \
@@ -73,10 +97,6 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
-introspection_sources = \
-	$(libeos_discovery_feed_1_la_SOURCES) \
-	$(NULL)
-
 EosDiscoveryFeed-1.0.gir: libeos-discovery-feed-1.la
 EosDiscoveryFeed_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 GLib-2.0
 EosDiscoveryFeed_1_0_gir_CFLAGS = $(libeos_discovery_feed_1_la_CPPFLAGS)

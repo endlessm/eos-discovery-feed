@@ -7,17 +7,28 @@
 /* eslint-env jasmine */
 
 const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
-const ModelOrdering = imports.modelOrdering;
+
+function make_orderable(modelProps) {
+    let orderable = new EosDiscoveryFeed.OrderableModel({
+        source: modelProps.source,
+        type: modelProps.type,
+        model: null
+    });
+    orderable.builder = () => ({
+        desktop_id: modelProps.source,
+        type: modelProps.type
+    });
+
+    return orderable;
+}
+
+function arrange_with_installable_apps(models) {
+    return EosDiscoveryFeed.arrange_orderable_models(models,
+                                                     EosDiscoveryFeed.ArrangeOrderableModelsFlags.ARRANGE_ORDERABLE_MODEL_FLAGS_INCLUDE_INSTALLABLE_APPS);
+}
 
 function addBuilders(descriptors) {
-    return descriptors.map(d => ({
-        source: d.source,
-        type: d.type,
-        builder: () => ({
-            desktop_id: d.source,
-            type: d.type
-        })
-    }));
+    return descriptors.map(d => make_orderable(d));
 }
 
 describe('Model ordering', function() {
@@ -40,7 +51,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTICLE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.NEWS_CARD,
             EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
@@ -83,7 +94,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTICLE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.NEWS_CARD,
             EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
@@ -122,7 +133,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.NEWS_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.NEWS_CARD,
             EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
@@ -147,7 +158,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTWORK_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
             EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
@@ -165,7 +176,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTWORK_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.ARTWORK_CARD
         ]);
@@ -213,7 +224,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTWORK_CARD
             },
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
             EosDiscoveryFeed.CardStoreType.VIDEO_CARD,
@@ -252,7 +263,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.NEWS_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().desktop_id)).toEqual([
             'a', 'b', 'c', 'c'
         ]);
@@ -284,7 +295,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTICLE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().desktop_id)).toEqual([
             'a', 'b', 'c'
         ]);
@@ -312,7 +323,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTICLE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.NEWS_CARD,
             EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
@@ -328,7 +339,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD
         ]);
@@ -356,7 +367,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTICLE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.map(descriptor => descriptor.builder().type)).toEqual([
             EosDiscoveryFeed.CardStoreType.NEWS_CARD,
             EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
@@ -452,7 +463,7 @@ describe('Model ordering', function() {
                 type: EosDiscoveryFeed.CardStoreType.ARTICLE_CARD
             }
         ]);
-        let arranged = ModelOrdering.arrange(models);
+        let arranged = arrange_with_installable_apps(models);
         expect(arranged.length).toEqual(15);
     });
 });
