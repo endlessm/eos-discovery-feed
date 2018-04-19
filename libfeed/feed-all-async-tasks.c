@@ -19,12 +19,12 @@
 
 #include "feed-all-async-tasks-private.h"
 
-typedef struct _AllTasksResultsClosure
+struct _AllTasksResultsClosure
 {
   GPtrArray      *results;
   guint           remaining;
   GTask          *task;
-} AllTasksResultsClosure;
+};
 
 AllTasksResultsClosure *
 all_tasks_results_closure_new (GDestroyNotify      result_free_func,
@@ -79,11 +79,11 @@ all_tasks_results_register_result (AllTasksResultsClosure *closure,
     }
 }
 
-typedef struct _IndividualTaskResultClosure
+struct _IndividualTaskResultClosure
 {
   guint                   index;
   AllTasksResultsClosure *all_tasks_closure; /* non-owning reference */
-} IndividualTaskResultClosure;
+};
 
 IndividualTaskResultClosure *
 individual_task_result_closure_new (AllTasksResultsClosure *all_tasks_closure)
