@@ -176,7 +176,8 @@ typedef EosDiscoveryFeedKnowledgeAppCardStore * (*EosDiscoveryFeedKnowledgeAppCa
                                                                                                      const gchar                         *knowledge_search_object_path,
                                                                                                      const gchar                         *knowledge_app_id,
                                                                                                      EosDiscoveryFeedCardLayoutDirection  layout_direction,
-                                                                                                     guint                                thumbnail_size);
+                                                                                                     guint                                thumbnail_size,
+                                                                                                     const gchar                         *thumbnail_uri);
 
 
 typedef struct _ArticleCardsFromShardsAndItemsData
@@ -263,7 +264,8 @@ article_cards_from_shards_and_items (const char * const *shards_strv,
                        eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (data->ka_proxy),
                        eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (data->ka_proxy),
                        data->direction ? data->direction : EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
-                       data->thumbnail_size);
+                       data->thumbnail_size,
+                       thumbnail_uri);
       orderable_stores = g_slist_prepend (orderable_stores,
                                           eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
                                                                                   data->type,
@@ -447,7 +449,8 @@ video_cards_from_shards_and_items (const char * const *shards_strv,
                                                                      eos_discovery_feed_knowledge_app_proxy_get_desktop_id (ka_proxy),
                                                                      g_dbus_proxy_get_name (dbus_proxy),
                                                                      eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
-                                                                     eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy));
+                                                                     eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy),
+                                                                     thumbnail_uri);
       orderable_stores = g_slist_prepend (orderable_stores,
                                           eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
                                                                                   EOS_DISCOVERY_FEED_CARD_STORE_TYPE_VIDEO_CARD,
@@ -507,7 +510,8 @@ artwork_cards_from_shards_and_items (const char * const *shards_strv,
                                                                  eos_discovery_feed_knowledge_app_proxy_get_knowledge_search_object_path (ka_proxy),
                                                                  eos_discovery_feed_knowledge_app_proxy_get_knowledge_app_id (ka_proxy),
                                                                  EOS_DISCOVERY_FEED_CARD_LAYOUT_DIRECTION_IMAGE_FIRST,
-                                                                 EOS_DISCOVERY_FEED_THUMBNAIL_SIZE_ARTWORK);
+                                                                 EOS_DISCOVERY_FEED_THUMBNAIL_SIZE_ARTWORK,
+                                                                 thumbnail_uri);
       orderable_stores = g_slist_prepend (orderable_stores,
                                           eos_discovery_feed_orderable_model_new (EOS_DISCOVERY_FEED_BASE_CARD_STORE (store),
                                                                                   EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTWORK_CARD,

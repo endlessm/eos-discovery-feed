@@ -90,7 +90,8 @@ eos_discovery_feed_knowledge_app_news_card_store_new (const gchar               
                                                       const gchar                         *knowledge_search_object_path,
                                                       const gchar                         *knowledge_app_news_id,
                                                       EosDiscoveryFeedCardLayoutDirection  layout_direction,
-                                                      guint                                thumbnail_size)
+                                                      guint                                thumbnail_size,
+                                                      const gchar                         *thumbnail_uri)
 {
   return g_object_new (EOS_DISCOVERY_FEED_TYPE_KNOWLEDGE_APP_NEWS_CARD_STORE,
                        "title", title,
@@ -103,5 +104,6 @@ eos_discovery_feed_knowledge_app_news_card_store_new (const gchar               
                        "knowledge-app-id", knowledge_app_news_id,
                        "layout-direction", layout_direction,
                        "thumbnail-size", thumbnail_size,
+                       "thumbnail-uri", thumbnail_uri,
                        NULL);
 }

@@ -33,6 +33,7 @@ typedef struct _EosDiscoveryFeedKnowledgeAppCardStorePrivate
   gchar                               *knowledge_search_object_path;
   gchar                               *knowledge_app_id;
   GInputStream                        *thumbnail;
+  gchar                               *thumbnail_uri;
   EosDiscoveryFeedCardLayoutDirection  layout_direction;
   guint                                thumbnail_size;
 } EosDiscoveryFeedKnowledgeAppCardStorePrivate;
@@ -57,6 +58,7 @@ enum {
   PROP_KNOWLEDGE_APP_ID,
   PROP_LAYOUT_DIRECTION,
   PROP_THUMBNAIL_SIZE,
+  PROP_THUMBNAIL_URI,
   PROP_TYPE,
   NPROPS
 };
@@ -100,6 +102,9 @@ eos_discovery_feed_knowledge_app_card_store_set_property (GObject      *object,
       break;
     case PROP_THUMBNAIL_SIZE:
       priv->thumbnail_size = g_value_get_uint (value);
+      break;
+    case PROP_THUMBNAIL_URI:
+      priv->thumbnail_uri = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -146,6 +151,9 @@ eos_discovery_feed_knowledge_app_card_store_get_property (GObject    *object,
       break;
     case PROP_THUMBNAIL_SIZE:
       g_value_set_uint (value, priv->thumbnail_size);
+      break;
+    case PROP_THUMBNAIL_URI:
+      g_value_set_string (value, priv->thumbnail_uri);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -265,6 +273,13 @@ eos_discovery_feed_knowledge_app_card_store_class_init (EosDiscoveryFeedKnowledg
                        EOS_DISCOVERY_FEED_THUMBNAIL_SIZE_ARTICLE,
                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 
+  eos_discovery_feed_knowledge_app_card_store_props[PROP_THUMBNAIL_URI] =
+    g_param_spec_string ("thumbnail-uri",
+                         "Thumbmnail URI",
+                         "Optional URI to the thumbnail",
+                         "",
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+
   g_object_class_install_properties (object_class,
                                      PROP_TYPE,
                                      eos_discovery_feed_knowledge_app_card_store_props);
@@ -284,7 +299,8 @@ eos_discovery_feed_knowledge_app_card_store_new (const gchar                    
                                                  const gchar                         *knowledge_search_object_path,
                                                  const gchar                         *knowledge_app_id,
                                                  EosDiscoveryFeedCardLayoutDirection  layout_direction,
-                                                 guint                                thumbnail_size)
+                                                 guint                                thumbnail_size,
+                                                 const gchar                         *thumbnail_uri)
 {
   return g_object_new (EOS_DISCOVERY_FEED_TYPE_KNOWLEDGE_APP_CARD_STORE,
                        "title", title,
@@ -297,5 +313,6 @@ eos_discovery_feed_knowledge_app_card_store_new (const gchar                    
                        "knowledge-app-id", knowledge_app_id,
                        "layout-direction", layout_direction,
                        "thumbnail-size", thumbnail_size,
+                       "thumbnail-uri", thumbnail_uri,
                        NULL);
 }

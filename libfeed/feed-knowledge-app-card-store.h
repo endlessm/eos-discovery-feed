@@ -37,6 +37,7 @@ EosDiscoveryFeedKnowledgeAppCardStore * eos_discovery_feed_knowledge_app_card_st
                                                                                          const gchar                         *knowledge_search_object_path,
                                                                                          const gchar                         *knowledge_app_id,
                                                                                          EosDiscoveryFeedCardLayoutDirection  layout_direction,
-                                                                                         guint                                thumbnail_size);
+                                                                                         guint                                thumbnail_size,
+                                                                                         const gchar                         *thumbnail_uri);
 
 G_END_DECLS

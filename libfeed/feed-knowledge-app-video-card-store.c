@@ -142,7 +142,8 @@ eos_discovery_feed_knowledge_app_video_card_store_new (const gchar  *title,
                                                        const gchar  *desktop_id,
                                                        const gchar  *bus_name,
                                                        const gchar  *knowledge_search_object_path,
-                                                       const gchar  *knowledge_app_id)
+                                                       const gchar  *knowledge_app_id,
+                                                       const gchar  *thumbnail_uri)
 {
   return g_object_new (EOS_DISCOVERY_FEED_TYPE_KNOWLEDGE_APP_VIDEO_CARD_STORE,
                        "title", title,
@@ -153,5 +154,6 @@ eos_discovery_feed_knowledge_app_video_card_store_new (const gchar  *title,
                        "bus-name", bus_name,
                        "knowledge-search-object-path", knowledge_search_object_path,
                        "knowledge-app-id", knowledge_app_id,
+                       "thumbnail-uri", thumbnail_uri,
                        NULL);
 }
