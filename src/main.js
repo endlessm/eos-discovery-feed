@@ -413,6 +413,13 @@ function makeCorrectlyOrderedProxyWrapper(iface) {
     };
 }
 
+function newProxyWithVerifiedObjectPath(object, func, connection, name, objectPath, cancellable) {
+    if (!GLib.Variant.is_object_path(objectPath))
+      return Promise.reject(new Error(`Object path ${objectPath} is not valid`));
+
+    return promisifyGIO(object, func, connection, name, objectPath, cancellable);
+}
+
 function instantiateObjectsFromDiscoveryFeedProviders(connection,
                                                       providers) {
     let interfaceWrappers = {
@@ -436,12 +443,12 @@ function instantiateObjectsFromDiscoveryFeedProviders(connection,
             return true;
         })
         .map((interfaceName) =>
-            promisifyGIO(interfaceWrappers,
-                         interfaceName,
-                         connection,
-                         provider.name,
-                         provider.path,
-                         null)
+            newProxyWithVerifiedObjectPath(interfaceWrappers,
+                                           interfaceName,
+                                           connection,
+                                           provider.name,
+                                           provider.path,
+                                           null)
             .then(([proxy]) => ({
                 iface: proxy,
                 interfaceName: interfaceName,
