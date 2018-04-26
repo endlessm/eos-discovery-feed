@@ -78,7 +78,7 @@ eos_discovery_feed_knowledge_app_video_card_store_get_property (GObject    *obje
   switch (prop_id)
     {
     case PROP_TYPE:
-      g_value_set_enum (value, EOS_DISCOVERY_FEED_CARD_STORE_TYPE_ARTWORK_CARD);
+      g_value_set_enum (value, EOS_DISCOVERY_FEED_CARD_STORE_TYPE_VIDEO_CARD);
       break;
     case PROP_DURATION:
       g_value_set_string (value, priv->duration);
