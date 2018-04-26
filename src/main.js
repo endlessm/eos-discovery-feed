@@ -26,7 +26,6 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
 const ImageCoverFrame = imports.imageCoverFrame;
-const ModelOrdering = imports.modelOrdering;
 const Stores = imports.stores;
 const TextSanitization = imports.textSanitization;
 
@@ -85,109 +84,6 @@ const DiscoveryFeedIface = '\
   </interface> \
 </node>';
 
-const DiscoveryFeedContentIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedContent"> \
-    <method name="ArticleCardDescriptions"> \
-      <arg type="as" name="Shards" direction="out" /> \
-      <arg type="aa{ss}" name="Result" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-const DiscoveryFeedNewsIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedNews"> \
-    <method name="GetRecentNews"> \
-      <arg type="as" name="Shards" direction="out" /> \
-      <arg type="aa{ss}" name="Result" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-const DiscoveryFeedInstallableAppsIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedInstallableApps"> \
-    <method name="GetInstallableApps"> \
-      <arg type="aa{sv}" name="Results" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-const DiscoveryFeedVideoIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedVideo"> \
-    <method name="GetVideos"> \
-      <arg type="as" name="Shards" direction="out" /> \
-      <arg type="aa{ss}" name="Result" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-const DiscoveryFeedWordIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedWord"> \
-    <method name="GetWordOfTheDay"> \
-      <arg type="a{ss}" name="Results" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-const DiscoveryFeedQuoteIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedQuote"> \
-    <method name="GetQuoteOfTheDay"> \
-      <arg type="a{ss}" name="Results" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-const DiscoveryFeedArtworkIface = '\
-<node> \
-  <interface name="com.endlessm.DiscoveryFeedArtwork"> \
-    <method name="ArtworkCardDescriptions"> \
-      <arg type="as" name="Shards" direction="out" /> \
-      <arg type="aa{ss}" name="Result" direction="out" /> \
-    </method> \
-  </interface> \
-</node>';
-
-//
-// maybeGetKeyfileString
-//
-// Attempt to read a GKeyFile for a particular key in a given section
-// but return a default value if it wasn't found
-//
-// @param {object.Gio.KeyFile} keyFile - The key file to read.
-// @param {string} section - The section to read from.
-// @param {string} key - The key to read.
-// @param {string} defaultValue - The default value in case the key was not found.
-// @returns {string} the looked up string, or the default
-function maybeGetKeyfileString(keyFile, section, key, defaultValue) {
-    try {
-        return keyFile.get_string(section, key);
-    } catch (e) {
-        return defaultValue;
-    }
-}
-
-const DISCOVERY_FEED_SECTION_NAME = 'Discovery Feed Content Provider';
-const LOAD_ITEM_SECTION_NAME = 'Load Item Provider';
-
-//
-// languageCodeIsCompatible
-//
-// True if the provided language code is compatible with the provided
-// languages. We check both the locale variant and the actual language
-// code itself
-//
-// @param {string} language - The language code to check
-// @param {array.String} languages - The supported user languages
-// @returns {bool} - True if the language is supported
-function languageCodeIsCompatible(language, languages) {
-    let languageCode = language.split('_')[0];
-    return languages.some(l => l === languageCode);
-}
 
 function flatpakSystemDirs() {
   let env = GLib.getenv('EOS_DISCOVERY_FEED_FLATPAK_SYSTEM_DIRS');
@@ -212,174 +108,36 @@ function allRelevantDataDirs() {
 // be in the exports directory but is not necessarily executable
 // because the binary was not mounted in the bwrap jail.
 function flatpakCompatibleDesktopInfo(desktopId) {
-  for (let directory of allRelevantDataDirs()) {
-    let path = GLib.build_filenamev([directory, 'applications', desktopId]);
-    let keyfile = new GLib.KeyFile();
+    for (let directory of allRelevantDataDirs()) {
+        let path = GLib.build_filenamev([directory, 'applications', desktopId]);
+        let keyfile = new GLib.KeyFile();
 
-    try {
-        keyfile.load_from_file(path, GLib.KeyFileFlags.NONE);
-    } catch(e) {
-        continue;
-    }
+        try {
+            keyfile.load_from_file(path, GLib.KeyFileFlags.NONE);
+        } catch(e) {
+            continue;
+        }
 
-    // Now that we have the keyfile, set the Exec line to some
-    // well-known binary, so that GDesktopAppInfo doesn't trip up
-    // when we try to read it.
-    keyfile.set_string(GLib.KEY_FILE_DESKTOP_GROUP,
-                       GLib.KEY_FILE_DESKTOP_KEY_EXEC,
-                       '/bin/true');
+        // Now that we have the keyfile, set the Exec line to some
+        // well-known binary, so that GDesktopAppInfo doesn't trip up
+        // when we try to read it.
+        keyfile.set_string(GLib.KEY_FILE_DESKTOP_GROUP,
+                           GLib.KEY_FILE_DESKTOP_KEY_EXEC,
+                           '/bin/true');
 
-    // Need to override the get_id function here - creating the desktop
-    // file with g_desktop_app_info_new_from_keyfile does not set
-    // the underlying desktop_id and there is no way to set it after
-    // construction.
-    let app_info = Gio.DesktopAppInfo.new_from_keyfile(keyfile);
-    app_info.get_id = function() {
-        return desktopId;
+        // Need to override the get_id function here - creating the desktop
+        // file with g_desktop_app_info_new_from_keyfile does not set
+        // the underlying desktop_id and there is no way to set it after
+        // construction.
+        let app_info = Gio.DesktopAppInfo.new_from_keyfile(keyfile);
+        app_info.get_id = function() {
+            return desktopId;
+        };
+
+        return app_info;
     };
 
-    return app_info;
-  };
-
-  return null;
-}
-
-//
-// appLanguage
-function appLanguage(desktopId) {
-    let appInfo = flatpakCompatibleDesktopInfo(desktopId);
-    if (!appInfo) {
-        // This case shouldn't happen - the app id passed must always
-        // be valid.
-        throw new Error('Could not create GDesktopAppInfo for ' + desktopId);
-    }
-
-    return appInfo.get_string('X-Endless-Content-Language');
-}
-
-//
-// readDiscoveryFeedProvidersInDirectory
-//
-// Read all the discovery feed providers in a directory, calling
-// done with an array of all providers when they have been read in.
-//
-// @param {object.Gio.File} directory - The directory to enumerate.
-// @param {function} done - The function to call with a list of providers
-//                          when done.
-function readDiscoveryFeedProvidersInDirectory(directory) {
-    let enumerator = null;
-    let info = null;
-    let providerBusDescriptors = [];
-
-    let systemLanguages = GLib.get_language_names();
-    let settings = new Gio.Settings({ schema_id: 'com.endlessm.DiscoveryFeed' });
-    let contentLanguages = settings.get_strv('force-additional-languages');
-    let wildCardLanguages = ['*'];
-    let languages = systemLanguages.concat(contentLanguages, wildCardLanguages);
-
-    try {
-        enumerator = directory.enumerate_children('standard::name,standard::type',
-                                                  Gio.FileQueryInfoFlags.NONE,
-                                                  null);
-    } catch (e) {
-        if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-            return providerBusDescriptors;
-        }
-
-        throw e;
-    }
-
-    while ((info = enumerator.next_file(null))) {
-        let file = Gio.File.new_for_path(GLib.build_filenamev([
-            directory.get_path(),
-            info.get_name()
-        ]));
-        let path = file.get_path();
-
-        let keyFile = new GLib.KeyFile();
-        try {
-            keyFile.load_from_file(path, GLib.KeyFileFlags.NONE);
-        } catch(e) {
-            logError(e, 'Key file ' + path + ' could not be loaded, ignored');
-        }
-
-        if (!keyFile.has_group(DISCOVERY_FEED_SECTION_NAME)) {
-            log('Key file ' + path + ' does not have a section called ' + DISCOVERY_FEED_SECTION_NAME + ', ignored');
-            continue;
-        }
-
-        let keys = keyFile.get_keys(DISCOVERY_FEED_SECTION_NAME)[0];
-        let requiredKeys = ['DesktopId', 'ObjectPath', 'BusName', 'SupportedInterfaces'];
-
-        let notFoundKeys = requiredKeys.filter(k => keys.indexOf(k) === -1);
-        if (notFoundKeys.length) {
-            log('Key file ' + path + ' does not have keys ' + notFoundKeys.join(', ') + ', ignoring');
-            continue;
-        }
-
-        let objectPath = null;
-        if (keyFile.has_group(LOAD_ITEM_SECTION_NAME)) {
-            log('Key file ' + path + ' does have a section called ' + LOAD_ITEM_SECTION_NAME + ', processing...');
-            try {
-                objectPath = keyFile.get_string(LOAD_ITEM_SECTION_NAME,
-                                                'ObjectPath');
-            } catch(e) {
-                log('Key file ' + path + ' does not have key \'ObjectPath\', ignoring');
-                continue;
-            }
-        }
-
-        let desktopId = maybeGetKeyfileString(keyFile,
-                                              DISCOVERY_FEED_SECTION_NAME,
-                                              'DesktopId',
-                                              null);
-
-        // Now, if we have a Desktop ID, we'll want to check it
-        // to see if there's an embedded language code in the
-        // desktop file. If so, filter out this application if it
-        // would not be compatible
-        if (desktopId) {
-            let providerLocale = appLanguage(desktopId);
-            if (providerLocale &&
-                !languageCodeIsCompatible(providerLocale, languages)) {
-                log('Language code ' + providerLocale + ' is not compatible ' +
-                    'with language codes ' + languages.join(' ') +
-                    ', skipping ' + path);
-                continue;
-            }
-        }
-
-        providerBusDescriptors.push({
-            path: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
-                                     'ObjectPath'),
-            name: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
-                                     'BusName'),
-            interfaces: keyFile.get_string(DISCOVERY_FEED_SECTION_NAME,
-                                           'SupportedInterfaces').split(';'),
-            knowledgeAppId: maybeGetKeyfileString(keyFile,
-                                                  DISCOVERY_FEED_SECTION_NAME,
-                                                  'AppID',
-                                                  null),
-            desktopFileId: desktopId,
-            knowledgeSearchObjectPath: objectPath
-        });
-    }
-
-    return providerBusDescriptors;
-}
-
-function readDiscoveryFeedProvidersInDataDirectories() {
-    let dataDirectories = allRelevantDataDirs();
-    return dataDirectories.reduce((allProviders, directory) => {
-        let dir = Gio.File.new_for_path(GLib.build_filenamev([
-            directory,
-            'eos-discovery-feed',
-            'content-providers'
-        ]));
-        Array.prototype.push.apply(allProviders,
-                                   readDiscoveryFeedProvidersInDirectory(dir));
-        return allProviders;
-    }, []);
+    return null;
 }
 
 function allSettledPromises(promises) {
@@ -399,64 +157,13 @@ function allSettledPromises(promises) {
     }));
 }
 
-
-// Gio.js does things the wrong way around which trips up promisifyGIO,
-// so re-curry the arguments so that they make sense.
-function makeCorrectlyOrderedProxyWrapper(iface) {
-    let wrapper = Gio.DBusProxy.makeProxyWrapper(iface);
-    return function(bus, name, object, cancellable, asyncCallback) {
-        return wrapper(bus,
-                       name,
-                       object,
-                       asyncCallback,
-                       cancellable);
-    };
-}
-
-function instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                      providers) {
-    let interfaceWrappers = {
-        'com.endlessm.DiscoveryFeedContent': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedContentIface),
-        'com.endlessm.DiscoveryFeedNews': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedNewsIface),
-        'com.endlessm.DiscoveryFeedInstallableApps': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedInstallableAppsIface),
-        'com.endlessm.DiscoveryFeedVideo': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedVideoIface),
-        'com.endlessm.DiscoveryFeedQuote': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedQuoteIface),
-        'com.endlessm.DiscoveryFeedWord': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedWordIface),
-        'com.endlessm.DiscoveryFeedArtwork': makeCorrectlyOrderedProxyWrapper(DiscoveryFeedArtworkIface)
-    };
-
-    // Map to promises and then flat map promises
-    return allSettledPromises(providers.map(provider =>
-        provider.interfaces.filter(interfaceName => {
-            if (Object.keys(interfaceWrappers).indexOf(interfaceName) === -1) {
-                log('Filtering out unrecognised interface ' + interfaceName);
-                return false;
-            }
-
-            return true;
-        })
-        .map((interfaceName) =>
-            promisifyGIO(interfaceWrappers,
-                         interfaceName,
-                         connection,
-                         provider.name,
-                         provider.path,
-                         null)
-            .then(([proxy]) => ({
-                iface: proxy,
-                interfaceName: interfaceName,
-                desktopId: provider.desktopFileId,
-                busName: provider.name,
-                knowledgeSearchObjectPath: provider.knowledgeSearchObjectPath,
-                knowledgeAppId: provider.knowledgeAppId
-            }))
-            .catch((e) => {
-                throw new Error('Initializing proxy for ' + interfaceName +
-                                ' at ' + provider.path + ' on bus name ' + provider.name +
-                                ' failed: ' + String(e) + ', stack:\n' + String(e.stack));
-            })
-        )
-    ).reduce((list, incoming) => list.concat(incoming), []));
+function instantiateObjectsFromDiscoveryFeedProviders(connection, providers) {
+    return promisifyGIO(EosDiscoveryFeed,
+                        'instantiate_proxies_from_discovery_feed_providers',
+                        'instantiate_proxies_from_discovery_feed_providers_finish',
+                        connection,
+                        providers,
+                        null);
 }
 
 
@@ -1386,151 +1093,12 @@ function load_style_sheet(resourcePath) {
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-function find_thumbnail_in_shards (shards, thumbnail_uri) {
-    for (let i = 0; i < shards.length; i++) {
-        let shard_file = new EosShard.ShardFile({ path: shards[i] });
-        shard_file.init(null);
-        let record = shard_file.find_record_by_hex_name(normalize_ekn_id(thumbnail_uri));
-        if (record === null)
-            continue;
-        let data = record.data;
-        if (data === null)
-            continue;
-        let stream = data.get_stream();
-        if (stream === null)
-            continue;
-        return data.get_stream();
-    }
-    log('Thumbnail with uri ' +  thumbnail_uri + ' could not be found in shards.');
-    return null;
-}
-
-// from a famous frog
-function normalize_ekn_id (ekn_id) {
-    if (ekn_id.startsWith('ekn://')) {
-        return ekn_id.split('/').pop();
-    }
-    return ekn_id;
-}
-
-function appendArticleCardsFromShardsAndItems(shards,
-                                              items,
-                                              proxy,
-                                              type,
-                                              storeClass,
-                                              direction,
-                                              thumbnailSize) {
-    return items.map(function(response) {
-        return Array.prototype.slice.call(response).map(function(entry) {
-            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-            return {
-                type: type,
-                source: proxy.desktopId,
-                model: new storeClass({
-                    title: entry.title,
-                    synopsis: TextSanitization.synopsis(entry.synopsis),
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                    thumbnail_size: thumbnailSize
-                })
-            };
-        });
-    })
-    .reduce((list, incoming) => list.concat(incoming), []);
-}
-
-function withLeadingZero(value) {
-    if (value < 10)
-        return '0' + value;
-
-    return String(value);
-}
-
-function parseDuration(duration) {
-    let durationTotalSeconds = Number.parseInt(duration);
-    let durationHours = Math.floor(durationTotalSeconds / 3600);
-    let durationMinutes = Math.floor(durationTotalSeconds / 60) % 60;
-    let durationSeconds = durationTotalSeconds % 60;
-
-    if (durationHours > 0)
-        return durationHours + ':' + withLeadingZero(durationMinutes);
-
-    return durationMinutes + ':' + withLeadingZero(durationSeconds);
-}
-
-function appendVideoCardsFromShardsAndItems(shards, items, proxy, type) {
-    return items.map(function(response) {
-        return Array.prototype.slice.call(response).map(function(entry) {
-            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-            return {
-                type: type,
-                source: proxy.desktopId,
-                model: new EosDiscoveryFeed.KnowledgeAppVideoCardStore({
-                    title: entry.title,
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    duration: parseDuration(entry.duration)
-                })
-            };
-        });
-    })
-    .reduce((list, incoming) => list.concat(incoming), []);
-}
-
-function appendArtworkCardsFromShardsAndItems(shards, items, proxy, type, direction, thumbnailSize) {
-    return items.map(function(response) {
-        return Array.prototype.slice.call(response).map(function(entry) {
-            let thumbnail = find_thumbnail_in_shards(shards, entry.thumbnail_uri);
-
-            return {
-                type: type,
-                source: proxy.desktopId,
-                model: new EosDiscoveryFeed.KnowledgeAppArtworkCardStore({
-                    title: entry.title,
-                    author: entry.author,
-                    /* first_date is a new property, so defend against old
-                     * EknServices versions that may not have it. */
-                    first_date: entry.hasOwnProperty('first_date') ? entry.first_date: '',
-                    thumbnail: thumbnail,
-                    desktop_id: proxy.desktopId,
-                    bus_name: proxy.busName,
-                    knowledge_search_object_path: proxy.knowledgeSearchObjectPath,
-                    knowledge_app_id: proxy.knowledgeAppId,
-                    uri: entry.ekn_id,
-                    layout_direction: direction || EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                    thumbnail_size: thumbnailSize
-                })
-            };
-        });
-    })
-    .reduce((list, incoming) => list.concat(incoming), []);
-}
-
-function promisifyGIO(obj, funcName, ...args) {
+function promisifyGIO(obj, funcName, finishName, ...args) {
     return new Promise((resolve, reject) => {
         try {
-            obj[funcName](...args, function() {
+            obj[funcName](...args, function(source, result) {
                 try {
-                    let error = Array.prototype.slice.call(arguments, -1)[0];
-                    let parameters = Array.prototype.slice.call(arguments,
-                                                                0,
-                                                                arguments.length - 1);
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(parameters);
-                    }
+                    resolve(obj[finishName](result));
                 } catch (e) {
                     reject(e);
                 }
@@ -1541,79 +1109,21 @@ function promisifyGIO(obj, funcName, ...args) {
     });
 }
 
-function appendDiscoveryFeedContentFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'ArticleCardDescriptionsRemote')
-    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
-                                                              results.slice(1, results.length),
-                                                              proxy,
-                                                              EosDiscoveryFeed.CardStoreType.ARTICLE_CARD,
-                                                              EosDiscoveryFeed.KnowledgeAppCardStore,
-                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_ARTICLE))
-    .catch((e) => {
-        throw new Error('Getting content failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedArtworkFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'ArtworkCardDescriptionsRemote')
-    .then(([results]) => appendArtworkCardsFromShardsAndItems(results[0],
-                                                              results.slice(1, results.length),
-                                                              proxy,
-                                                              EosDiscoveryFeed.CardStoreType.ARTWORK_CARD,
-                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_ARTWORK))
-    .catch((e) => {
-        throw new Error('Getting artwork failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedNewsFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetRecentNewsRemote')
-    .then(([results]) => appendArticleCardsFromShardsAndItems(results[0],
-                                                              results.slice(1, results.length),
-                                                              proxy,
-                                                              EosDiscoveryFeed.CardStoreType.NEWS_CARD,
-                                                              EosDiscoveryFeed.KnowledgeAppNewsCardStore,
-                                                              EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                              EosDiscoveryFeed.THUMBNAIL_SIZE_NEWS))
-    .catch((e) => {
-        throw new Error('Getting news failed: ' + e + '\n' + e.stack);
-    });
-}
-
-function appendDiscoveryFeedQuoteWordFromProxy(proxyBundle) {
-    return Promise.all([
-        promisifyGIO(proxyBundle.quote.iface, 'GetQuoteOfTheDayRemote').then(([results]) => results[0]),
-        promisifyGIO(proxyBundle.word.iface, 'GetWordOfTheDayRemote').then(([results]) => results[0])
-    ])
-    .then(([quote, word]) => ({
-        type: EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD,
-        source: 'word-quote',
-        model: new EosDiscoveryFeed.WordQuoteCardStore({
-            quote: new EosDiscoveryFeed.QuoteCardStore({
-                quote: TextSanitization.synopsis(quote.title),
-                author: quote.author
-            }),
-            word: new EosDiscoveryFeed.WordCardStore({
-                word: word.word,
-                part_of_speech: word.part_of_speech,
-                definition: TextSanitization.synopsis(word.definition)
-            })
-        })
-    })).catch((e) => {
-        throw new Error('Getting word/quote models failed: ' + e + '\n' + e.stack);
-    });
-}
-
 const N_APPS_TO_DISPLAY = 5;
 
 function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetInstallableAppsRemote').then(([results]) =>
-        results.map(response => ({
+    return promisifyGIO(proxy.dbus_proxy,
+                        'call',
+                        'call_finish',
+                        'GetInstallableApps',
+                        null,
+                        Gio.DBusCallFlags.NONE,
+                        -1,
+                        null).then(results => results.unpack()).then(results =>
+        results.map(response => new EosDiscoveryFeed.OrderableModel({
             type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
-            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
+            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.unpack().slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
                     app_id: entry.id.get_string()[0],
                     title: entry.name.get_string()[0],
@@ -1628,95 +1138,42 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
     });
 }
 
-function appendDiscoveryFeedVideoFromProxy(proxy) {
-    return promisifyGIO(proxy.iface, 'GetVideosRemote')
-    .then(([results]) => appendVideoCardsFromShardsAndItems(results[0],
-                                                            results.slice(1, results.length),
-                                                            proxy,
-                                                            EosDiscoveryFeed.CardStoreType.VIDEO_CARD))
-    .catch((e) => {
-        throw new Error('Getting video card information failed: ' + e + '\n' + e.stack);
-    });
-}
-
-// zipArraysInObject
-//
-// Given an object described as:
-//
-// {
-//     a: [...]
-//     b: [...]
-// }
-//
-// Return a sequence of arrays described as
-//
-// [
-//     {
-//         a: a[n]
-//         b: b[n]
-//     }
-// ]
-function zipArraysInObject(object) {
-    let minLength = Object.keys(object).reduce((v, k) =>
-        v < object[k].length ? v : object[k].length ,
-        Number.MAX_VALUE
-    );
-    let arr = [];
-
-    for (let i = 0; i < minLength; ++i) {
-        let ret = {};
-        Object.keys(object).forEach((k) => {
-            if (i < object[k].length) {
-                ret[k] = object[k][i];
-            }
-        });
-
-        arr.push(ret);
-    }
-
-    return arr;
-}
-
 function discoveryFeedCardsFromQueries(proxies) {
-    let wordQuoteProxies = {
-        word: [],
-        quote: []
-    };
-
     let pendingPromises = [];
+    let libfeedProxies = [];
 
     proxies.forEach(function(proxy) {
-        switch (proxy.interfaceName) {
-        case 'com.endlessm.DiscoveryFeedContent':
-            pendingPromises.push(appendDiscoveryFeedContentFromProxy(proxy));
-            break;
-        case 'com.endlessm.DiscoveryFeedNews':
-            pendingPromises.push(appendDiscoveryFeedNewsFromProxy(proxy));
-            break;
+        let interfaceName = proxy.dbus_proxy.get_interface_name();
+        switch (interfaceName) {
         case 'com.endlessm.DiscoveryFeedInstallableApps':
             pendingPromises.push(appendDiscoveryFeedInstallableAppsFromProxy(proxy));
             break;
+
+        // All of these are now handled by EosDiscoveryFeed.unordered_results_from_queries
+        case 'com.endlessm.DiscoveryFeedContent':
+        case 'com.endlessm.DiscoveryFeedNews':
         case 'com.endlessm.DiscoveryFeedVideo':
-            pendingPromises.push(appendDiscoveryFeedVideoFromProxy(proxy));
-            break;
         case 'com.endlessm.DiscoveryFeedQuote':
-            wordQuoteProxies.quote.push(proxy);
-            break;
         case 'com.endlessm.DiscoveryFeedWord':
-            wordQuoteProxies.word.push(proxy);
-            break;
         case 'com.endlessm.DiscoveryFeedArtwork':
-            pendingPromises.push(appendDiscoveryFeedArtworkFromProxy(proxy));
+            libfeedProxies.push(proxy);
             break;
         default:
-            throw new Error('Don\'t know how to handle interface ' + proxy.interfaceName);
+            throw new Error('Don\'t know how to handle interface ' + interfaceName);
         }
     });
 
-    // Note that zipArraysInObject here will zip to the shortest length
-    // which means that we may not execute all proxies if there was a
-    // mismatch in cardinality.
-    pendingPromises = pendingPromises.concat(zipArraysInObject(wordQuoteProxies).map(appendDiscoveryFeedQuoteWordFromProxy));
+    pendingPromises.push(promisifyGIO(EosDiscoveryFeed,
+                                      'unordered_results_from_queries',
+                                      'unordered_results_from_queries_finish',
+                                      libfeedProxies.map(proxy =>
+                                          new EosDiscoveryFeed.KnowledgeAppProxy({
+                                              'dbus-proxy': proxy.dbus_proxy,
+                                              'desktop-id': proxy.desktopId,
+                                              'knowledge-search-object-path': proxy.knowledgeSearchObjectPath,
+                                              'knowledge-app-id': proxy.knowledgeAppId
+                                          })
+                                      ), null));
 
     // Okay, now wait for all proxies to execute. allSettledPromises will
     // return tuples of errors and models depending on whether
@@ -1738,8 +1195,10 @@ function discoveryFeedCardsFromQueries(proxies) {
         // Flat map, since we get a list list from promise
         .reduce((a, b) => a.concat(b), []);
 
-        return ModelOrdering.arrange(models);
-    }).catch(e => logError(e, 'Query failed'));
+        return EosDiscoveryFeed.arrange_orderable_models(models,
+                                                         EosDiscoveryFeed.ArrangeOrderableModelsFlags.ARRANGE_ORDERABLE_MODEL_FLAGS_INCLUDE_INSTALLABLE_APPS);
+    });
+
 }
 
 const AUTO_CLOSE_MILLISECONDS_TIMEOUT = 12000;
@@ -1780,18 +1239,13 @@ const DiscoveryFeedApplication = new Lang.Class({
     // caller. For convenience, the promise resolves with proxies.
     _refreshDiscoveryFeedProxies: function(connection) {
         // Remove all proxies and start over
-        let providers = readDiscoveryFeedProvidersInDataDirectories();
-        return instantiateObjectsFromDiscoveryFeedProviders(connection,
-                                                            providers)
-        .then(Lang.bind(this, function(promises) {
-            this._discoveryFeedProxies = promises.map(([error, proxy]) => {
-                if (error) {
-                    logError(error, 'Could not create proxy');
-                    return null;
-                }
-
-                return proxy;
-            }).filter(proxy => proxy);
+        return promisifyGIO(EosDiscoveryFeed,
+                            'find_providers',
+                            'find_providers_finish',
+                            null).then(providers =>
+            instantiateObjectsFromDiscoveryFeedProviders(connection, providers)
+        ).then(Lang.bind(this, function(proxies) {
+            this._discoveryFeedProxies = proxies;
             return this._discoveryFeedProxies;
         }));
     },
@@ -1921,7 +1375,7 @@ const DiscoveryFeedApplication = new Lang.Class({
                 return Promise.resolve();
 
             return this._window.updateContentFromProxies(proxies);
-        }));
+        })).catch(e => logError(e, 'Show failed'));
     },
 
     hide: function() {
