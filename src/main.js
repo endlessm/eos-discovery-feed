@@ -510,6 +510,14 @@ function loadKnowledgeAppContent(app,
     }
 
     knowledgeSearchProxy.LoadItemRemote(uri, '', timestamp, function(result, excp) {
+        // Explicitly quit the application once we're done calling
+        // the method on the proxy. The application itself might fail
+        // to load, which means that we would not lose focus and close
+        // implicitly.
+        //
+        // https://phabricator.endlessm.com/T22288
+        Gio.Application.get_default().quit()
+
         if (!excp)
             return;
         logError(excp,
@@ -1187,6 +1195,17 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             shellProxy.LaunchRemote('org.gnome.Software.desktop',
                                     Gtk.get_current_event_time(),
                                     (result, excp) => {
+                                        // Explicitly quit the application
+                                        // once we're done calling
+                                        // the method on the proxy. The
+                                        // application itself might fail
+                                        // to load, which means that we
+                                        // would not lose focus and close
+                                        // implicitly.
+                                        //
+                                        // https://phabricator.endlessm.com/T22288
+                                        Gio.Application.get_default().quit()
+
                                         if (!excp)
                                             return;
                                         logError(excp,
