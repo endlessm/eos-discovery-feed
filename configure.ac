@@ -70,7 +70,6 @@ EOS_ESLINT
 # Substitute variables
 AC_SUBST(GLIB_COMPILE_RESOURCES)
 
-AC_CONFIG_HEADERS([libfeed/config.h])  dnl Header with system-dependent #defines
 AC_CONFIG_FILES([
     Makefile
     po/Makefile.in
