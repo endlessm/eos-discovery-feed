@@ -30,6 +30,16 @@
     ],
     "modules": [
         {
+            "name": "libcontentfeed",
+            "buildsystem": "meson",
+            "sources": [
+                {
+                    "url": "git://github.com/endlessm/libcontentfeed",
+                    "type": "git"
+                }
+            ]
+        },
+        {
             "name": "eos-discovery-feed",
             "run-tests": "@RUN_TESTS@",
             "sources": [
