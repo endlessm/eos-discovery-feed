@@ -1138,11 +1138,11 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
                         null,
                         Gio.DBusCallFlags.NONE,
                         -1,
-                        null).then(results => results.unpack()).then(results =>
+                        null).then(results => results.deep_unpack()).then(results =>
         results.map(response => new EosDiscoveryFeed.OrderableModel({
             type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
-            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.unpack().slice(0, N_APPS_TO_DISPLAY).map(entry =>
+            model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
                     app_id: entry.id.get_string()[0],
                     title: entry.name.get_string()[0],
