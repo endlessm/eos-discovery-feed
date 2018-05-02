@@ -20,6 +20,7 @@
         "--filesystem=host:ro",
         "--own-name=com.endlessm.DiscoveryFeed",
         "--talk-name=ca.desrt.dconf",
+        "--talk-name=com.endlessm.EknServices3.SearchProviderV3",
         "--talk-name=com.endlessm.EknServices2.SearchProviderV2",
         "--talk-name=com.endlessm.EknServices.SearchProviderV1",
         "--talk-name=org.gnome.Software",
