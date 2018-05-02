@@ -25,6 +25,8 @@
 #include <eos-shard/eos-shard-shard-file.h>
 #include <eos-shard/eos-shard-record.h>
 
+#include <libsoup/soup.h>
+
 #include "feed-all-async-tasks-private.h"
 #include "feed-base-card-store.h"
 #include "feed-card-layout-direction.h"
@@ -119,12 +121,23 @@ call_dbus_proxy_and_construct_from_model (GDBusProxy           *proxy,
 }
 
 static gchar *
-remove_uri_prefix (const gchar *uri, const gchar *prefix)
+strip_leading_slashes (const gchar *str)
 {
-  g_autoptr(GFile) uri_parent = g_file_new_for_uri (prefix);
-  g_autoptr(GFile) uri_file = g_file_new_for_uri (uri);
+  const gchar *strp = str;
 
-  return g_file_get_relative_path (uri_parent, uri_file);
+  while (*strp == '/')
+    ++strp;
+
+  return g_strdup (strp);
+}
+
+static gchar *
+remove_uri_prefix (const gchar *uri)
+{
+  g_autoptr(SoupURI) soup_uri = soup_uri_new (uri);
+  const gchar *path = soup_uri_get_path (soup_uri);
+
+  return strip_leading_slashes (path);
 }
 
 static GInputStream *
@@ -132,7 +145,7 @@ find_thumbnail_stream_in_shards (const gchar * const  *shards_strv,
                                  const gchar          *thumbnail_uri)
 {
   const gchar * const *iter = shards_strv;
-  g_autofree gchar *normalized = remove_uri_prefix (thumbnail_uri, "ekn://");
+  g_autofree gchar *normalized = remove_uri_prefix (thumbnail_uri);
 
   for (; *iter != NULL; ++iter) {
     g_autoptr(EosShardShardFile) shard_file = NULL;
