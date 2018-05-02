@@ -59,6 +59,25 @@ all_tasks_results_closure_allocate_new_result_slot (AllTasksResultsClosure *clos
   return last_len;
 }
 
+void
+all_tasks_results_return_now (AllTasksResultsClosure *closure)
+{
+  g_assert (closure->remaining == 0);
+
+  /* This will call into the callback immediately, since results
+   * are registered in a different main context iteration */
+  g_task_return_pointer (closure->task,
+                         g_steal_pointer (&closure->results),
+                         (GDestroyNotify) g_ptr_array_unref);
+  all_tasks_results_closure_free (closure);
+}
+
+gboolean
+all_tasks_results_has_tasks_remaining (AllTasksResultsClosure *closure)
+{
+  return closure->remaining > 0;
+}
+
 static void
 all_tasks_results_register_result (AllTasksResultsClosure *closure,
                                    GAsyncResult           *result,
@@ -69,14 +88,7 @@ all_tasks_results_register_result (AllTasksResultsClosure *closure,
   g_ptr_array_index (closure->results, index) = g_object_ref (result);
 
   if (--closure->remaining == 0)
-    {
-      /* This will call into the callback immediately, since results
-       * are registered in a different main context iteration */
-      g_task_return_pointer (closure->task,
-                             g_steal_pointer (&closure->results),
-                             (GDestroyNotify) g_ptr_array_unref);
-      all_tasks_results_closure_free (closure);
-    }
+    all_tasks_results_return_now (closure);
 }
 
 struct _IndividualTaskResultClosure
