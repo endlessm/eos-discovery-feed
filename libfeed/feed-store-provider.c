@@ -135,8 +135,15 @@ static gchar *
 remove_uri_prefix (const gchar *uri)
 {
   g_autoptr(SoupURI) soup_uri = soup_uri_new (uri);
-  const gchar *path = soup_uri_get_path (soup_uri);
+  const gchar *path = NULL;
 
+  if (soup_uri == NULL)
+    {
+      g_message ("Expected %s to be a URI, but it was not, continuing anyway", uri);
+      return strip_leading_slashes (uri);
+    }
+
+  path = soup_uri_get_path (soup_uri);
   return strip_leading_slashes (path);
 }
 
