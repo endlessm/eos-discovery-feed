@@ -622,7 +622,7 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
 
         this.title_label.label = this.title;
         this.app_label.label = this.app_name;
-        this.duration.label = this.duration;
+        this.duration_label.label = this.duration;
     }
 });
 
