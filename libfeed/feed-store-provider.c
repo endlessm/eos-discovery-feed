@@ -789,6 +789,9 @@ append_discovery_feed_word_quote_from_proxies (EosDiscoveryFeedKnowledgeAppProxy
                                  cancellable,
                                  individual_task_result_completed,
                                  individual_task_result_closure_new (all_tasks_closure));
+
+  if (!all_tasks_results_has_tasks_remaining (all_tasks_closure))
+    all_tasks_results_return_now (all_tasks_closure);
 }
 
 static void
@@ -864,6 +867,9 @@ unordered_card_arrays_from_queries (GPtrArray           *ka_proxies,
                                                      individual_task_result_completed,
                                                      individual_task_result_closure_new (all_tasks_closure));
     }
+
+  if (!all_tasks_results_has_tasks_remaining (all_tasks_closure))
+    all_tasks_results_return_now (all_tasks_closure);
 }
 
 static void

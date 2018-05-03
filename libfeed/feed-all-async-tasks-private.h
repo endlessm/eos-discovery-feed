@@ -41,6 +41,18 @@ G_BEGIN_DECLS
  * as a #GPtrArray to the #GAsyncReadyCallback specified in
  * all_tasks_results_closure_new.
  *
+ * The caller that sets up all the async tasks must call
+ * all_tasks_results_return_now() once it is done with whatever would add async
+ * tasks and no async tasks were actually added. That will cause the closure
+ * to return on the next idle if there were no tasks to be done. Otherwise,
+ * #AllTasksResultsClosure will wait indefinitely for a task to be added.
+ *
+ * Callers generally should not add more tasks to the closure once
+ * all_tasks_results_maybe_return_now() has been called
+ * as there is a potential for a race condition where the closure
+ * will return on the next idle if no tasks were registered before even
+ * if it would strictly-speaking have work to do on the next idle tick.
+ *
  * You would use the code in this way:
  *
  * {{{
@@ -97,6 +109,9 @@ G_BEGIN_DECLS
  *      launch_other_some_task (cancellable,
  *                              individual_task_result_completed,
  *                              individual_task_result_closure_new (all_tasks_closure));
+ *
+ *      if (!all_tasks_results_has_tasks_remaining (all_tasks_closure))
+ *        all_tasks_results_return_now (all_tasks_closure);
  *    }
  *
  * }}}
@@ -107,6 +122,8 @@ typedef struct _IndividualTaskResultClosure IndividualTaskResultClosure;
 AllTasksResultsClosure * all_tasks_results_closure_new (GDestroyNotify      result_free_func,
                                                         GAsyncReadyCallback callback,
                                                         gpointer            user_data);
+gboolean all_tasks_results_has_tasks_remaining (AllTasksResultsClosure *closure);
+void all_tasks_results_return_now (AllTasksResultsClosure *closure);
 
 IndividualTaskResultClosure * individual_task_result_closure_new (AllTasksResultsClosure *all_tasks_closure);
 
