@@ -595,14 +595,12 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         ''),
-        duration: GObject.ParamSpec.int('duration',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        0,
-                                        GLib.MAXINT32,
-                                        0),
+        duration: GObject.ParamSpec.string('duration',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           ''),
         app_name: GObject.ParamSpec.string('app-name',
                                            '',
                                            '',
@@ -624,7 +622,7 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
 
         this.title_label.label = this.title;
         this.app_label.label = this.app_name;
-        this.duration.label = parseDuration(this.duration);
+        this.duration_label.label = this.duration;
     }
 });
 
