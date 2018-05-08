@@ -481,6 +481,7 @@ const DiscoveryFeedAppStoreDescription = new Lang.Class({
 
 const CONTENT_PREVIEW_SMALL = 200;
 const CONTENT_PREVIEW_MID = 300;
+const CONTENT_PREVIEW_TALL = 470; // 16:9 aspect ratio for width of 830
 
 const DiscoveryFeedContentPreview = new Lang.Class({
     Name: 'DiscoveryFeedContentPreview',
@@ -711,7 +712,7 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
             app_name: this._app.get_display_name().toUpperCase(),
             content: new DiscoveryFeedContentPreview({
                 image_stream: this.model.thumbnail,
-                min_height: CONTENT_PREVIEW_MID
+                min_height: CONTENT_PREVIEW_TALL
             })
         });
     },
