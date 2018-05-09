@@ -81,6 +81,7 @@ const DiscoveryFeedIface = '\
     <method name="hide"> \
       <arg type="u" direction="in" name="timestamp"/> \
     </method> \
+    <method name="notifyHideAnimationCompleted" /> \
     <property name="Visible" type="b" access="read"/> \
   </interface> \
 </node>';
@@ -483,6 +484,24 @@ function recordMetricsEvent(eventId, payload) {
     EosMetrics.EventRecorder.get_default().record_event(eventId, payload);
 }
 
+// hideWindowThenExecute
+//
+// Hide the discovery feed window then execute some
+// action. This is necessary in the cases where we
+// need to ensure that the focus changed before doing
+// some action (such as showing splash screens).
+function hideWindowThenExecute(callback) {
+    let application = Gio.Application.get_default();
+    let connection = application.connect('hidden', Lang.bind(this, function() {
+        callback();
+        application.disconnect(connection);
+        application.release();
+    }));
+
+    application.hold();
+    application.active_window.hide();
+}
+
 
 // loadKnowledgeAppContent
 //
@@ -509,29 +528,29 @@ function loadKnowledgeAppContent(app,
         return;
     }
 
-    knowledgeSearchProxy.LoadItemRemote(uri, '', timestamp, function(result, excp) {
-        if (!excp)
-            return;
-        logError(excp,
-                 'Could not load app with article ' +
-                 uri +
-                 ' fallback to just launch the app through the shell, trace');
-        shellProxy.LaunchRemote(desktopId, timestamp, function(result, excp) {
-            if (!excp)
-              return;
-
-            logError(excp,
-                     'Failed to launch app ' + desktopId + ' through the shell');
-        });
-    });
-
-    // Explicitly hide the application once we called the
+    // Explicitly hide the application before we call the
     // the method on the proxy. The application itself might fail
     // to load (or take way too long to load), which means that we would
     // not lose focus and close implicitly.
     //
     // https://phabricator.endlessm.com/T22288
-    Gio.Application.get_default().active_window.hide();
+    hideWindowThenExecute(function() {
+        knowledgeSearchProxy.LoadItemRemote(uri, '', timestamp, function(result, excp) {
+	        if (!excp)
+	            return;
+	        logError(excp,
+	                 'Could not load app with article ' +
+	                 uri +
+	                 ' fallback to just launch the app through the shell, trace');
+	        shellProxy.LaunchRemote(desktopId, timestamp, function(result, excp) {
+                if (!excp)
+                    return;
+
+                logError(excp,
+                         'Failed to launch app ' + desktopId + ' through the shell');
+            });
+        });
+    });
 }
 
 // createMetaCallProxy
@@ -1189,25 +1208,25 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
         });
         this.add(card);
         card.connect('clicked', Lang.bind(this, function() {
-            // We can't use g_desktop_app_info_launch to launch
-            // GNOME-Software directly, instead use the shell's
-            // interface to do that
-            shellProxy.LaunchRemote('org.gnome.Software.desktop',
-                                    Gtk.get_current_event_time(),
-                                    (result, excp) => {
-                                        if (!excp)
-                                            return;
-                                        logError(excp,
-                                                 'Could not launch org.gnome.Software');
-                                    });
-
-            // Explicitly hide the application once we called the
+            // Explicitly hide the application before we call the
             // the method on the proxy. The application itself might fail
             // to load (or take way too long to load), which means that we would
             // not lose focus and close implicitly.
             //
             // https://phabricator.endlessm.com/T22288
-            Gio.Application.get_default().active_window.hide();
+            hideWindowThenExecute(function() {
+                // We can't use g_desktop_app_info_launch to launch
+                // GNOME-Software directly, instead use the shell's
+                // interface to do that
+                shellProxy.LaunchRemote('org.gnome.Software.desktop',
+                                        Gtk.get_current_event_time(),
+                                        (result, excp) => {
+                                            if (!excp)
+                                                return;
+                                            logError(excp,
+                                                     'Could not launch org.gnome.Software');
+                                        });
+            });
         }));
     }
 });
@@ -1770,6 +1789,9 @@ const AUTO_CLOSE_MILLISECONDS_TIMEOUT = 12000;
 const DiscoveryFeedApplication = new Lang.Class({
     Name: 'DiscoveryFeedApplication',
     Extends: Gtk.Application,
+    Signals: {
+        'hidden': { }
+    },
 
     _init: function() {
         this.parent({
@@ -1949,6 +1971,10 @@ const DiscoveryFeedApplication = new Lang.Class({
 
     hide: function() {
         this._window.close('lost_focus');
+    },
+
+    notifyHideAnimationCompleted: function() {
+        this.emit('hidden');
     },
 
     _onVisibilityChanged: function() {
