@@ -28,7 +28,7 @@ Package: eos-discovery-feed
 Section: non-free/libs
 Architecture: any
 Depends: ${misc:Depends},
-         gir1.2-contentfeed-0,
+         gir1.2-libcontentfeed-0,
          gir1.2-glib-2.0,
          gir1.2-gtk-3.0,
          gir1.2-eos-shard-0,
