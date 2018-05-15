@@ -15,13 +15,13 @@ describe('Discovery Feed', function() {
         it('removes content in parens', function() {
             expect(TextSanitization.synopsis('Foo (content) bar.')).toEqual('Foo bar.');
         });
-        it('only shows the first two sentences if the text is longer than 60 chars', function() {
-            let input = 'Foo bar. Foo bar. Foo bar' + Array(60).join('x');
+        it('only shows the first two sentences if the text is longer than 160 chars', function() {
+            let input = 'Foo bar. Foo bar. Foo bar' + Array(160).join('x');
             expect(TextSanitization.synopsis(input)).toEqual('Foo bar. Foo bar.');
         });
-        it('shows the first N sentences under 60 chars', function() {
-            let input = Array(10).join('Foo bar. ').trim();
-            expect(TextSanitization.synopsis(input)).toEqual(Array(7).join('Foo bar. ').trim());
+        it('shows the first N sentences under 160 chars', function() {
+            let input = Array(18).join('Foo barr. ').trim();
+            expect(TextSanitization.synopsis(input)).toEqual(Array(17).join('Foo barr. ').trim());
         });
         it('does not insert a final period on empty strings', function() {
             let input = '';
