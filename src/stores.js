@@ -4,7 +4,7 @@
 //
 // This file contains the model state for all the cards.
 
-const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
+const ContentFeed = imports.gi.ContentFeed;
 const Gio = imports.gi.Gio;
 const GObject = imports.gi.GObject;
 
@@ -14,14 +14,14 @@ const Lang = imports.lang;
 var DiscoveryFeedAvailableAppsStore = new Lang.Class({
     Name: 'DiscoveryFeedAvailableAppsStore',
     Extends: GObject.Object,
-    Implements: [EosDiscoveryFeed.BaseCardStore],
+    Implements: [ContentFeed.BaseCardStore],
     Properties: {
         type: GObject.ParamSpec.enum('type',
                                      '',
                                      '',
                                      GObject.ParamFlags.READABLE,
-                                     EosDiscoveryFeed.CardStoreType.$gtype,
-                                     EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS)
+                                     ContentFeed.CardStoreType.$gtype,
+                                     ContentFeed.CardStoreType.AVAILABLE_APPS)
     },
 
     _init: function(params, apps) {
@@ -30,7 +30,7 @@ var DiscoveryFeedAvailableAppsStore = new Lang.Class({
     },
 
     get type() {
-        return EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS;
+        return ContentFeed.CardStoreType.AVAILABLE_APPS;
     }
 });
 
@@ -75,9 +75,9 @@ var DiscoveryFeedAppStore = new Lang.Class({
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST)
+                                                ContentFeed.CardLayoutDirection.IMAGE_FIRST,
+                                                ContentFeed.CardLayoutDirection.IMAGE_LAST,
+                                                ContentFeed.CardLayoutDirection.IMAGE_FIRST)
     }
 });
 
@@ -92,7 +92,7 @@ var DiscoveryFeedAppStoreLinkStore = new Lang.Class({
         params.thumbnail_data = Gio.File.new_for_uri(thumbnail_uri).read(null);
         params.app_id = 'org.gnome.Software';
         params.type = DISCOVERY_FEED_APP_TYPE_APP_STORE_LINK;
-        params.layout_direction = EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST;
+        params.layout_direction = ContentFeed.CardLayoutDirection.IMAGE_LAST;
         this.parent(params);
     }
 });
@@ -118,7 +118,7 @@ var DiscoveryFeedInstallableAppStore = new Lang.Class({
 
     _init: function(params) {
         params.type = DISCOVERY_FEED_APP_TYPE_DETAILED;
-        params.layout_direction = EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST;
+        params.layout_direction = ContentFeed.CardLayoutDirection.IMAGE_LAST;
         this.parent(params);
     }
 });
