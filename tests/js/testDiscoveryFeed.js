@@ -27,5 +27,9 @@ describe('Discovery Feed', function() {
             let input = '';
             expect(TextSanitization.synopsis(input)).toEqual('');
         });
+        it('shows a very long sentence between over 160 chars', function() {
+            let input = Array(22).join('Fooo barr ').trim();
+            expect(TextSanitization.synopsis(input)).toEqual(Array(22).join('Fooo barr ').trim() + '.');
+        });
     });
 });
