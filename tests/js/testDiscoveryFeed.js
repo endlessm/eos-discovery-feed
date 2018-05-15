@@ -15,9 +15,13 @@ describe('Discovery Feed', function() {
         it('removes content in parens', function() {
             expect(TextSanitization.synopsis('Foo (content) bar.')).toEqual('Foo bar.');
         });
-        it('only shows the first two sentences', function() {
-            let input = 'Foo bar. Foo bar. Foo bar.';
+        it('only shows the first two sentences if the text is longer than 60 chars', function() {
+            let input = 'Foo bar. Foo bar. Foo bar' + ('x' * 60);
             expect(TextSanitization.synopsis(input)).toEqual('Foo bar. Foo bar.');
+        });
+        it('shows the first N sentences under 60 chars', function() {
+            let input = ('Foo bar. ' * 10).trim();
+            expect(TextSanitization.synopsis(input)).toEqual(('Foo bar. ' * 7).trim());
         });
     });
 });
