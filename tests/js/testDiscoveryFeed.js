@@ -23,5 +23,9 @@ describe('Discovery Feed', function() {
             let input = Array(10).join('Foo bar. ').trim();
             expect(TextSanitization.synopsis(input)).toEqual(Array(7).join('Foo bar. ').trim());
         });
+        it('does not insert a final period on empty strings', function() {
+            let input = '';
+            expect(TextSanitization.synopsis(input)).toEqual('');
+        });
     });
 });
