@@ -14,7 +14,7 @@ pkg.require({
     GLib: '2.0',
 });
 
-const EosDiscoveryFeed = imports.gi.EosDiscoveryFeed;
+const ContentFeed = imports.gi.ContentFeed;
 const EosShard = imports.gi.EosShard;
 const EosMetrics = imports.gi.EosMetrics;
 const Gdk = imports.gi.Gdk;
@@ -159,7 +159,7 @@ function allSettledPromises(promises) {
 }
 
 function instantiateObjectsFromDiscoveryFeedProviders(connection, providers) {
-    return promisifyGIO(EosDiscoveryFeed,
+    return promisifyGIO(ContentFeed,
                         'instantiate_proxies_from_discovery_feed_providers',
                         'instantiate_proxies_from_discovery_feed_providers_finish',
                         connection,
@@ -577,9 +577,9 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
                                                 '',
                                                 GObject.ParamFlags.READWRITE |
                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST,
-                                                EosDiscoveryFeed.CardLayoutDirection.IMAGE_FIRST)
+                                                ContentFeed.CardLayoutDirection.IMAGE_FIRST,
+                                                ContentFeed.CardLayoutDirection.IMAGE_LAST,
+                                                ContentFeed.CardLayoutDirection.IMAGE_FIRST)
     },
     Template: 'resource:///com/endlessm/DiscoveryFeed/content-card-layout.ui',
 
@@ -589,7 +589,7 @@ const DiscoveryFeedContentCardLayout = new Lang.Class({
         this.add(this.description);
         // If this is an odd card, adjust the packing order of all widgets
         // in the box
-        if (this.layout_direction == EosDiscoveryFeed.CardLayoutDirection.IMAGE_LAST) {
+        if (this.layout_direction == ContentFeed.CardLayoutDirection.IMAGE_LAST) {
             this.get_children().forEach(Lang.bind(this, function(child) {
                 this.child_set_property(child,
                                         'pack-type',
@@ -655,7 +655,7 @@ const DiscoveryFeedKnowledgeAppCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        EosDiscoveryFeed.KnowledgeAppCardStore.$gtype)
+                                        ContentFeed.KnowledgeAppCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -721,7 +721,7 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        EosDiscoveryFeed.KnowledgeAppVideoCardStore.$gtype)
+                                        ContentFeed.KnowledgeAppVideoCardStore.$gtype)
     },
 
     createLayout: function() {
@@ -750,7 +750,7 @@ const DiscoveryFeedKnowledgeArtworkCard = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        EosDiscoveryFeed.KnowledgeAppArtworkCardStore.$gtype)
+                                        ContentFeed.KnowledgeAppArtworkCardStore.$gtype)
     },
 
     _init: function(params) {
@@ -785,7 +785,7 @@ const DiscoveryFeedWordQuotePair = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        EosDiscoveryFeed.WordQuoteCardStore.$gtype)
+                                        ContentFeed.WordQuoteCardStore.$gtype)
     },
     Children: [
         'word',
@@ -830,8 +830,8 @@ const DiscoveryFeedInstallableAppCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE,
-                    min_height: EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE
+                    min_width: ContentFeed.THUMBNAIL_SIZE_APP_STORE,
+                    min_height: ContentFeed.THUMBNAIL_SIZE_APP_STORE
                 }),
                 description: new DiscoveryFeedAppStoreDescription({
                     app_name: this.model.title,
@@ -895,8 +895,8 @@ const DiscoveryFeedAppStoreLinkCard = new Lang.Class({
             content: new DiscoveryFeedContentCardLayout({
                 content: new DiscoveryFeedContentPreview({
                     image_stream: this.model.thumbnail_data,
-                    min_width: EosDiscoveryFeed.THUMBNAIL_WIDTH_APP_STORE_LINK,
-                    min_height: EosDiscoveryFeed.THUMBNAIL_SIZE_APP_STORE,
+                    min_width: ContentFeed.THUMBNAIL_WIDTH_APP_STORE_LINK,
+                    min_height: ContentFeed.THUMBNAIL_SIZE_APP_STORE,
                     has_alpha: true
                 }),
                 description: new DiscoveryFeedAppStoreLink({
@@ -981,17 +981,17 @@ const DiscoveryFeedListItem = new Lang.Class({
 function contentViewFromType(type, store) {
     let params = { model: store };
     switch (type) {
-    case EosDiscoveryFeed.CardStoreType.ARTICLE_CARD:
+    case ContentFeed.CardStoreType.ARTICLE_CARD:
         return new DiscoveryFeedKnowledgeAppCard(params);
-    case EosDiscoveryFeed.CardStoreType.NEWS_CARD:
+    case ContentFeed.CardStoreType.NEWS_CARD:
         return new DiscoveryFeedKnowledgeAppCard(params);
-    case EosDiscoveryFeed.CardStoreType.WORD_QUOTE_CARD:
+    case ContentFeed.CardStoreType.WORD_QUOTE_CARD:
         return new DiscoveryFeedWordQuotePair(params);
-    case EosDiscoveryFeed.CardStoreType.ARTWORK_CARD:
+    case ContentFeed.CardStoreType.ARTWORK_CARD:
         return new DiscoveryFeedKnowledgeArtworkCard(params);
-    case EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS:
+    case ContentFeed.CardStoreType.AVAILABLE_APPS:
         return new DiscoveryFeedAvailableAppsCard(params);
-    case EosDiscoveryFeed.CardStoreType.VIDEO_CARD:
+    case ContentFeed.CardStoreType.VIDEO_CARD:
         return new DiscoveryFeedKnowledgeVideoCard(params);
     default:
         throw new Error('Card type ' + type + ' not recognized');
@@ -1039,7 +1039,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
         this._alive = true;
         this._cardModel = new Gio.ListStore({
-            item_type: EosDiscoveryFeed.BaseCardStore.$gtype
+            item_type: ContentFeed.BaseCardStore.$gtype
         });
         this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
@@ -1111,7 +1111,7 @@ const DiscoveryFeedMainWindow = new Lang.Class({
 
                 // If we show a card that is not the available apps card,
                 // we'll want to show the 'recommended content' text now.
-                if (descriptor.type !== EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS) {
+                if (descriptor.type !== ContentFeed.CardStoreType.AVAILABLE_APPS) {
                     this.recommended.show();
                 }
             });
@@ -1154,8 +1154,8 @@ function appendDiscoveryFeedInstallableAppsFromProxy(proxy) {
                         Gio.DBusCallFlags.NONE,
                         -1,
                         null).then(results => results.deep_unpack()).then(results =>
-        results.map(response => new EosDiscoveryFeed.OrderableModel({
-            type: EosDiscoveryFeed.CardStoreType.AVAILABLE_APPS,
+        results.map(response => new ContentFeed.OrderableModel({
+            type: ContentFeed.CardStoreType.AVAILABLE_APPS,
             source: proxy.desktopId,
             model: new Stores.DiscoveryFeedAvailableAppsStore({}, response.slice(0, N_APPS_TO_DISPLAY).map(entry =>
                 new Stores.DiscoveryFeedInstallableAppStore({
@@ -1183,7 +1183,7 @@ function discoveryFeedCardsFromQueries(proxies) {
             pendingPromises.push(appendDiscoveryFeedInstallableAppsFromProxy(proxy));
             break;
 
-        // All of these are now handled by EosDiscoveryFeed.unordered_results_from_queries
+        // All of these are now handled by ContentFeed.unordered_results_from_queries
         case 'com.endlessm.DiscoveryFeedContent':
         case 'com.endlessm.DiscoveryFeedNews':
         case 'com.endlessm.DiscoveryFeedVideo':
@@ -1197,11 +1197,11 @@ function discoveryFeedCardsFromQueries(proxies) {
         }
     });
 
-    pendingPromises.push(promisifyGIO(EosDiscoveryFeed,
+    pendingPromises.push(promisifyGIO(ContentFeed,
                                       'unordered_results_from_queries',
                                       'unordered_results_from_queries_finish',
                                       libfeedProxies.map(proxy =>
-                                          new EosDiscoveryFeed.KnowledgeAppProxy({
+                                          new ContentFeed.KnowledgeAppProxy({
                                               'dbus-proxy': proxy.dbus_proxy,
                                               'desktop-id': proxy.desktopId,
                                               'knowledge-search-object-path': proxy.knowledgeSearchObjectPath,
@@ -1229,8 +1229,8 @@ function discoveryFeedCardsFromQueries(proxies) {
         // Flat map, since we get a list list from promise
         .reduce((a, b) => a.concat(b), []);
 
-        return EosDiscoveryFeed.arrange_orderable_models(models,
-                                                         EosDiscoveryFeed.ArrangeOrderableModelsFlags.ARRANGE_ORDERABLE_MODEL_FLAGS_INCLUDE_INSTALLABLE_APPS);
+        return ContentFeed.arrange_orderable_models(models,
+                                                    ContentFeed.ArrangeOrderableModelsFlags.ARRANGE_ORDERABLE_MODEL_FLAGS_INCLUDE_INSTALLABLE_APPS);
     });
 
 }
@@ -1276,7 +1276,7 @@ const DiscoveryFeedApplication = new Lang.Class({
     // caller. For convenience, the promise resolves with proxies.
     _refreshDiscoveryFeedProxies: function(connection) {
         // Remove all proxies and start over
-        return promisifyGIO(EosDiscoveryFeed,
+        return promisifyGIO(ContentFeed,
                             'find_providers',
                             'find_providers_finish',
                             null).then(providers =>
