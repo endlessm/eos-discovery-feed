@@ -117,15 +117,6 @@
                         </style>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkLabel" id="duration-label">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <style>
-                          <class name="small-header" />
-                        </style>
-                      </object>
-                    </child>
                   </object>
                 </child>
                 <child>
