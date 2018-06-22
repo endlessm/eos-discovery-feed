@@ -43,7 +43,7 @@ msgstr "%e. %B"
 #. year)
 #: ../src/main.js:1182
 msgid "today is %B %e, %Y"
-msgstr "heute ist der %e. %B, %Y"
+msgstr "Heute ist der %e. %B, %Y"
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"

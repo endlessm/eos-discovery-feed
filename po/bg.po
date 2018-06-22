@@ -10,6 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
 "POT-Creation-Date: 2017-09-07 22:49-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Jordan Nenov <alabalistic@gmail.com>, 2018\n"
 "Language-Team: Bulgarian (https://www.transifex.com/endless-os/teams/9016/bg/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,35 +20,35 @@ msgstr ""
 
 #: ../data/available-apps.ui.h:1
 msgid "Install some apps to discover great content!"
-msgstr ""
+msgstr "Инсталирай няколко приложения за да откриеш страхотно съдържание "
 
 #: ../data/main.ui.h:1
 msgid "RECOMMENDED STORIES"
-msgstr ""
+msgstr "Препоръчани истирии"
 
 #: ../data/word-quote-pair.ui.h:1
 msgid "QUOTE OF THE DAY"
-msgstr ""
+msgstr "Цитат на деня"
 
 #: ../data/word-quote-pair.ui.h:2
 msgid "WORD OF THE DAY"
-msgstr ""
+msgstr "Дума на деня"
 
 #. Translators: main date header (%B = month name, %e = day number)
 #: ../src/main.js:1178
 msgid "%B %e"
-msgstr ""
+msgstr "%e"
 
 #. Translators: scrolled date header (%B = month name, %e = day number, %Y =
 #. year)
 #: ../src/main.js:1182
 msgid "today is %B %e, %Y"
-msgstr ""
+msgstr "Днес е "
 
 #: ../src/main.js:1613
 msgid "Discovery Feed"
-msgstr ""
+msgstr "Нови и интересни"
 
 #: ../src/stores.js:305
 msgid "Explore the App Center"
-msgstr ""
+msgstr "Разгледай каталога"
