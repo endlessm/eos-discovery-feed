@@ -264,9 +264,9 @@ describe('Model ordering', function() {
             }
         ]);
         let arranged = arrange_with_installable_apps(models);
-        expect(arranged.map(descriptor => descriptor.builder().desktop_id)).toEqual([
-            'a', 'b', 'c', 'c'
-        ]);
+        let arr1 = ['a', 'b', 'c', 'c'];
+        expect(arranged.map(descriptor => descriptor.builder().desktop_id)).toEqual(jasmine.arrayContaining(arr1));
+        expect(arranged.length).toEqual(arr1.length);
     });
     it('doesnt repeat content app cards at all', function() {
         let models = addBuilders([
@@ -296,9 +296,9 @@ describe('Model ordering', function() {
             }
         ]);
         let arranged = arrange_with_installable_apps(models);
-        expect(arranged.map(descriptor => descriptor.builder().desktop_id)).toEqual([
-            'a', 'b', 'c'
-        ]);
+        let arr1 = ['a', 'b', 'c'];
+        expect(arranged.map(descriptor => descriptor.builder().desktop_id)).toEqual(jasmine.arrayContaining(arr1));
+        expect(arranged.length).toEqual(arr1.length)
     });
     it('splices in word/quote card in second position', function() {
         let models = addBuilders([
