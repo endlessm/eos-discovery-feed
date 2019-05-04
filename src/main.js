@@ -1043,12 +1043,14 @@ const DiscoveryFeedMainWindow = new Lang.Class({
         });
         this.cards.bind_model(this._cardModel, populateCardsListFromStore);
 
+        let now = GLib.DateTime.new_now_local();
+
         // Translators: main date header (%B = month name, %e = day number)
-        this.expanded_date.label = (new Date()).toLocaleFormat(_("%B %e")).toLowerCase();
+        this.expanded_date.label = now.format(_("%B %e")).toLowerCase();
         this.expanded_date_revealer.set_reveal_child(true);
 
         // Translators: scrolled date header (%B = month name, %e = day number, %Y = year)
-        this.collapsed_date.label = (new Date()).toLocaleFormat(_("today is %B %e, %Y"));
+        this.collapsed_date.label = now.format(_("today is %B %e, %Y"));
 
         let vadjustment = this.scroll_view.vadjustment;
         vadjustment.connect('value-changed', Lang.bind(this, function() {
