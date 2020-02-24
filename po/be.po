@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: coding@endlessm.com\n"
-"POT-Creation-Date: 2017-09-07 22:49-0700\n"
+"POT-Creation-Date: 2020-02-24 15:19+0000\n"
 "PO-Revision-Date: 2017-09-02 18:31+0000\n"
 "Language-Team: Belarusian (https://www.transifex.com/endless-os/teams/9016/be/)\n"
 "MIME-Version: 1.0\n"
@@ -34,20 +34,20 @@ msgid "WORD OF THE DAY"
 msgstr ""
 
 #. Translators: main date header (%B = month name, %e = day number)
-#: ../src/main.js:1178
+#: ../src/main.js:1049
 msgid "%B %e"
 msgstr ""
 
 #. Translators: scrolled date header (%B = month name, %e = day number, %Y =
 #. year)
-#: ../src/main.js:1182
+#: ../src/main.js:1053
 msgid "today is %B %e, %Y"
 msgstr ""
 
-#: ../src/main.js:1613
+#: ../src/main.js:1255
 msgid "Discovery Feed"
 msgstr ""
 
-#: ../src/stores.js:305
+#: ../src/stores.js:91
 msgid "Explore the App Center"
 msgstr ""
