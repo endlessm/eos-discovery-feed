@@ -615,12 +615,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         ''),
-        duration: GObject.ParamSpec.string('duration',
-                                           '',
-                                           '',
-                                           GObject.ParamFlags.READWRITE |
-                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                           ''),
         app_name: GObject.ParamSpec.string('app-name',
                                            '',
                                            '',
@@ -632,7 +626,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
     Children: [
         'background-content',
         'title-label',
-        'duration-label',
         'app-label'
     ],
 
@@ -642,7 +635,6 @@ const DiscoveryFeedVideoCardLayout = new Lang.Class({
 
         this.title_label.label = this.title;
         this.app_label.label = this.app_name;
-        this.duration_label.label = this.duration;
     }
 });
 
@@ -727,7 +719,6 @@ const DiscoveryFeedKnowledgeVideoCard = new Lang.Class({
     createLayout: function() {
         return new DiscoveryFeedVideoCardLayout({
             title: this.model.title,
-            duration: this.model.duration,
             app_name: this._app.get_display_name().toUpperCase(),
             content: new DiscoveryFeedContentPreview({
                 image_stream: this.model.thumbnail,
